@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Upload — FNFPCE</title>
+  <style>
+    body { font-family: monospace; background: #020b18; color: #00d4ff; padding: 40px; }
+    h1 { font-size: 18px; margin-bottom: 20px; }
+    button { background: #00d4ff; color: #020b18; border: none; padding: 12px 28px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    #log { margin-top: 24px; font-size: 13px; line-height: 1.8; color: #e0f4ff; }
+    .ok  { color: #00ff88; }
+    .err { color: #ff6080; }
+  </style>
+</head>
+<body>
+  <h1>// FNFPCE — Carga inicial de contadores a Firestore</h1>
+  <p style="color:rgba(0,212,255,0.5); margin-bottom:24px;">
+    Esta página sube los 114 contadores al Firestore una sola vez.<br>
+    Úsela solo cuando sea necesario actualizar la lista.
+  </p>
+  <button id="btnUpload" onclick="subirContadores()">Subir Contadores a Firebase</button>
+  <div id="log"></div>
+
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import { collection, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const log = (msg, tipo = '') => {
+      const div = document.getElementById('log');
+      div.innerHTML += `<div class="${tipo}">${msg}</div>`;
+    };
+
+    const CONTADORES = [
+      "Adriana Marcela Forero",
+      "Adriana Patricia Ramirez Vargas",
+      "Alberto Mario Parada Yancy",
+      "Alexander Villadiego Villadiego",
+      "Alicia Cordoba Balsero",
+      "Alvaro Hugo Torregrosa Sanchez",
+      "Ana Hermencia Castillo Sanchez",
+      "Andrea del Pilar Lopera Prada",
+      "Angie Natalia Antonio Murcia",
+      "Arelis de la Cruz Leon Acosta",
+      "Beatriz Garcia Avendano",
+      "Betty Alvarado Vasquez",
+      "Carlos Andres Moreno Crespo",
+      "Carlos Ernesto Gonzalez Lozano",
+      "Carlos Horacio Sierra Herrera",
+      "Chirles Catherine Castro Cucalon",
+      "Claudia Patricia Garcia Quintero",
+      "Claudia Patricia Parra Jimenez",
+      "Claudia Sofia Vega Carvajal",
+      "Claudia Tatiana Rodriguez Gallo",
+      "Darcis Barragan Galeano",
+      "David Zapata Sogamoso",
+      "Diana Milena Munoz Parra",
+      "Diana Pena Parra",
+      "Dionisio Rendon Sanchez",
+      "Edgar Eduardo Munoz Hernandez",
+      "Edison Gomez Runza",
+      "Elsa Zabala Cordoba",
+      "Fabian Arley Tavera Zarate",
+      "Fabian Mauricio Caicedo Ortiz",
+      "Feisal Arturo Beltran Erazo",
+      "Fernando Ovalle Bolivar",
+      "Franklin Velez Gomez",
+      "Fredy Alexander Castillo Alfonso",
+      "Fredy Giovanni Martinez Sarmiento",
+      "Gerardo Medina Badillo",
+      "Gina Johana Espeleta Maiguel",
+      "Giovanny Perez Rojas",
+      "Gloria Esperanza Pinilla Murillo",
+      "Gloria Estella Oviedo Torres",
+      "Guiomar Bettina Granados Vera",
+      "Heider Javier Blanchar Mejia",
+      "Henry Oswaldo Amaya Paez",
+      "Idalid Xiomara Chaves Lizarazo",
+      "Ivan Fernando Villanueva Ayure",
+      "Ivan Francisco Fernandez Sanchez",
+      "Jailton Javier Mendez Rojas",
+      "Jenny Paola Cepeda Galindo",
+      "Jesus David Castro Garcia",
+      "Jesus Maria Gonzalez",
+      "Jhon Andres Felipe Neira Mendez",
+      "Jhonny Alexander Fracica Piraban",
+      "Johana Paola Pabon Miranda",
+      "John Fredy Zambrano Marin",
+      "John Mauricio Carreno Moreno",
+      "Jonathan Tamayo Alvarez",
+      "Jorge Leonardo Meza Sanchez",
+      "Jose Yerson Campo Campo",
+      "Juan Pablo Ariza Barrera",
+      "Juan Pablo Pinilla Malagon",
+      "Juan Pablo Ramirez Garcia",
+      "Juan Sebastian Polania Herrera",
+      "Julio Eduardo Bernate Montes",
+      "Leidy Johanna Saldarriaga Giraldo",
+      "Leidys Quiroz Bedolla",
+      "Liliam Andrea Barajas Martinez",
+      "Liz Bernarda Lopez Ortega",
+      "Loren Sthefanny Moreno Contreras",
+      "Luis Antonio Mora Bernal",
+      "Luis Fernando Ditta Sanabria",
+      "Luz Adriana Velasquez Rios",
+      "Luz Marina Guevara Camargo",
+      "Marelis Fuentes de la Cruz",
+      "Maria Cristina Villalobos Molina",
+      "Maribel Romero",
+      "Marlenys Zuniga Arias",
+      "Martha Isabel Dominguez Castillo",
+      "Martha Lucia Quintero Garcia",
+      "Mayra Alejandra Guarin Arcila",
+      "Mayra Cristina Jimenez Olarte",
+      "Miguel Andres de Hoyos Tovio",
+      "Miguel Angel Rueda Gutierrez",
+      "Miguel Rojas Morales",
+      "Milena Constanza Mayor Montes",
+      "Milquiades Garavito Rodriguez",
+      "Monica Patricia Guerra Molina",
+      "Myriam Johana Cabezas Gutierrez",
+      "Nancy Elena Valenzuela Ascencio",
+      "Nohora Aide Grande Ballesteros",
+      "Nubia Prieto Ortegon",
+      "Omar Nelson Bejarano Rodriguez",
+      "Oscar Javier Rodriguez Bernate",
+      "Oscar Luis Leones Arias",
+      "Osmanny Julieth Cavieles Perez",
+      "Paola del Pilar Gasca Cardoso",
+      "Paula Carolina Mercado Torres",
+      "Ricardo Benito Rodriguez Rosales",
+      "Rubiela Garcia Vera",
+      "Ruth Yibeth Alvarez Borda",
+      "Sandra Marcela Rubio Quibano",
+      "Sandra Milena Garavito Melo",
+      "Sandra Patricia Vanegas Garzon",
+      "Solmar Edir Gomez Tellez",
+      "Valentina Dorado Munoz",
+      "Waldir Enrique Pertuz Lobo",
+      "Yamile Diaz Rubio",
+      "Yaneth Maritza Valderrama Franco",
+      "Yeimmy Lorena Gomez Martin",
+      "Yolima Paredes Reina",
+      "Yoni Ferney Bernal Martinez",
+      "Yury Karine Ortiz Bonilla"
+    ];
+
+    window.subirContadores = async function() {
+      const btn = document.getElementById('btnUpload');
+      btn.disabled = true;
+      log('Iniciando carga de ' + CONTADORES.length + ' contadores...');
+
+      try {
+        // Firestore admite max 500 escrituras por batch
+        const BATCH_SIZE = 400;
+        let subidos = 0;
+
+        for (let i = 0; i < CONTADORES.length; i += BATCH_SIZE) {
+          const batch = writeBatch(db);
+          const lote = CONTADORES.slice(i, i + BATCH_SIZE);
+
+          lote.forEach(nombre => {
+            const id = nombre.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+            const ref = doc(collection(db, 'contadores'), id);
+            batch.set(ref, { nombre, activo: true });
+          });
+
+          await batch.commit();
+          subidos += lote.length;
+          log(`✔ Lote subido: ${subidos}/${CONTADORES.length}`, 'ok');
+        }
+
+        log('', '');
+        log('✔ ¡Carga completa! ' + CONTADORES.length + ' contadores en Firestore.', 'ok');
+        log('Ya puede cerrar esta página.', 'ok');
+
+      } catch (err) {
+        log('✘ Error: ' + err.message, 'err');
+        btn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>
