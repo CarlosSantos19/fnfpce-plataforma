@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plataforma FNFPCE</title>
+  <link rel="stylesheet" href="/core/base.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+</head>
+<body>
+
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <div class="particles" id="particles"></div>
+
+  <div class="app-layout">
+
+    <!-- Sidebar (generado por components/sidebar.js) -->
+    <div id="sidebar-container"></div>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+
+      <!-- Header de bienvenida -->
+      <header class="page-header">
+        <div class="header-top">
+          <div class="header-status">
+            <span class="dot"></span>SISTEMA ACTIVO &nbsp;|&nbsp; ET2023
+          </div>
+          <div class="header-date" id="fecha-actual"></div>
+        </div>
+
+        <div class="welcome-block">
+          <p class="welcome-tag">// Bienvenido</p>
+          <h1 class="welcome-title">Plataforma de <span>Fondo de Financiación</span></h1>
+          <h2 class="welcome-subtitle">y Campañas Electorales</h2>
+          <p class="welcome-user">Sesión activa: <strong id="nombre-contador"></strong></p>
+        </div>
+      </header>
+
+      <!-- Separador -->
+      <div class="section-divider">
+        <span class="divider-line"></span>
+        <span class="divider-label">MÓDULOS DEL SISTEMA</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <!-- Tarjetas de módulos -->
+      <section class="modules-grid">
+
+        <div class="module-card" onclick="window.location.href='/modules/reparto/reparto.html'">
+          <div class="card-scan"></div>
+          <div class="card-icon">◈</div>
+          <div class="card-body">
+            <h3>Reparto</h3>
+            <p>Distribución y gestión de expedientes asignados al contador</p>
+          </div>
+          <div class="card-footer">
+            <span class="card-status"><span class="dot-sm"></span>Activo</span>
+            <span class="card-action">Acceder →</span>
+          </div>
+        </div>
+
+        <div class="module-card" onclick="window.location.href='/modules/asignaciones/asignaciones.html'">
+          <div class="card-scan"></div>
+          <div class="card-icon">◎</div>
+          <div class="card-body">
+            <h3>Asignaciones</h3>
+            <p>Consulta y seguimiento de casos asignados al sistema</p>
+          </div>
+          <div class="card-footer">
+            <span class="card-status"><span class="dot-sm"></span>Activo</span>
+            <span class="card-action">Acceder →</span>
+          </div>
+        </div>
+
+        <div class="module-card" onclick="window.location.href='/modules/actas/actas.html'">
+          <div class="card-scan"></div>
+          <div class="card-icon">◉</div>
+          <div class="card-body">
+            <h3>Actas</h3>
+            <p>Gestión de actas de entrega, control y seguimiento</p>
+          </div>
+          <div class="card-footer">
+            <span class="card-status"><span class="dot-sm"></span>Activo</span>
+            <span class="card-action">Acceder →</span>
+          </div>
+        </div>
+
+        <div class="module-card" onclick="window.location.href='/modules/cuentas/cuentas.html'">
+          <div class="card-scan"></div>
+          <div class="card-icon">◆</div>
+          <div class="card-body">
+            <h3>Cuentas</h3>
+            <p>Control y revisión de cuentas claras por entidad</p>
+          </div>
+          <div class="card-footer">
+            <span class="card-status"><span class="dot-sm"></span>Activo</span>
+            <span class="card-action">Acceder →</span>
+          </div>
+        </div>
+
+        <div class="module-card" onclick="window.location.href='/modules/revision/revision.html'">
+          <div class="card-scan"></div>
+          <div class="card-icon">◌</div>
+          <div class="card-body">
+            <h3>Revisión</h3>
+            <p>Auditoría y revisión del estado de expedientes ET2023</p>
+          </div>
+          <div class="card-footer">
+            <span class="card-status"><span class="dot-sm"></span>Activo</span>
+            <span class="card-action">Acceder →</span>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/core/auth.js"></script>
+  <script src="/components/sidebar.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

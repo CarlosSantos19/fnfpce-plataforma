@@ -1,0 +1,405 @@
+/* dashboard.css — Estilos del panel principal FNFPCE */
+
+/* Layout principal */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: rgba(2, 10, 22, 0.95);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.sidebar-scan {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  animation: scan 4s ease-in-out infinite;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo {
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(0, 212, 255, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', monospace;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: 0 0 12px var(--cyan);
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 2px;
+}
+
+.brand-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(0, 212, 255, 0.04);
+  border-bottom: 1px solid var(--border);
+}
+
+.user-avatar {
+  font-size: 22px;
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+
+.user-name {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.user-role {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 0;
+  overflow-y: auto;
+}
+
+.nav-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(0, 212, 255, 0.3);
+  padding: 0 20px 12px;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: rgba(0, 212, 255, 0.55);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: color 0.2s, background 0.2s;
+  border-left: 2px solid transparent;
+}
+
+.nav-link:hover {
+  color: var(--cyan);
+  background: rgba(0, 212, 255, 0.06);
+}
+
+.nav-item.active .nav-link {
+  color: var(--cyan);
+  background: rgba(0, 212, 255, 0.08);
+  border-left-color: var(--cyan);
+}
+
+.nav-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-logout {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 60, 80, 0.35);
+  border-radius: 3px;
+  color: rgba(255, 100, 120, 0.7);
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-logout:hover {
+  background: rgba(255, 60, 80, 0.1);
+  color: #ff6080;
+}
+
+.sidebar-version {
+  text-align: center;
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  color: rgba(0, 212, 255, 0.2);
+  letter-spacing: 1px;
+  margin-top: 10px;
+}
+
+/* ── Main Content ─────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  padding: 40px 48px;
+  min-height: 100vh;
+}
+
+/* Header */
+.page-header {
+  margin-bottom: 40px;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.header-status {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+}
+
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #00ff88;
+  border-radius: 50%;
+  margin-right: 6px;
+  box-shadow: 0 0 6px #00ff88;
+  animation: blink 1.5s infinite;
+}
+
+.header-date {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  color: rgba(0, 212, 255, 0.3);
+  letter-spacing: 1px;
+}
+
+.welcome-block {
+  position: relative;
+}
+
+.welcome-tag {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+
+.welcome-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.2;
+  letter-spacing: 1px;
+}
+
+.welcome-title span {
+  color: var(--cyan);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+}
+
+.welcome-subtitle {
+  font-family: 'Orbitron', monospace;
+  font-size: 16px;
+  font-weight: 400;
+  color: rgba(0, 212, 255, 0.6);
+  margin-top: 4px;
+  letter-spacing: 1px;
+}
+
+.welcome-user {
+  margin-top: 14px;
+  font-size: 14px;
+  color: rgba(224, 244, 255, 0.5);
+  letter-spacing: 0.5px;
+}
+
+.welcome-user strong {
+  color: var(--cyan);
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+}
+
+/* Separador */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(0, 212, 255, 0.35);
+  white-space: nowrap;
+}
+
+/* ── Módulos Grid ─────────────────────────────────────── */
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.module-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 28px 24px 20px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.25s, box-shadow 0.25s, transform 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.module-card:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.12), 0 8px 32px rgba(0, 0, 0, 0.4);
+  transform: translateY(-3px);
+}
+
+.card-scan {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+  animation: scan 3s ease-in-out infinite;
+}
+
+.module-card:hover .card-scan {
+  opacity: 1;
+}
+
+.card-icon {
+  font-size: 30px;
+  color: var(--cyan);
+  text-shadow: 0 0 14px rgba(0, 212, 255, 0.5);
+  line-height: 1;
+}
+
+.card-body h3 {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.card-body p {
+  font-size: 13px;
+  color: rgba(224, 244, 255, 0.5);
+  line-height: 1.5;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.card-status {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #00ff88;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dot-sm {
+  width: 5px;
+  height: 5px;
+  background: #00ff88;
+  border-radius: 50%;
+  box-shadow: 0 0 5px #00ff88;
+  animation: blink 1.5s infinite;
+  display: inline-block;
+}
+
+.card-action {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.module-card:hover .card-action {
+  color: var(--cyan);
+}

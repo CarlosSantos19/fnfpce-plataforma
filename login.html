@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - FNFPCE</title>
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+
+  <!-- Corner decorations -->
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <!-- Status bar -->
+  <div class="status-bar"><span class="dot"></span>SISTEMA ACTIVO &nbsp;|&nbsp; ET2023</div>
+
+  <!-- Particles -->
+  <div class="particles" id="particles"></div>
+
+  <div class="login-wrapper">
+    <div class="login-card">
+
+      <div class="login-header">
+        <div class="logo-ring">
+          <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(0,212,255,0.15)" stroke-width="1"/>
+            <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(0,212,255,0.7)"
+              stroke-width="1.5"
+              stroke-dasharray="30 190"
+              stroke-linecap="round"/>
+            <circle cx="40" cy="40" r="28" fill="none" stroke="rgba(0,212,255,0.3)"
+              stroke-width="1"
+              stroke-dasharray="10 10"/>
+          </svg>
+          <div class="logo-inner">F</div>
+        </div>
+        <h1>FNFPCE</h1>
+        <p>Fondo Nacional de Financiamiento Político</p>
+      </div>
+
+      <div class="login-body">
+        <h2>// Acceso Contadores</h2>
+
+        <form id="loginForm" onsubmit="validarLogin(event)">
+          <div class="form-group">
+            <label for="usuario">&#9654; Identificación</label>
+            <select id="usuario" name="usuario" required>
+              <option value="">— Seleccione su nombre —</option>
+              <option value="Adriana">Adriana</option>
+              <option value="Alberto">Alberto</option>
+              <option value="Alexander">Alexander</option>
+              <option value="Alicia">Alicia</option>
+              <option value="Alvaro">Alvaro</option>
+              <option value="Ana">Ana</option>
+              <option value="Andrea">Andrea</option>
+              <option value="Angie">Angie</option>
+              <option value="Arelis">Arelis</option>
+              <option value="Beatriz">Beatriz</option>
+              <option value="Betty">Betty</option>
+              <option value="Carlos">Carlos</option>
+              <option value="Chirles">Chirles</option>
+              <option value="Claudia">Claudia</option>
+              <option value="Darcis">Darcis</option>
+              <option value="David">David</option>
+              <option value="Diana">Diana</option>
+              <option value="Dionisio">Dionisio</option>
+              <option value="Edgar">Edgar</option>
+              <option value="Edison">Edison</option>
+              <option value="Elsa">Elsa</option>
+              <option value="Fabian">Fabian</option>
+              <option value="Feisal">Feisal</option>
+              <option value="Fernando">Fernando</option>
+              <option value="Fredy">Fredy</option>
+              <option value="Gerardo">Gerardo</option>
+              <option value="Gina">Gina</option>
+              <option value="Giovanny">Giovanny</option>
+              <option value="Gloria">Gloria</option>
+              <option value="Guiomar">Guiomar</option>
+              <option value="Heider">Heider</option>
+              <option value="Henry">Henry</option>
+              <option value="Idalid">Idalid</option>
+              <option value="Ivan">Ivan</option>
+              <option value="Jailton">Jailton</option>
+              <option value="Jesus">Jesus</option>
+              <option value="Jhon">Jhon</option>
+              <option value="Jhonny">Jhonny</option>
+              <option value="Johana">Johana</option>
+              <option value="John">John</option>
+              <option value="Jonathan">Jonathan</option>
+              <option value="Jorge">Jorge</option>
+              <option value="Jose">Jose</option>
+              <option value="Juan">Juan</option>
+              <option value="Leidy">Leidy</option>
+              <option value="Leidys">Leidys</option>
+              <option value="Liliam">Liliam</option>
+              <option value="Liz">Liz</option>
+              <option value="Loren">Loren</option>
+              <option value="Luis">Luis</option>
+              <option value="Luz">Luz</option>
+              <option value="Marelis">Marelis</option>
+              <option value="Maria">Maria</option>
+              <option value="Maribel">Maribel</option>
+              <option value="Marlenys">Marlenys</option>
+              <option value="Martha">Martha</option>
+              <option value="Mayra">Mayra</option>
+              <option value="Miguel">Miguel</option>
+              <option value="Milena">Milena</option>
+              <option value="Milquiades">Milquiades</option>
+              <option value="Miryam">Miryam</option>
+              <option value="Monica">Monica</option>
+              <option value="Nancy">Nancy</option>
+              <option value="Nohora">Nohora</option>
+              <option value="Omar">Omar</option>
+              <option value="Oscar">Oscar</option>
+              <option value="Osmanny">Osmanny</option>
+              <option value="Paola">Paola</option>
+              <option value="Paula">Paula</option>
+              <option value="Ricardo">Ricardo</option>
+              <option value="Rubiela">Rubiela</option>
+              <option value="Ruth">Ruth</option>
+              <option value="Sandra">Sandra</option>
+              <option value="Solmar">Solmar</option>
+              <option value="Valentina">Valentina</option>
+              <option value="Waldir">Waldir</option>
+              <option value="Yamile">Yamile</option>
+              <option value="Yaneth">Yaneth</option>
+              <option value="Yeimmy">Yeimmy</option>
+              <option value="Yoni">Yoni</option>
+              <option value="Yury">Yury</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="password">&#9654; Clave de Acceso</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" name="password" placeholder="••••••••••••" required />
+              <button type="button" class="toggle-pass" onclick="togglePassword()" title="Mostrar/ocultar">👁</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-login"><span>[ Ingresar al Sistema ]</span></button>
+
+          <div class="error-msg" id="errorMsg"></div>
+        </form>
+      </div>
+
+      <div class="login-footer">
+        &copy; 2024 FNFPCE &nbsp;&#9135;&nbsp; SISTEMA DE GESTIÓN ET2023 &nbsp;&#9135;&nbsp; v1.0
+      </div>
+
+    </div>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>
