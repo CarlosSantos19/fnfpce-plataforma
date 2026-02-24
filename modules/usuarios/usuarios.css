@@ -193,6 +193,9 @@ option { background: #0a1628; }
 .btn-toggle-off { border: 1px solid #00ff88; color: #00ff88; }
 .btn-toggle-off:hover { background: #00ff88; color: var(--dark); }
 
+.btn-eliminar { border: 1px solid rgba(255,96,128,.4); color: rgba(255,96,128,.6); }
+.btn-eliminar:hover { border-color: #ff6080; color: #ff6080; background: rgba(255,96,128,.08); }
+
 .btn-secondary {
   background: transparent;
   border: 1px solid var(--border);

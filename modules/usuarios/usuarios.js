@@ -5,7 +5,7 @@
 
 import { db } from '/firebase-config.js';
 import {
-  collection, getDocs, addDoc, doc, updateDoc, query, where, orderBy
+  collection, getDocs, addDoc, doc, updateDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ── Verificar rol ────────────────────────────────────────────────────────────
@@ -87,23 +87,34 @@ function renderTabla() {
       ? `<button class="btn-action btn-toggle-on"  data-id="${u.id}" data-activo="false">Desactivar</button>`
       : `<button class="btn-action btn-toggle-off" data-id="${u.id}" data-activo="true">Activar</button>`;
 
+    const btnEliminar = `<button class="btn-action btn-eliminar" data-id="${u.id}">Eliminar</button>`;
+
     return `
       <tr>
         <td>${u.nombre}</td>
         <td>${badgeRol(u.rol)}</td>
         <td>${badgeEstado(u.activo)}</td>
-        <td><div class="actions-cell">${btnToggle}</div></td>
+        <td><div class="actions-cell">${btnToggle}${btnEliminar}</div></td>
       </tr>
     `;
   }).join('');
 
   // Eventos en botones de toggle
-  tbody.querySelectorAll('.btn-action').forEach(btn => {
+  tbody.querySelectorAll('.btn-toggle-on, .btn-toggle-off').forEach(btn => {
     btn.addEventListener('click', () => {
       const id     = btn.dataset.id;
       const activo = btn.dataset.activo === 'true';
       const user   = todosLosUsuarios.find(u => u.id === id);
       confirmarToggle(user, activo);
+    });
+  });
+
+  // Eventos en botones de eliminar
+  tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id   = btn.dataset.id;
+      const user = todosLosUsuarios.find(u => u.id === id);
+      confirmarEliminar(user);
     });
   });
 }
@@ -140,6 +151,16 @@ formNuevo.addEventListener('submit', async (e) => {
 });
 
 // ── Modal de confirmación ────────────────────────────────────────────────────
+function confirmarEliminar(user) {
+  modalTitle.textContent   = '¿ELIMINAR usuario?';
+  modalBody.textContent    = `${user.nombre} — esta acción no se puede deshacer.`;
+  btnModalConf.textContent = 'ELIMINAR';
+  btnModalConf.style.borderColor = '#ff6080';
+  btnModalConf.style.color       = '#ff6080';
+  modalCallback = () => eliminarUsuario(user.id, user.nombre);
+  modalOverlay.style.display = 'flex';
+}
+
 function confirmarToggle(user, nuevoActivo) {
   const accion = nuevoActivo ? 'ACTIVAR' : 'DESACTIVAR';
   modalTitle.textContent = `¿${accion} usuario?`;
@@ -157,7 +178,23 @@ btnModalConf.addEventListener('click', () => {
 window.cerrarModal = function () {
   modalOverlay.style.display = 'none';
   modalCallback = null;
+  btnModalConf.style.borderColor = '';
+  btnModalConf.style.color       = '';
 };
+
+async function eliminarUsuario(id, nombre) {
+  try {
+    await deleteDoc(doc(db, 'usuarios', id));
+    todosLosUsuarios = todosLosUsuarios.filter(u => u.id !== id);
+    renderTabla();
+    msgTabla.textContent = `✔ "${nombre}" eliminado.`;
+    msgTabla.style.color = '#ff6080';
+    setTimeout(() => { msgTabla.textContent = ''; }, 3000);
+  } catch (err) {
+    msgTabla.textContent = '✘ Error: ' + err.message;
+    msgTabla.style.color = '#ff6080';
+  }
+}
 
 async function toggleUsuario(id, activo) {
   try {
