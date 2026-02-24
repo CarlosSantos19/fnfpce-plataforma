@@ -12,11 +12,7 @@ const CARDS_CONFIG = {
   revision:     { icon: '◌', titulo: 'Revisión',          desc: 'Auditoría y revisión del estado de expedientes',      path: '/modules/revision/revision.html' },
 };
 
-const MODULES_BY_ROLE = {
-  administrador:  ['usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision'],
-  administrativo: ['reparto', 'asignaciones'],
-  contador:       ['actas', 'cuentas', 'revision'],
-};
+// MODULES_BY_ROLE se toma de components/sidebar.js (ya cargado en la misma página)
 
 const usuario = Auth.requireAuth();
 if (usuario) {
