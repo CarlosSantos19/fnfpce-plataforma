@@ -1,5 +1,5 @@
 /**
  * reparto.js — Lógica del módulo Reparto
  */
-Auth.requireAuth();
+Auth.requireRole(['administrador', 'administrativo']);
 renderSidebar('reparto');

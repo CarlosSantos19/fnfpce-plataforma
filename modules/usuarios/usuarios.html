@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Usuarios — FNFPCE</title>
+  <link rel="stylesheet" href="/core/base.css" />
+  <link rel="stylesheet" href="/core/module-template.css" />
+  <link rel="stylesheet" href="usuarios.css" />
+</head>
+<body>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; GESTIÓN DE USUARIOS</div>
+        <h1 class="page-title"><span class="title-icon">◇</span> Gestión de Usuarios</h1>
+        <p class="page-desc">Administración de accesos, roles y credenciales del sistema</p>
+      </header>
+
+      <!-- Formulario nuevo usuario -->
+      <div class="content-card" id="card-nuevo">
+        <div class="card-section-title">// NUEVO USUARIO</div>
+        <form id="form-nuevo-usuario" autocomplete="off">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nombre completo</label>
+              <input type="text" id="input-nombre" class="form-input" placeholder="Ej: Juan Pablo Ramirez Garcia" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Rol</label>
+              <select id="input-rol" class="form-input" required>
+                <option value="">— Seleccione rol —</option>
+                <option value="administrador">Administrador</option>
+                <option value="administrativo">Administrativo</option>
+                <option value="contador">Contador</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <input type="password" id="input-password" class="form-input" placeholder="Contraseña de acceso" required />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" id="btn-crear">◇ Crear Usuario</button>
+            <span id="msg-form" class="form-msg"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filtros -->
+      <div class="content-card" id="card-filtros">
+        <div class="filtros-row">
+          <div class="card-section-title">// USUARIOS REGISTRADOS</div>
+          <div class="filtros-controls">
+            <select id="filtro-rol" class="form-input form-input--sm">
+              <option value="">Todos los roles</option>
+              <option value="administrador">Administrador</option>
+              <option value="administrativo">Administrativo</option>
+              <option value="contador">Contador</option>
+            </select>
+            <select id="filtro-estado" class="form-input form-input--sm">
+              <option value="">Todos</option>
+              <option value="true">Activos</option>
+              <option value="false">Inactivos</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabla de usuarios -->
+        <div class="table-wrap">
+          <table class="usuarios-table" id="tabla-usuarios">
+            <thead>
+              <tr>
+                <th>NOMBRE</th>
+                <th>ROL</th>
+                <th>ESTADO</th>
+                <th>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-usuarios">
+              <tr><td colspan="4" class="table-loading">Cargando usuarios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="msg-tabla" class="table-msg"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal confirmación -->
+  <div class="modal-overlay" id="modal-confirm" style="display:none">
+    <div class="modal-box">
+      <div class="modal-title" id="modal-title">¿Confirmar acción?</div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn-danger" id="btn-modal-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/core/auth.js"></script>
+  <script src="/components/sidebar.js"></script>
+  <script type="module" src="usuarios.js"></script>
+</body>
+</html>

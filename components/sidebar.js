@@ -1,21 +1,37 @@
 /**
  * components/sidebar.js
- * Genera el sidebar de navegación dinámicamente.
- * Uso: renderSidebar('id-modulo-activo')
+ * Genera el sidebar de navegación dinámicamente, filtrando módulos por rol.
  */
 
-const MODULES = [
-  { id: 'reparto',       label: 'Reparto',       icon: '◈', path: '/modules/reparto/reparto.html',           desc: 'Distribución de expedientes' },
-  { id: 'asignaciones',  label: 'Asignaciones',  icon: '◎', path: '/modules/asignaciones/asignaciones.html', desc: 'Asignación de casos' },
-  { id: 'actas',         label: 'Actas',         icon: '◉', path: '/modules/actas/actas.html',               desc: 'Gestión de actas' },
-  { id: 'cuentas',       label: 'Cuentas',       icon: '◆', path: '/modules/cuentas/cuentas.html',           desc: 'Control de cuentas' },
-  { id: 'revision',      label: 'Revisión',      icon: '◌', path: '/modules/revision/revision.html',         desc: 'Revisión y auditoría' },
+const ALL_MODULES = [
+  { id: 'usuarios',     label: 'Gestión Usuarios', icon: '◇', path: '/modules/usuarios/usuarios.html',         desc: 'Administración de usuarios' },
+  { id: 'reparto',      label: 'Reparto',           icon: '◈', path: '/modules/reparto/reparto.html',           desc: 'Distribución de expedientes' },
+  { id: 'asignaciones', label: 'Asignaciones',      icon: '◎', path: '/modules/asignaciones/asignaciones.html', desc: 'Asignación de casos' },
+  { id: 'actas',        label: 'Actas',             icon: '◉', path: '/modules/actas/actas.html',               desc: 'Gestión de actas' },
+  { id: 'cuentas',      label: 'Cuentas',           icon: '◆', path: '/modules/cuentas/cuentas.html',           desc: 'Control de cuentas' },
+  { id: 'revision',     label: 'Revisión',          icon: '◌', path: '/modules/revision/revision.html',         desc: 'Revisión y auditoría' },
 ];
 
-function renderSidebar(activeId = '') {
-  const contador = Auth.getContador() || 'Contador';
+const MODULES_BY_ROLE = {
+  administrador:  ['usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision'],
+  administrativo: ['reparto', 'asignaciones'],
+  contador:       ['actas', 'cuentas', 'revision'],
+};
 
-  const navItems = MODULES.map(m => `
+const ROL_LABELS = {
+  administrador:  'Administrador',
+  administrativo: 'Administrativo',
+  contador:       'Contador',
+};
+
+function renderSidebar(activeId = '') {
+  const nombre  = Auth.getContador() || 'Usuario';
+  const rol     = Auth.getRole() || 'contador';
+  const allowed = MODULES_BY_ROLE[rol] || [];
+
+  const modules = ALL_MODULES.filter(m => allowed.includes(m.id));
+
+  const navItems = modules.map(m => `
     <li class="nav-item ${m.id === activeId ? 'active' : ''}">
       <a href="${m.path}" class="nav-link">
         <span class="nav-icon">${m.icon}</span>
@@ -39,8 +55,8 @@ function renderSidebar(activeId = '') {
       <div class="sidebar-user">
         <div class="user-avatar">◈</div>
         <div class="user-info">
-          <div class="user-name">${contador}</div>
-          <div class="user-role">// Contador</div>
+          <div class="user-name">${nombre}</div>
+          <div class="user-role">// ${ROL_LABELS[rol] || rol}</div>
         </div>
       </div>
 

@@ -1,11 +1,15 @@
 /**
  * core/auth.js
- * Manejo centralizado de sesión para toda la plataforma FNFPCE.
+ * Manejo centralizado de sesión y roles para la plataforma FNFPCE.
  */
 
 const Auth = {
   getContador() {
     return sessionStorage.getItem('contador');
+  },
+
+  getRole() {
+    return sessionStorage.getItem('rol');
   },
 
   requireAuth() {
@@ -17,8 +21,21 @@ const Auth = {
     return contador;
   },
 
+  requireRole(rolesPermitidos) {
+    const contador = this.requireAuth();
+    if (!contador) return null;
+
+    const rol = this.getRole();
+    if (!rolesPermitidos.includes(rol)) {
+      window.location.href = '/dashboard.html';
+      return null;
+    }
+    return contador;
+  },
+
   logout() {
     sessionStorage.removeItem('contador');
+    sessionStorage.removeItem('rol');
     window.location.href = '/login.html';
   }
 };

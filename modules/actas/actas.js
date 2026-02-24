@@ -1,5 +1,5 @@
 /**
  * actas.js — Lógica del módulo Actas
  */
-Auth.requireAuth();
+Auth.requireRole(['administrador', 'contador']);
 renderSidebar('actas');

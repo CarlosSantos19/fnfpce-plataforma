@@ -1,5 +1,5 @@
 /**
  * asignaciones.js — Lógica del módulo Asignaciones
  */
-Auth.requireAuth();
+Auth.requireRole(['administrador', 'administrativo']);
 renderSidebar('asignaciones');

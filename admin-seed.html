@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Seed — FNFPCE</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Courier New', monospace; background: #020b18; color: #00d4ff; padding: 40px; max-width: 700px; margin: 0 auto; }
+    h1   { font-size: 16px; letter-spacing: .1em; margin-bottom: 6px; }
+    p    { font-size: 13px; color: rgba(0,212,255,.5); margin-bottom: 28px; line-height: 1.6; }
+    hr   { border: none; border-top: 1px solid rgba(0,212,255,.15); margin: 28px 0; }
+
+    .section-title { font-size: 12px; letter-spacing: .15em; color: rgba(0,212,255,.6); margin-bottom: 14px; }
+
+    /* inputs */
+    .form-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    label     { font-size: 11px; letter-spacing: .1em; color: rgba(0,212,255,.6); margin-bottom: 4px; display: block; }
+    input, select {
+      width: 100%; background: rgba(0,212,255,.05); border: 1px solid rgba(0,212,255,.25);
+      color: #e0f4ff; font-family: inherit; font-size: 13px; padding: 9px 12px; outline: none;
+    }
+    input:focus, select:focus { border-color: #00d4ff; }
+    option { background: #0a1628; }
+
+    /* botones */
+    .btn {
+      background: transparent; border: 1px solid #00d4ff; color: #00d4ff;
+      font-family: inherit; font-size: 13px; font-weight: bold; letter-spacing: .08em;
+      padding: 10px 24px; cursor: pointer; transition: background .2s, color .2s;
+    }
+    .btn:hover   { background: #00d4ff; color: #020b18; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-danger  { border-color: #ff6080; color: #ff6080; }
+    .btn-danger:hover { background: #ff6080; color: #020b18; }
+
+    /* log */
+    #log { margin-top: 20px; font-size: 12px; line-height: 2; max-height: 320px; overflow-y: auto;
+           border: 1px solid rgba(0,212,255,.1); padding: 12px; background: rgba(0,212,255,.03); }
+    .ok  { color: #00ff88; }
+    .err { color: #ff6080; }
+    .inf { color: rgba(0,212,255,.5); }
+
+    .warning-box {
+      border: 1px solid #f0a500; padding: 14px 16px; margin-bottom: 24px;
+      font-size: 12px; color: #f0a500; line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <h1>// FNFPCE — Admin Seed</h1>
+  <p>
+    Herramienta de configuración inicial. Use esta página para:<br>
+    1. Crear el primer usuario administrador.<br>
+    2. Migrar los contadores de la colección antigua <code>contadores</code> a la nueva <code>usuarios</code>.
+  </p>
+
+  <div class="warning-box">
+    ⚠ Esta página no requiere autenticación. Acceda solo durante la configuración inicial y ciérrela cuando termine.
+  </div>
+
+  <!-- ── Sección 0: Limpiar nombres cortos ── -->
+  <div class="section-title">[ 0 ] LIMPIAR NOMBRES INCOMPLETOS</div>
+  <p style="margin-bottom:14px;">
+    Detecta y elimina los usuarios de la colección <code>usuarios</code> cuyo nombre
+    tiene solo <strong>una palabra</strong> (ej: "Carlos", "Claudia"). No toca administradores ni administrativos.
+  </p>
+  <button class="btn btn-danger" id="btn-limpiar" onclick="limpiarNombresCortos()">✕ Eliminar Nombres Incompletos</button>
+
+  <hr>
+
+  <!-- ── Sección 1: Crear administrador ── -->
+  <div class="section-title">[ 1 ] CREAR USUARIO ADMINISTRADOR</div>
+  <div class="form-row">
+    <div>
+      <label>Nombre completo</label>
+      <input type="text" id="admin-nombre" placeholder="Ej: Admin Principal" />
+    </div>
+    <div>
+      <label>Contraseña</label>
+      <input type="password" id="admin-password" placeholder="Contraseña segura" />
+    </div>
+  </div>
+  <button class="btn" id="btn-crear-admin" onclick="crearAdmin()">◇ Crear Administrador</button>
+
+  <hr>
+
+  <!-- ── Sección 2: Migrar contadores ── -->
+  <div class="section-title">[ 2 ] MIGRAR CONTADORES → COLECCIÓN USUARIOS</div>
+  <p style="margin-bottom:14px;">
+    Lee todos los documentos de la colección <code>contadores</code> y los copia a <code>usuarios</code>
+    con <code>rol = "contador"</code> y <code>password = "contador123"</code>.
+    Los documentos ya existentes en <code>usuarios</code> no se sobreescriben (se saltan).
+  </p>
+  <div style="margin: 12px 0 16px; display:flex; align-items:center; gap:10px;">
+    <input type="checkbox" id="chk-forzar" style="width:auto; accent-color:#00d4ff; cursor:pointer;" />
+    <label for="chk-forzar" style="font-size:12px; cursor:pointer; margin:0;">
+      Forzar actualización (sobreescribir entradas existentes con nombre completo)
+    </label>
+  </div>
+  <button class="btn" id="btn-migrar" onclick="migrarContadores()">◈ Migrar Contadores</button>
+
+  <hr>
+
+  <!-- ── Sección 3: Usuarios iniciales del sistema ── -->
+  <div class="section-title">[ 3 ] USUARIOS INICIALES DEL SISTEMA</div>
+  <p style="margin-bottom:14px;">
+    Crea de una sola vez los usuarios administradores y administrativos del sistema.
+    Ingrese una contraseña para cada uno antes de continuar.
+  </p>
+
+  <div style="margin-bottom:18px;">
+    <div style="font-size:11px;letter-spacing:.08em;color:rgba(0,212,255,.5);margin-bottom:10px;">── ADMINISTRADORES ──</div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px;align-items:end;">
+      <div>
+        <label>Carlos Andrés Santos Hernández <span style="color:#f0a500;font-size:10px;">ADMINISTRADOR</span></label>
+        <input type="password" id="pw-carlos" value="admin123" />
+      </div>
+      <div></div>
+    </div>
+
+    <div style="font-size:11px;letter-spacing:.08em;color:rgba(0,212,255,.5);margin:14px 0 10px;">── ADMINISTRATIVOS ──</div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px;align-items:end;">
+      <div>
+        <label>Maria Fernanda Aguiar <span style="color:#00d4ff;font-size:10px;">ADMINISTRATIVO</span></label>
+        <input type="password" id="pw-maria" value="administrativo123" />
+      </div>
+      <div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:16px;align-items:end;">
+      <div>
+        <label>Victor Ostos <span style="color:#00d4ff;font-size:10px;">ADMINISTRATIVO</span></label>
+        <input type="password" id="pw-victor" value="administrativo123" />
+      </div>
+      <div></div>
+    </div>
+  </div>
+
+  <button class="btn" id="btn-seed-iniciales" onclick="crearUsuariosIniciales()">◉ Crear Usuarios Iniciales</button>
+
+  <hr>
+
+  <!-- ── Sección 4: Crear contador individual ── -->
+  <div class="section-title">[ 4 ] CREAR CONTADOR INDIVIDUAL</div>
+  <div class="form-row">
+    <div>
+      <label>Nombre completo</label>
+      <input type="text" id="cont-nombre" placeholder="Nombre del contador" />
+    </div>
+    <div>
+      <label>Contraseña</label>
+      <input type="password" id="cont-password" placeholder="contador123" />
+    </div>
+  </div>
+  <button class="btn" id="btn-crear-cont" onclick="crearContador()">◆ Crear Contador</button>
+
+  <!-- Log -->
+  <div id="log"></div>
+
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import {
+      collection, getDocs, doc, setDoc, getDoc, addDoc, deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const logEl = document.getElementById('log');
+
+    function log(msg, tipo = '') {
+      logEl.innerHTML += `<div class="${tipo}">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function docId(nombre) {
+      return nombre.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    }
+
+    // ── Limpiar nombres incompletos (una sola palabra) ───────────────────────
+    window.limpiarNombresCortos = async function () {
+      const btn = document.getElementById('btn-limpiar');
+      btn.disabled = true;
+      log('Buscando nombres incompletos en "usuarios"...', 'inf');
+
+      try {
+        const snap = await getDocs(collection(db, 'usuarios'));
+        const aEliminar = snap.docs.filter(d => {
+          const nombre = (d.data().nombre || '').trim();
+          // Eliminar cualquier entrada con nombre de una sola palabra (sin espacio)
+          return !nombre.includes(' ');
+        });
+
+        if (!aEliminar.length) {
+          log('No se encontraron nombres incompletos.', 'ok');
+          btn.disabled = false;
+          return;
+        }
+
+        log(`Encontrados ${aEliminar.length} nombres incompletos. Eliminando...`, 'inf');
+
+        let eliminados = 0;
+        for (const d of aEliminar) {
+          await deleteDoc(doc(db, 'usuarios', d.id));
+          log(`✕ Eliminado: "${d.data().nombre}"`, 'err');
+          eliminados++;
+        }
+
+        log('', '');
+        log(`✔ Limpieza completa. Eliminados: ${eliminados}`, 'ok');
+      } catch (err) {
+        log('✘ Error: ' + err.message, 'err');
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    // ── Crear administrador ──────────────────────────────────────────────────
+    window.crearAdmin = async function () {
+      const nombre   = document.getElementById('admin-nombre').value.trim();
+      const password = document.getElementById('admin-password').value.trim();
+      const btn      = document.getElementById('btn-crear-admin');
+
+      if (!nombre || !password) { log('Complete nombre y contraseña del administrador.', 'err'); return; }
+
+      btn.disabled = true;
+      log(`Creando administrador "${nombre}"...`, 'inf');
+
+      try {
+        const id  = docId(nombre);
+        const ref = doc(collection(db, 'usuarios'), id);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          log(`⚠ Ya existe un usuario con ese ID (${id}). Elija otro nombre o edítelo en Firestore.`, 'err');
+          btn.disabled = false;
+          return;
+        }
+
+        await setDoc(ref, { nombre, rol: 'administrador', password, activo: true });
+        log(`✔ Administrador creado: ${nombre} (id: ${id})`, 'ok');
+        document.getElementById('admin-nombre').value   = '';
+        document.getElementById('admin-password').value = '';
+      } catch (err) {
+        log('✘ Error: ' + err.message, 'err');
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    // ── Migrar contadores ────────────────────────────────────────────────────
+    window.migrarContadores = async function () {
+      const btn    = document.getElementById('btn-migrar');
+      const forzar = document.getElementById('chk-forzar').checked;
+      btn.disabled = true;
+      log('Leyendo colección "contadores"...', 'inf');
+      if (forzar) log('⚠ Modo FORZAR activado: se sobreescribirán entradas existentes.', 'err');
+
+      try {
+        const snap = await getDocs(collection(db, 'contadores'));
+
+        if (snap.empty) {
+          log('La colección "contadores" está vacía o no existe.', 'err');
+          btn.disabled = false;
+          return;
+        }
+
+        log(`Encontrados ${snap.size} documentos. Iniciando migración...`, 'inf');
+
+        let creados = 0, actualizados = 0, saltados = 0;
+
+        for (const docSnap of snap.docs) {
+          const data   = docSnap.data();
+          const nombre = data.nombre;
+          if (!nombre) { saltados++; continue; }
+
+          const id  = docId(nombre);
+          const ref = doc(collection(db, 'usuarios'), id);
+
+          if (forzar) {
+            // Sobreescribir solo si NO es admin ni administrativo
+            const exist = await getDoc(ref);
+            if (exist.exists() && exist.data().rol !== 'contador') {
+              log(`— Saltado (rol protegido: ${exist.data().rol}): ${nombre}`, 'inf');
+              saltados++;
+              continue;
+            }
+            await setDoc(ref, { nombre, rol: 'contador', password: 'contador123', activo: true });
+            log(`✔ ${exist.exists() ? 'Actualizado' : 'Creado'}: ${nombre}`, 'ok');
+            exist.exists() ? actualizados++ : creados++;
+          } else {
+            const exist = await getDoc(ref);
+            if (exist.exists()) {
+              log(`— Saltado (ya existe): ${nombre}`, 'inf');
+              saltados++;
+              continue;
+            }
+            await setDoc(ref, { nombre, rol: 'contador', password: 'contador123', activo: true });
+            log(`✔ Creado: ${nombre}`, 'ok');
+            creados++;
+          }
+        }
+
+        log('', '');
+        log(`✔ Migración completa. Creados: ${creados} | Actualizados: ${actualizados} | Saltados: ${saltados}`, 'ok');
+      } catch (err) {
+        log('✘ Error: ' + err.message, 'err');
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    // ── Crear usuarios iniciales del sistema ────────────────────────────────
+    window.crearUsuariosIniciales = async function () {
+      const btn = document.getElementById('btn-seed-iniciales');
+
+      const usuarios = [
+        { nombre: 'Carlos Andrés Santos Hernández', rol: 'administrador', pwId: 'pw-carlos'  },
+        { nombre: 'Maria Fernanda Aguiar',           rol: 'administrativo', pwId: 'pw-maria'  },
+        { nombre: 'Victor Ostos',                    rol: 'administrativo', pwId: 'pw-victor' },
+      ];
+
+      // Validar que todas las contraseñas estén completas
+      for (const u of usuarios) {
+        const pw = document.getElementById(u.pwId).value.trim();
+        if (!pw) {
+          log(`✘ Ingrese la contraseña para: ${u.nombre}`, 'err');
+          return;
+        }
+      }
+
+      btn.disabled = true;
+      log('Creando usuarios iniciales del sistema...', 'inf');
+
+      let creados = 0, saltados = 0;
+
+      for (const u of usuarios) {
+        const password = document.getElementById(u.pwId).value.trim();
+        const id       = docId(u.nombre);
+        const ref      = doc(collection(db, 'usuarios'), id);
+
+        try {
+          const snap = await getDoc(ref);
+          if (snap.exists()) {
+            log(`— Saltado (ya existe): ${u.nombre}`, 'inf');
+            saltados++;
+            continue;
+          }
+          await setDoc(ref, { nombre: u.nombre, rol: u.rol, password, activo: true });
+          log(`✔ Creado [${u.rol}]: ${u.nombre}`, 'ok');
+          creados++;
+        } catch (err) {
+          log(`✘ Error con ${u.nombre}: ${err.message}`, 'err');
+        }
+      }
+
+      log('', '');
+      log(`✔ Listo. Creados: ${creados} | Saltados: ${saltados}`, 'ok');
+      btn.disabled = false;
+    };
+
+    // ── Crear contador individual ────────────────────────────────────────────
+    window.crearContador = async function () {
+      const nombre   = document.getElementById('cont-nombre').value.trim();
+      const password = document.getElementById('cont-password').value.trim() || 'contador123';
+      const btn      = document.getElementById('btn-crear-cont');
+
+      if (!nombre) { log('Ingrese el nombre del contador.', 'err'); return; }
+
+      btn.disabled = true;
+      log(`Creando contador "${nombre}"...`, 'inf');
+
+      try {
+        const id  = docId(nombre);
+        const ref = doc(collection(db, 'usuarios'), id);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          log(`⚠ Ya existe un usuario con ese ID (${id}).`, 'err');
+          btn.disabled = false;
+          return;
+        }
+
+        await setDoc(ref, { nombre, rol: 'contador', password, activo: true });
+        log(`✔ Contador creado: ${nombre}`, 'ok');
+        document.getElementById('cont-nombre').value   = '';
+        document.getElementById('cont-password').value = '';
+      } catch (err) {
+        log('✘ Error: ' + err.message, 'err');
+      } finally {
+        btn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>

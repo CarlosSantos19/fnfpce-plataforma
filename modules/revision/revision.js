@@ -1,5 +1,5 @@
 /**
  * revision.js — Lógica del módulo Revisión
  */
-Auth.requireAuth();
+Auth.requireRole(['administrador', 'contador']);
 renderSidebar('revision');

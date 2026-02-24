@@ -1,5 +1,5 @@
 /**
  * cuentas.js — Lógica del módulo Cuentas
  */
-Auth.requireAuth();
+Auth.requireRole(['administrador', 'contador']);
 renderSidebar('cuentas');

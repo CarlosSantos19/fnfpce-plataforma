@@ -1,0 +1,273 @@
+/* usuarios.css — Estilos del módulo Gestión de Usuarios */
+
+/* ── Formulario ─────────────────────────────────────── */
+.form-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--cyan);
+  opacity: .7;
+  text-transform: uppercase;
+}
+
+.form-input {
+  background: rgba(0,212,255,.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Rajdhani', monospace;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+
+.form-input:focus {
+  border-color: var(--cyan);
+  background: rgba(0,212,255,.08);
+}
+
+.form-input--sm {
+  padding: 7px 10px;
+  font-size: 13px;
+  min-width: 150px;
+}
+
+option { background: #0a1628; }
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-primary {
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: 'Rajdhani', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+
+.btn-primary:hover {
+  background: var(--cyan);
+  color: var(--dark);
+}
+
+.btn-primary:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.form-msg {
+  font-size: 13px;
+  min-height: 18px;
+}
+
+.form-msg.ok  { color: #00ff88; }
+.form-msg.err { color: #ff6080; }
+
+/* ── Filtros ─────────────────────────────────────────── */
+.filtros-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filtros-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Tabla ───────────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.usuarios-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.usuarios-table thead tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.usuarios-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--cyan);
+  opacity: .6;
+  font-weight: 700;
+}
+
+.usuarios-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0,212,255,.07);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.usuarios-table tbody tr:hover td {
+  background: rgba(0,212,255,.04);
+}
+
+.table-loading,
+.table-empty {
+  text-align: center;
+  padding: 32px !important;
+  color: rgba(0,212,255,.4);
+  font-size: 13px;
+  letter-spacing: .05em;
+}
+
+.table-msg {
+  margin-top: 10px;
+  font-size: 13px;
+  min-height: 18px;
+  text-align: right;
+}
+
+/* ── Badges de rol / estado ──────────────────────────── */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 3px 10px;
+  border-radius: 2px;
+}
+
+.badge-admin   { border: 1px solid #f0a500; color: #f0a500; }
+.badge-adm     { border: 1px solid var(--cyan); color: var(--cyan); }
+.badge-cont    { border: 1px solid #8888ff; color: #8888ff; }
+
+.badge-activo   { border: 1px solid #00ff88; color: #00ff88; }
+.badge-inactivo { border: 1px solid #ff6080; color: #ff6080; }
+
+/* ── Botones de acción en tabla ──────────────────────── */
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  background: transparent;
+  font-family: 'Rajdhani', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  padding: 5px 12px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background .15s, color .15s;
+}
+
+.btn-toggle-on  { border: 1px solid #ff6080; color: #ff6080; }
+.btn-toggle-on:hover  { background: #ff6080; color: var(--dark); }
+
+.btn-toggle-off { border: 1px solid #00ff88; color: #00ff88; }
+.btn-toggle-off:hover { background: #00ff88; color: var(--dark); }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Rajdhani', monospace;
+  font-size: 13px;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+
+.btn-secondary:hover { border-color: var(--cyan); color: var(--cyan); }
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid #ff6080;
+  color: #ff6080;
+  font-family: 'Rajdhani', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+
+.btn-danger:hover { background: #ff6080; color: var(--dark); }
+
+/* ── Modal ───────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,11,24,.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-box {
+  background: #0a1628;
+  border: 1px solid var(--border);
+  padding: 32px 36px;
+  min-width: 340px;
+  max-width: 480px;
+}
+
+.modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--cyan);
+  margin-bottom: 12px;
+}
+
+.modal-body {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .filtros-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
