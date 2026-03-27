@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tablero — FNFPCE</title>
+  <link rel="stylesheet" href="/core/base.css" />
+  <link rel="stylesheet" href="/core/module-template.css" />
+  <link rel="stylesheet" href="tablero.css" />
+</head>
+<body>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; TABLERO</div>
+        <h1 class="page-title"><span class="title-icon">⬡</span> Tablero</h1>
+        <p class="page-desc">Herramientas de análisis del proceso ET2023 — Servidor local requerido</p>
+      </header>
+
+      <!-- Aviso servidor local -->
+      <div class="server-notice" id="serverNotice">
+        <span class="notice-icon">⚠</span>
+        <span class="notice-text">
+          Si el servidor está inactivo puede tardar ~30 segundos en despertar (plan gratuito).
+        </span>
+        <button class="notice-btn" onclick="verificarServidor()">Verificar conexión</button>
+        <span class="notice-status" id="noticeStatus"></span>
+      </div>
+
+      <!-- Módulos ADRIANADOS -->
+      <div class="content-card" id="cardAdrianados">
+        <div class="card-header-row">
+          <span class="card-title">◫ Herramientas de Análisis</span>
+          <span class="card-badge">7 módulos</span>
+        </div>
+        <div class="adriana-grid">
+
+          <div class="adriana-card" data-path="/analisis_cc.html">
+            <div class="adriana-card-scan"></div>
+            <div class="adriana-icon">◆</div>
+            <div class="adriana-body">
+              <div class="adriana-title">Análisis CC</div>
+              <div class="adriana-desc">Análisis financiero Cuentas Claras por municipio</div>
+            </div>
+            <div class="adriana-footer">
+              <span class="adriana-action">Abrir →</span>
+            </div>
+          </div>
+
+          <div class="adriana-card" data-path="/buscar.html">
+            <div class="adriana-card-scan"></div>
+            <div class="adriana-icon">◎</div>
+            <div class="adriana-body">
+              <div class="adriana-title">Búsqueda Global</div>
+              <div class="adriana-desc">Búsqueda global de candidatos por nombre o cédula</div>
+            </div>
+            <div class="adriana-footer">
+              <span class="adriana-action">Abrir →</span>
+            </div>
+          </div>
+
+          <div class="adriana-card" data-path="/detalle_dpto.html">
+            <div class="adriana-card-scan"></div>
+            <div class="adriana-icon">◈</div>
+            <div class="adriana-body">
+              <div class="adriana-title">Detalle Dpto.</div>
+              <div class="adriana-desc">Detalle financiero por departamento y corporación</div>
+            </div>
+            <div class="adriana-footer">
+              <span class="adriana-action">Abrir →</span>
+            </div>
+          </div>
+
+          <div class="adriana-card" data-path="/liquidacion.html">
+            <div class="adriana-card-scan"></div>
+            <div class="adriana-icon">◉</div>
+            <div class="adriana-body">
+              <div class="adriana-title">Liquidación</div>
+              <div class="adriana-desc">Liquidación de financiación por partido político</div>
+            </div>
+            <div class="adriana-footer">
+              <span class="adriana-action">Abrir →</span>
+            </div>
+          </div>
+
+          <div class="adriana-card" data-path="/partido.html">
+            <div class="adriana-card-scan"></div>
+            <div class="adriana-icon">◑</div>
+            <div class="adriana-body">
+              <div class="adriana-title">Por Partido</div>
+              <div class="adriana-desc">Análisis financiero consolidado por partido político</div>
+            </div>
+            <div class="adriana-footer">
+              <span class="adriana-action">Abrir →</span>
+            </div>
+          </div>
+
+          <div class="adriana-card" data-path="/pagos_partido.html">
+            <div class="adriana-card-scan"></div>
+            <div class="adriana-icon">💰</div>
+            <div class="adriana-body">
+              <div class="adriana-title">Pagos por Partido</div>
+              <div class="adriana-desc">Valor reconocido, auditoría y neto girado por partido — ET2023</div>
+            </div>
+            <div class="adriana-footer">
+              <span class="adriana-action">Abrir →</span>
+            </div>
+          </div>
+
+          <div class="adriana-card" data-path="/presupuesto.html">
+            <div class="adriana-card-scan"></div>
+            <div class="adriana-icon">📊</div>
+            <div class="adriana-body">
+              <div class="adriana-title">Presupuesto ET2023</div>
+              <div class="adriana-desc">Seguimiento de pagos por corporación y departamento — reconocido, pagado, pendiente</div>
+            </div>
+            <div class="adriana-footer">
+              <span class="adriana-action">Abrir →</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/core/auth.js"></script>
+  <script src="/components/sidebar.js"></script>
+  <script>
+    Auth.requireRole(['administrador', 'administrativo', 'contador']);
+    renderSidebar('tablero');
+
+    // ── URL del servidor ADRIANADOS ────────────────────────────────────────────
+    // Cambie esta URL cuando el servidor esté desplegado en Render:
+    const SERVIDOR = 'https://tablero-rsrw.onrender.com';
+    // ──────────────────────────────────────────────────────────────────────────
+
+    // Inyectar URL en cada tarjeta
+    document.querySelectorAll('.adriana-card[data-path]').forEach(card => {
+      card.onclick = () => window.open(SERVIDOR + card.dataset.path, '_blank');
+    });
+
+    async function verificarServidor() {
+      const status = document.getElementById('noticeStatus');
+      const notice = document.getElementById('serverNotice');
+      status.textContent = 'Verificando…';
+      status.style.color = 'rgba(252,209,22,0.6)';
+      try {
+        const r = await fetch(SERVIDOR + '/api/cc_stats', { signal: AbortSignal.timeout(5000) });
+        if (r.ok) {
+          status.textContent = '✓ Servidor activo';
+          status.style.color = '#00ff88';
+          notice.classList.add('notice--ok');
+        } else { throw new Error(); }
+      } catch {
+        status.textContent = '✗ No responde — verifique que el servidor esté activo';
+        status.style.color = '#ff6080';
+      }
+    }
+
+    verificarServidor();
+  </script>
+</body>
+</html>
