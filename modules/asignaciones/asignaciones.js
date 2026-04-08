@@ -695,6 +695,10 @@ window.ejecutarReparto = async function() {
     const escrituras = [];
 
     _cajasReparto.forEach(({ contador, registros, num }) => {
+      // Un número de acta por caja/contador
+      nextActa++;
+      const numeroActaReparto = `CNE-FNFPCE-ACTA-E-ET2023-${String(nextActa).padStart(6, '0')}`;
+
       registros.forEach(reg => {
         const { _id, ...campos } = reg;
 
@@ -704,10 +708,8 @@ window.ejecutarReparto = async function() {
 
         if (!nextConsec[pfx]) nextConsec[pfx] = 0;
         nextConsec[pfx]++;
-        nextActa++;
 
-        const consecutivo      = pfx + String(nextConsec[pfx]).padStart(5, '0');
-        const numeroActaReparto = `CNE-FNFPCE-ACTA-E-ET2023-${String(nextActa).padStart(6, '0')}`;
+        const consecutivo = pfx + String(nextConsec[pfx]).padStart(5, '0');
 
         escrituras.push({
           id: _id,
