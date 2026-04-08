@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Presupuesto ET2023 — FNFPCE</title>
+  <link rel="stylesheet" href="vendor/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="css/cne-theme.css"/>
+  <link rel="stylesheet" href="vendor/css/all.min.css"/>
+  <style>
+    body { background:#04101e; color:#e0f4ff; font-family:'Segoe UI',sans-serif; }
+    .kpi-card { border-radius:12px; padding:.9rem 1.1rem; color:#fff; display:flex; align-items:center; gap:.8rem; }
+    .kpi-card .icon { font-size:1.4rem; opacity:.8; }
+    .kpi-card .val  { font-size:1.05rem; font-weight:700; line-height:1.1; }
+    .kpi-card .lbl  { font-size:.62rem; opacity:.8; text-transform:uppercase; letter-spacing:.05em; }
+    .kpi-blue   { background:linear-gradient(135deg,#003478,#1565c0); }
+    .kpi-green  { background:linear-gradient(135deg,#1b5e20,#2e7d32); }
+    .kpi-red    { background:linear-gradient(135deg,#b71c1c,#c62828); }
+    .kpi-orange { background:linear-gradient(135deg,#e65100,#f57c00); }
+    .kpi-purple { background:linear-gradient(135deg,#4a148c,#6a1b9a); }
+    .kpi-teal   { background:linear-gradient(135deg,#00695c,#00897b); }
+
+    .section-card {
+      background:rgba(4,20,50,.85);
+      border:1px solid rgba(252,209,22,.18);
+      border-radius:12px;
+      padding:1.2rem 1.4rem;
+      margin-bottom:1rem;
+    }
+    .section-title {
+      font-family:'Orbitron',monospace;
+      font-size:.72rem; font-weight:700; color:#FCD116;
+      border-bottom:1px solid rgba(252,209,22,.22);
+      padding-bottom:.4rem; margin-bottom:.9rem;
+      letter-spacing:.08em;
+    }
+
+    /* Corp nav pills */
+    .corp-nav .nav-link {
+      background:rgba(4,20,50,.9);
+      border:1px solid rgba(252,209,22,.2);
+      color:#e0f4ff; border-radius:8px; font-size:.78rem;
+      padding:.35rem .9rem; margin:.15rem;
+    }
+    .corp-nav .nav-link.active {
+      background:#FCD116; color:#04101e; font-weight:700;
+      border-color:#FCD116;
+    }
+    .corp-nav .nav-link:not(.active):hover { border-color:#FCD116; color:#FCD116; }
+
+    /* Tabla */
+    .tabla-pres { font-size:.76rem; }
+    .tabla-pres thead th {
+      background:rgba(4,20,50,.95);
+      color:#FCD116; font-weight:600;
+      border-bottom:1px solid rgba(252,209,22,.3);
+      position:sticky; top:0; z-index:2;
+      padding:.4rem .55rem; white-space:nowrap;
+    }
+    .tabla-pres tbody tr { transition:background .15s; }
+    .tabla-pres tbody tr:hover { background:rgba(252,209,22,.06); }
+    .tabla-pres tbody td {
+      color:#1a2540; border-bottom:1px solid rgba(0,0,0,.08);
+      padding:.3rem .55rem; vertical-align:middle; background:#fff;
+    }
+    .tabla-pres tbody tr:hover td { background:#f0f6ff; }
+    .tabla-pres tfoot td {
+      background:rgba(4,20,50,.97);
+      color:#FCD116; font-weight:700;
+      border-top:1px solid rgba(252,209,22,.4);
+      padding:.4rem .55rem;
+    }
+    .num { text-align:right; font-family:'Courier New',monospace; }
+    .t-ing  { color:#1b5e20 !important; }
+    .t-gas  { color:#b71c1c !important; }
+    .t-rec  { color:#0d47a1 !important; }
+    .t-aud  { color:#e65100 !important; }
+    .t-neto { color:#4a148c !important; }
+    .badge-pag  { background:#1b5e20; color:#a5d6a7; font-size:.65rem; padding:.18rem .5rem; border-radius:10px; }
+    .badge-pend { background:#4a148c; color:#ce93d8; font-size:.65rem; padding:.18rem .5rem; border-radius:10px; }
+
+    /* Filtros */
+    .form-control, .form-select {
+      background:rgba(4,20,50,.9) !important;
+      border:1px solid rgba(252,209,22,.25) !important;
+      color:#e0f4ff !important; font-size:.8rem;
+    }
+    .form-control::placeholder { color:rgba(224,244,255,.4) !important; }
+    .form-control:focus, .form-select:focus {
+      border-color:rgba(252,209,22,.55) !important;
+      box-shadow:0 0 0 .15rem rgba(252,209,22,.15) !important;
+    }
+    .form-select option { background:#04101e; }
+
+    /* Tabla scrollable */
+    .tabla-wrap { max-height:60vh; overflow-y:auto; border-radius:8px; }
+
+    .corp-sub-kpi { font-size:.72rem; color:#aaa; }
+    .corp-sub-kpi span { color:#FCD116; font-weight:700; }
+
+    .spinner-wrap { display:flex; justify-content:center; align-items:center; padding:3rem; }
+  </style>
+</head>
+<body>
+<div class="container-fluid px-3 py-3">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center gap-3 mb-3">
+    <a href="/" class="btn btn-sm btn-outline-secondary">
+      <i class="fa fa-arrow-left me-1"></i>Volver
+    </a>
+    <div>
+      <div style="font-family:'Orbitron',monospace;font-size:.65rem;color:#FCD116;letter-spacing:.1em">FNFPCE · ET2023</div>
+      <h5 class="mb-0 fw-bold" style="color:#e0f4ff">📊 Presupuesto Unificado ET2023</h5>
+    </div>
+  </div>
+
+  <!-- KPIs globales -->
+  <div class="row g-2 mb-3" id="kpiRow">
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="kpi-card kpi-green h-100">
+        <div class="icon"><i class="fa fa-arrow-circle-up"></i></div>
+        <div><div class="val" id="kpiCcIng">—</div><div class="lbl">CC Ingresos Colombia</div></div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="kpi-card kpi-red h-100">
+        <div class="icon"><i class="fa fa-arrow-circle-down"></i></div>
+        <div><div class="val" id="kpiCcGas">—</div><div class="lbl">CC Gastos Colombia</div></div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="kpi-card kpi-blue h-100">
+        <div class="icon"><i class="fa fa-check-circle"></i></div>
+        <div><div class="val" id="kpiRec">—</div><div class="lbl">Total Reconocido</div></div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="kpi-card kpi-orange h-100">
+        <div class="icon"><i class="fa fa-search-dollar"></i></div>
+        <div><div class="val" id="kpiAud">—</div><div class="lbl">Total Auditoría</div></div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="kpi-card kpi-purple h-100">
+        <div class="icon"><i class="fa fa-money-bill-wave"></i></div>
+        <div><div class="val" id="kpiNeto">—</div><div class="lbl">Neto Girado</div></div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="kpi-card kpi-teal h-100">
+        <div class="icon"><i class="fa fa-list"></i></div>
+        <div><div class="val" id="kpiReg">—</div><div class="lbl">Registros visibles</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros + nav corp -->
+  <div class="section-card mb-2">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small mb-1" style="color:#FCD116">Búsqueda rápida</label>
+        <input type="text" id="fQ" class="form-control form-control-sm" placeholder="Partido, municipio, dpto…" oninput="aplicarFiltros()">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1" style="color:#FCD116">Departamento</label>
+        <select id="fDpto" class="form-select form-select-sm" onchange="aplicarFiltros()">
+          <option value="">— Todos —</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1" style="color:#FCD116">Solo pagados</label>
+        <select id="fPagado" class="form-select form-select-sm" onchange="aplicarFiltros()">
+          <option value="">— Todos —</option>
+          <option value="1">Pagados</option>
+          <option value="0">Pendientes</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1" style="color:#FCD116">Solo con CC</label>
+        <select id="fConCC" class="form-select form-select-sm" onchange="aplicarFiltros()">
+          <option value="">— Todos —</option>
+          <option value="1">Con datos CC</option>
+          <option value="0">Sin datos CC</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-sm btn-outline-secondary w-100" onclick="limpiarFiltros()">
+          <i class="fa fa-times"></i> Limpiar
+        </button>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-sm w-100 fw-semibold" style="background:#FCD116;color:#04101e" onclick="exportarCSV()">
+          <i class="fa fa-file-csv me-1"></i>Exportar CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav corporaciones -->
+  <div class="section-card mb-2 py-2">
+    <div class="d-flex flex-wrap corp-nav" id="corpNav"></div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="section-card">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="section-title mb-0" id="tablaCorpTitulo">— Todas las corporaciones —</div>
+      <div id="corpSubKpi" class="corp-sub-kpi"></div>
+    </div>
+    <div class="spinner-wrap" id="spinner"><div class="spinner-border text-warning" role="status"></div></div>
+    <div class="tabla-wrap" id="tablaWrap" style="display:none">
+      <table class="table tabla-pres mb-0">
+        <thead>
+          <tr>
+            <th onclick="sortBy('corp')"   style="cursor:pointer">Corp <i class="fa fa-sort fa-xs"></i></th>
+            <th onclick="sortBy('dpto')"   style="cursor:pointer">Dpto <i class="fa fa-sort fa-xs"></i></th>
+            <th onclick="sortBy('mun')"    style="cursor:pointer">Municipio <i class="fa fa-sort fa-xs"></i></th>
+            <th onclick="sortBy('partido')" style="cursor:pointer">Partido / Movimiento <i class="fa fa-sort fa-xs"></i></th>
+            <th class="num t-ing"  onclick="sortBy('cc_ing')"  style="cursor:pointer">CC Ingresos <i class="fa fa-sort fa-xs"></i></th>
+            <th class="num t-gas"  onclick="sortBy('cc_gas')"  style="cursor:pointer">CC Gastos <i class="fa fa-sort fa-xs"></i></th>
+            <th class="num t-rec"  onclick="sortBy('val_rec')" style="cursor:pointer">Reconocido <i class="fa fa-sort fa-xs"></i></th>
+            <th class="num t-aud"  onclick="sortBy('val_aud')" style="cursor:pointer">Auditoría <i class="fa fa-sort fa-xs"></i></th>
+            <th class="num t-neto" onclick="sortBy('val_neto')" style="cursor:pointer">Neto Girado <i class="fa fa-sort fa-xs"></i></th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tablaTbody"></tbody>
+        <tfoot id="tablaTfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+let _datos = [];       // todos los registros del API
+let _filtrados = [];   // después de filtros
+let _corpActual = '';  // '' = todos
+let _sortKey = '';
+let _sortAsc = true;
+
+const MM = 1e6;
+function fmtM(v) {
+  if (!v || v === 0) return '—';
+  return '$' + Math.round(v).toLocaleString('es-CO');
+}
+function fmtN(v) { return (v||0).toLocaleString('es-CO'); }
+
+async function cargarDatos() {
+  try {
+    const r = await fetch('/api/presupuesto_full');
+    const d = await r.json();
+    if (d.error) { alert('Error: ' + d.error); return; }
+
+    _datos = d.detalle || [];
+
+    // KPIs globales
+    const t = d.totales || {};
+    document.getElementById('kpiCcIng').textContent = fmtM(t.cc_ing);
+    document.getElementById('kpiCcGas').textContent = fmtM(t.cc_gas);
+    document.getElementById('kpiRec').textContent   = fmtM(t.val_rec);
+    document.getElementById('kpiAud').textContent   = fmtM(t.val_aud);
+    document.getElementById('kpiNeto').textContent  = fmtM(t.val_neto);
+
+    // Nav de corporaciones
+    const corps = ['', ...Object.keys(d.por_corp || {}).sort()];
+    const nav = document.getElementById('corpNav');
+    nav.innerHTML = corps.map(c => {
+      const lbl = c || 'TODAS';
+      return `<button class="nav-link${c===''?' active':''}" onclick="selCorp('${c}')" id="btn-corp-${c}">${lbl}</button>`;
+    }).join('');
+
+    // Poblar select dpto
+    const dptos = [...new Set(_datos.map(r => r.dpto))].sort();
+    const sel = document.getElementById('fDpto');
+    dptos.forEach(d => { const o = document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); });
+
+    // Guardar por_corp para sub-KPIs
+    window._porCorp = d.por_corp || {};
+
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('tablaWrap').style.display = '';
+
+    aplicarFiltros();
+  } catch(e) {
+    document.getElementById('spinner').innerHTML = `<div class="text-danger">Error cargando datos: ${e}</div>`;
+  }
+}
+
+function selCorp(corp) {
+  _corpActual = corp;
+  document.querySelectorAll('.corp-nav .nav-link').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById(`btn-corp-${corp}`);
+  if (btn) btn.classList.add('active');
+  document.getElementById('tablaCorpTitulo').textContent = corp || '— Todas las corporaciones —';
+
+  // Sub-KPIs de la corp
+  const sub = document.getElementById('corpSubKpi');
+  if (corp && window._porCorp && window._porCorp[corp]) {
+    const pc = window._porCorp[corp];
+    sub.innerHTML = `CC Ing: <span>${fmtM(pc.cc_ing)}</span> &nbsp;|&nbsp; CC Gas: <span>${fmtM(pc.cc_gas)}</span> &nbsp;|&nbsp; Reconocido: <span>${fmtM(pc.val_rec)}</span> &nbsp;|&nbsp; Neto: <span>${fmtM(pc.val_neto)}</span>`;
+  } else {
+    sub.innerHTML = '';
+  }
+  aplicarFiltros();
+}
+
+function aplicarFiltros() {
+  const q      = document.getElementById('fQ').value.trim().toUpperCase();
+  const dpto   = document.getElementById('fDpto').value;
+  const pagado = document.getElementById('fPagado').value;
+  const conCC  = document.getElementById('fConCC').value;
+
+  _filtrados = _datos.filter(r => {
+    if (_corpActual && r.corp !== _corpActual) return false;
+    if (dpto && r.dpto !== dpto) return false;
+    if (pagado === '1' && !r.pagado)  return false;
+    if (pagado === '0' && r.pagado)   return false;
+    if (conCC  === '1' && !(r.cc_ing > 0 || r.cc_gas > 0)) return false;
+    if (conCC  === '0' && (r.cc_ing > 0 || r.cc_gas > 0))  return false;
+    if (q && !( (r.corp+r.dpto+r.mun+r.partido).toUpperCase().includes(q) )) return false;
+    return true;
+  });
+
+  if (_sortKey) {
+    _filtrados.sort((a, b) => {
+      const va = a[_sortKey] || 0, vb = b[_sortKey] || 0;
+      return _sortAsc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+    });
+  }
+
+  renderTabla();
+}
+
+function sortBy(key) {
+  if (_sortKey === key) _sortAsc = !_sortAsc;
+  else { _sortKey = key; _sortAsc = true; }
+  aplicarFiltros();
+}
+
+function limpiarFiltros() {
+  document.getElementById('fQ').value = '';
+  document.getElementById('fDpto').value = '';
+  document.getElementById('fPagado').value = '';
+  document.getElementById('fConCC').value = '';
+  selCorp('');
+}
+
+function renderTabla() {
+  const tbody = document.getElementById('tablaTbody');
+  const tfoot = document.getElementById('tablaTfoot');
+  document.getElementById('kpiReg').textContent = fmtN(_filtrados.length);
+
+  if (!_filtrados.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">Sin resultados</td></tr>';
+    tfoot.innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = _filtrados.map(r => `
+    <tr>
+      <td><span class="badge" style="background:rgba(252,209,22,.15);color:#FCD116;font-size:.68rem">${r.corp}</span></td>
+      <td style="color:#1a2540;font-weight:500">${r.dpto}</td>
+      <td style="color:#1a2540;font-weight:500">${r.mun}</td>
+      <td style="color:#1a2540;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.partido}">${r.partido}</td>
+      <td class="num t-ing">${r.cc_ing  > 0 ? fmtM(r.cc_ing)  : '<span style="opacity:.3">—</span>'}</td>
+      <td class="num t-gas">${r.cc_gas  > 0 ? fmtM(r.cc_gas)  : '<span style="opacity:.3">—</span>'}</td>
+      <td class="num t-rec">${r.val_rec > 0 ? fmtM(r.val_rec) : '<span style="opacity:.3">—</span>'}</td>
+      <td class="num t-aud">${r.val_aud > 0 ? fmtM(r.val_aud) : '<span style="opacity:.3">—</span>'}</td>
+      <td class="num t-neto">${r.val_neto > 0 ? fmtM(r.val_neto) : '<span style="opacity:.3">—</span>'}</td>
+      <td>${r.val_neto > 0 ? (r.pagado ? '<span class="badge-pag">PAGADO</span>' : '<span class="badge-pend">PENDIENTE</span>') : '<span style="opacity:.3;font-size:.68rem">SIN PAGO</span>'}</td>
+    </tr>`).join('');
+
+  // Totales del filtro actual
+  const sumCcIng  = _filtrados.reduce((s,r) => s + (r.cc_ing  || 0), 0);
+  const sumCcGas  = _filtrados.reduce((s,r) => s + (r.cc_gas  || 0), 0);
+  const sumRec    = _filtrados.reduce((s,r) => s + (r.val_rec  || 0), 0);
+  const sumAud    = _filtrados.reduce((s,r) => s + (r.val_aud  || 0), 0);
+  const sumNeto   = _filtrados.reduce((s,r) => s + (r.val_neto || 0), 0);
+
+  tfoot.innerHTML = `<tr>
+    <td colspan="4">TOTAL (${fmtN(_filtrados.length)} registros)</td>
+    <td class="num t-ing">${fmtM(sumCcIng)}</td>
+    <td class="num t-gas">${fmtM(sumCcGas)}</td>
+    <td class="num t-rec">${fmtM(sumRec)}</td>
+    <td class="num t-aud">${fmtM(sumAud)}</td>
+    <td class="num t-neto">${fmtM(sumNeto)}</td>
+    <td></td>
+  </tr>`;
+}
+
+function exportarCSV() {
+  if (!_filtrados.length) return;
+  const cols = ['corp','dpto','mun','partido','cc_ing','cc_gas','val_rec','val_aud','val_neto','pagado'];
+  const hdrs = ['Corporación','Departamento','Municipio','Partido','CC Ingresos','CC Gastos','Reconocido','Auditoría','Neto Girado','Pagado'];
+  const rows = [hdrs.join(','), ..._filtrados.map(r =>
+    cols.map(c => {
+      const v = r[c];
+      if (typeof v === 'string' && v.includes(',')) return `"${v}"`;
+      return v ?? '';
+    }).join(',')
+  )];
+  const blob = new Blob(['\uFEFF' + rows.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `presupuesto_et2023_${_corpActual||'todos'}.csv`;
+  a.click();
+}
+
+cargarDatos();
+
+
+</script>
+
+
+</body>
+</html>
