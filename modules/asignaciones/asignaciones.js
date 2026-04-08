@@ -677,7 +677,7 @@ window.ejecutarReparto = async function() {
         if (!maxConsec[pfx] || num > maxConsec[pfx]) maxConsec[pfx] = num;
       }
       // Número de acta
-      const ma = (data.numeroActaReparto || '').match(/(\d{5,6})$/);
+      const ma = String(data.numeroActaReparto || '').match(/(\d{5,6})$/);
       if (ma) {
         const num = parseInt(ma[1], 10);
         if (num > maxActa) maxActa = num;
