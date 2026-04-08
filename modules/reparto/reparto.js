@@ -52,6 +52,7 @@ let todosLosExpedientes = [];
 let listaFiltrada       = [];
 let editDocId           = null;
 let ultimoSorteoIds     = new Set();
+let ultimoRepartoIds    = new Set();   // IDs asignados desde Asignaciones
 
 // ── Badges de estado ──────────────────────────────────────────────────────────
 function badgeEstado(estado) {
@@ -101,6 +102,17 @@ async function cargarExpedientes() {
     todosLosExpedientes = snap.docs
       .map(d => ({ _id: d.id, ...d.data() }))
       .filter(e => !!(e.consecutivo || '').trim());
+
+    // Detectar el repartoId más reciente (mayor timestamp) para resaltar
+    const repartoIds = todosLosExpedientes
+      .map(e => e.repartoId).filter(Boolean);
+    if (repartoIds.length) {
+      const maxId = repartoIds.reduce((a, b) => (a > b ? a : b));
+      ultimoRepartoIds = new Set(
+        todosLosExpedientes.filter(e => e.repartoId === maxId).map(e => e._id)
+      );
+    }
+
     // Orden numérico: primero por prefijo (AL, CN…) luego por número
     todosLosExpedientes.sort((a, b) => {
       const parse = s => { const m = (s||'').match(/^([A-Za-z]+)(\d+)/); return m ? [m[1], parseInt(m[2],10)] : [s||'',0]; };
@@ -196,7 +208,7 @@ function renderTabla() {
   }
 
   tbody.innerHTML = pagina.map(e => `
-    <tr class="${ultimoSorteoIds.has(e._id) ? 'row-ultimo-sorteo' : ''}">
+    <tr class="${ultimoSorteoIds.has(e._id) ? 'row-ultimo-sorteo' : ultimoRepartoIds.has(e._id) ? 'row-asignado' : ''}">
       <td class="col-consec">${e.consecutivo || '—'}</td>
       <td class="col-consec">${e.consecutivoAplicativo || '—'}</td>
       <td>${e.corporacion || '—'}</td>

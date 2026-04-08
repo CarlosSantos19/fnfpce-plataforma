@@ -1,1 +1,379 @@
-/* reparto.css — Estilos específicos del módulo Reparto */
+/* reparto.css — Estilos del módulo Reparto ET2023 */
+
+/* ── La card no debe clipear el scroll horizontal ─────── */
+.content-card { overflow: hidden; }
+
+/* ── Filtros ─────────────────────────────────────────── */
+.filtros-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.filtros-izq { flex: 1; min-width: 260px; }
+.filtros-der {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-wrap { margin-top: 8px; }
+
+.search-input { width: 100%; max-width: 420px; }
+
+.form-input {
+  background: rgba(252,209,22,.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Rajdhani', monospace;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+
+.form-input:focus { border-color: var(--cyan); background: rgba(252,209,22,.08); }
+
+.form-input--sm { padding: 7px 10px; font-size: 13px; min-width: 140px; }
+
+option { background: #0a1628; }
+
+/* ── Stats + paginación ──────────────────────────────── */
+.stats-pag-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stats-count {
+  font-size: 12px;
+  color: rgba(252,209,22,.5);
+  letter-spacing: .05em;
+}
+
+.paginacion { display: flex; align-items: center; gap: 10px; }
+
+.btn-pag {
+  background: transparent;
+  border: 1px solid rgba(252,209,22,.3);
+  color: rgba(252,209,22,.7);
+  font-family: 'Rajdhani', monospace;
+  font-size: 14px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+
+.btn-pag:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.btn-pag:disabled { opacity: .3; cursor: not-allowed; }
+
+.pag-info {
+  font-size: 11px;
+  color: rgba(252,209,22,.5);
+  letter-spacing: .05em;
+  min-width: 140px;
+  text-align: center;
+}
+
+.input-pag {
+  background: rgba(252,209,22,.05);
+  border: 1px solid rgba(252,209,22,.25);
+  color: var(--cyan);
+  font-family: 'Rajdhani', monospace;
+  font-size: 12px;
+  padding: 4px 8px;
+  width: 64px;
+  outline: none;
+  text-align: center;
+}
+.input-pag:focus { border-color: var(--cyan); }
+.input-pag::-webkit-inner-spin-button { opacity: 0; }
+
+/* ── Tabla ───────────────────────────────────────────── */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(252,209,22,.4) rgba(252,209,22,.06);
+}
+.table-wrap::-webkit-scrollbar       { height: 7px; }
+.table-wrap::-webkit-scrollbar-track { background: rgba(252,209,22,.06); border-radius: 4px; }
+.table-wrap::-webkit-scrollbar-thumb { background: rgba(252,209,22,.4);  border-radius: 4px; }
+.table-wrap::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+
+.reparto-table {
+  min-width: 3800px;   /* 26 columnas — fuerza scroll horizontal */
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.reparto-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.reparto-table thead tr { border-bottom: 1px solid var(--border); }
+
+.reparto-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: var(--cyan);
+  opacity: .6;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #0a1628;
+}
+
+.reparto-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(252,209,22,.07);
+  color: var(--text);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.reparto-table tbody tr:hover td { background: rgba(252,209,22,.04); }
+
+/* ── Último sorteo realizado ─────────────────────────── */
+.row-ultimo-sorteo td {
+  background: rgba(252,209,22,.08) !important;
+  border-bottom-color: rgba(252,209,22,.18) !important;
+}
+.row-ultimo-sorteo td:first-child {
+  border-left: 2px solid var(--cyan);
+}
+.row-ultimo-sorteo:hover td {
+  background: rgba(252,209,22,.13) !important;
+}
+
+/* ── Asignado recientemente desde Asignaciones ────────── */
+.row-asignado td {
+  background: rgba(0,200,150,.07) !important;
+  border-bottom-color: rgba(0,200,150,.2) !important;
+}
+.row-asignado td:first-child {
+  border-left: 2px solid #00c896;
+}
+.row-asignado:hover td {
+  background: rgba(0,200,150,.13) !important;
+}
+
+.col-consec  { font-family: monospace; font-size: 11px; color: rgba(252,209,22,.8); }
+.col-agrup   { max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+.col-cont    { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.col-obs     { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+.col-acta    { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+.col-fecha   { white-space: nowrap; font-family: monospace; font-size: 11px; }
+.col-centro  { text-align: center; }
+.col-dias    { text-align: right; font-variant-numeric: tabular-nums; }
+
+.table-loading,
+.table-empty {
+  text-align: center;
+  padding: 40px !important;
+  color: rgba(252,209,22,.4);
+  font-size: 13px;
+  letter-spacing: .05em;
+}
+
+.table-msg {
+  font-size: 13px;
+  min-height: 18px;
+}
+
+/* ── Badges de estado ────────────────────────────────── */
+.badge-estado {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  padding: 2px 8px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.badge-estado-cert    { border: 1px solid #00ff88; color: #00ff88; }
+.badge-estado-pend    { border: 1px solid #f0a500; color: #f0a500; }
+.badge-estado-venc    { border: 1px solid #ff6080; color: #ff6080; }
+.badge-estado-ofic    { border: 1px solid var(--cyan); color: var(--cyan); }
+.badge-estado-reof    { border: 1px solid #8888ff; color: #8888ff; }
+.badge-estado-reas    { border: 1px solid #f0a500; color: #f0a500; }
+.badge-estado-reti    { border: 1px solid rgba(255,96,128,.6); color: rgba(255,96,128,.6); }
+.badge-estado-inv     { border: 1px solid #ff9944; color: #ff9944; }
+.badge-estado-dev     { border: 1px solid rgba(252,209,22,.4); color: rgba(252,209,22,.4); }
+.badge-estado-default { border: 1px solid rgba(252,209,22,.3); color: rgba(252,209,22,.5); }
+
+/* Badges de tiempo de revisión */
+.badge-tiempo {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 2px;
+  letter-spacing: .05em;
+}
+
+.badge-tiempo.vencido    { border: 1px solid #ff6080; color: #ff6080; }
+.badge-tiempo.en-termino { border: 1px solid #00ff88; color: #00ff88; }
+.badge-tiempo            { border: 1px solid rgba(252,209,22,.3); color: rgba(252,209,22,.5); }
+
+/* ── Botón editar en tabla ───────────────────────────── */
+.btn-action {
+  background: transparent;
+  font-family: 'Rajdhani', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+
+.btn-editar-exp { border: 1px solid rgba(252,209,22,.4); color: rgba(252,209,22,.7); }
+.btn-editar-exp:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(252,209,22,.08); }
+
+/* ── Modal ───────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,11,24,.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-box {
+  background: #0a1628;
+  border: 1px solid var(--border);
+  padding: 32px 36px;
+  min-width: 340px;
+  max-width: 560px;
+  width: 100%;
+}
+
+.modal-box--wide {
+  max-width: 960px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--cyan);
+  margin-bottom: 18px;
+}
+
+/* Grid info no editable */
+.edit-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+}
+
+.info-item { display: flex; flex-direction: column; gap: 3px; }
+.info-item--full { grid-column: 1 / -1; }
+
+.info-lbl {
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: rgba(252,209,22,.5);
+}
+
+.info-val {
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* Campos editables en modal */
+.edit-section-lbl {
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: rgba(252,209,22,.5);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(252,209,22,.1);
+}
+
+.form-row-1 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 12px; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+.form-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 12px; }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+
+.form-label {
+  font-size: 11px;
+  letter-spacing: .1em;
+  color: var(--cyan);
+  opacity: .7;
+  text-transform: uppercase;
+}
+
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Rajdhani', monospace;
+  font-size: 13px;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.btn-secondary:hover { border-color: var(--cyan); color: var(--cyan); }
+
+.btn-primary {
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: 'Rajdhani', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 24px;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+.btn-primary:hover { background: var(--cyan); color: var(--dark); }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .filtros-row { flex-direction: column; align-items: flex-start; }
+  .form-row-2, .form-row-3, .form-row-4 { grid-template-columns: 1fr; }
+  .edit-info-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Botón descarga Excel ─────────────────────────────── */
+.btn-excel {
+  background: transparent;
+  border: 1px solid rgba(0,255,136,.45);
+  color: #00ff88;
+  font-family: 'Rajdhani', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-excel:hover { background: #00ff88; color: #020b18; }
