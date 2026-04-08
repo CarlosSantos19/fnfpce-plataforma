@@ -70,11 +70,31 @@ function badgeEstado(estado) {
   return `<span class="badge-estado ${cls}">${(estado || '').trim() || '—'}</span>`;
 }
 
+// Calcula días transcurridos desde fechaActaReparto (día 1 = día de asignación)
+function calcDias(fechaActa) {
+  if (!fechaActa) return null;
+  const inicio = new Date(fechaActa);
+  const hoy    = new Date();
+  inicio.setHours(0, 0, 0, 0);
+  hoy.setHours(0, 0, 0, 0);
+  return Math.floor((hoy - inicio) / 86400000) + 1;
+}
+
 function badgeTiempo(t) {
   const v = (t || '').trim().toUpperCase();
   if (v === 'VENCIDO') return '<span class="badge-tiempo vencido">VENCIDO</span>';
   if (v === 'EN TERMINO') return '<span class="badge-tiempo en-termino">EN TÉRMINO</span>';
   return t ? `<span class="badge-tiempo">${t}</span>` : '—';
+}
+
+function badgeTiempoAuto(fechaActa, tiempoGuardado) {
+  const d = calcDias(fechaActa);
+  if (d !== null) {
+    return d >= 30
+      ? '<span class="badge-tiempo vencido">VENCIDO</span>'
+      : '<span class="badge-tiempo en-termino">EN TÉRMINO</span>';
+  }
+  return badgeTiempo(tiempoGuardado);
 }
 
 // ── Cargar último sorteo activo ───────────────────────────────────────────────
@@ -223,8 +243,8 @@ function renderTabla() {
       <td class="col-cont"  title="${e.nombreContador || ''}">${e.nombreContador || '—'}</td>
       <td class="col-centro">${e.numeroActaReparto ?? '—'}</td>
       <td class="col-fecha">${e.fechaActaReparto || '—'}</td>
-      <td class="col-dias">${e.dias ?? '—'}</td>
-      <td>${badgeTiempo(e.tiempoRevision)}</td>
+      <td class="col-dias">${calcDias(e.fechaActaReparto) ?? e.dias ?? '—'}</td>
+      <td>${badgeTiempoAuto(e.fechaActaReparto, e.tiempoRevision)}</td>
       <td>${badgeEstado(e.estado)}</td>
       <td class="col-consec">${e.primerOficioNo || '—'}</td>
       <td class="col-fecha">${e.primerOficioFecha || '—'}</td>
