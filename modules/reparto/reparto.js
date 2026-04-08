@@ -100,7 +100,7 @@ async function cargarExpedientes() {
     ]);
     todosLosExpedientes = snap.docs
       .map(d => ({ _id: d.id, ...d.data() }))
-      .filter(e => !(e.agrupacion || '').trim().startsWith('-'));
+      .filter(e => !!(e.consecutivo || '').trim());
     // Orden numérico: primero por prefijo (AL, CN…) luego por número
     todosLosExpedientes.sort((a, b) => {
       const parse = s => { const m = (s||'').match(/^([A-Za-z]+)(\d+)/); return m ? [m[1], parseInt(m[2],10)] : [s||'',0]; };
