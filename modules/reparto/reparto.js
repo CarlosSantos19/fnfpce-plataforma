@@ -312,7 +312,7 @@ function abrirModalEditar(exp) {
     <div class="info-item"><span class="info-lbl">CAJA DIGITAL</span><span class="info-val">${exp.cajaDigital ?? '—'}</span></div>
     <div class="info-item info-item--full"><span class="info-lbl">OBSERVACIÓN REPARTO</span><span class="info-val">${exp.observacion || '—'}</span></div>
     <div class="info-item info-item--full"><span class="info-lbl">N° ACTA DE ENTREGA</span><span class="info-val">${exp.numeroActaEntrega || '—'}</span></div>
-    <div class="info-item"><span class="info-lbl">N° ACTA REPARTO</span><span class="info-val">${exp.numeroActaReparto ?? '—'}</span></div>
+    <div class="info-item"><span class="info-lbl">CAJA DIGITAL</span><span class="info-val">${exp.numeroActaReparto ?? '—'}</span></div>
     <div class="info-item"><span class="info-lbl">FECHA ACTA REPARTO</span><span class="info-val">${exp.fechaActaReparto || '—'}</span></div>
     <div class="info-item"><span class="info-lbl">DÍAS</span><span class="info-val">${exp.dias ?? '—'}</span></div>
     <div class="info-item"><span class="info-lbl">TIEMPO DE REVISIÓN</span><span class="info-val">${exp.tiempoRevision || '—'}</span></div>
@@ -423,7 +423,7 @@ window.descargarExcel = function() {
     'OBSERVACIÓN':         e.observacion            || '',
     'N° ACTA ENTREGA':     e.numeroActaEntrega      || '',
     'NOMBRE CONTADOR':     e.nombreContador         || '',
-    'N° ACTA REPARTO':     e.numeroActaReparto      ?? '',
+    'CAJA DIGITAL':        e.numeroActaReparto      ?? '',
     'FECHA ACTA':          e.fechaActaReparto       || '',
     'DÍAS':                e.dias                   ?? '',
     'T. REVISIÓN':         e.tiempoRevision         || '',

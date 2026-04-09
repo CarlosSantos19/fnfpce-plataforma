@@ -21,22 +21,250 @@
     <main class="main-content">
       <header class="page-header">
         <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; REPARTO</div>
-        <h1 class="page-title"><span class="title-icon">◈</span> Reparto</h1>
+        <h1 class="page-title"><span class="title-icon">◈</span> Reparto ET2023</h1>
         <p class="page-desc">Distribución y gestión de expedientes asignados</p>
       </header>
 
+      <!-- Filtros -->
       <div class="content-card">
-        <div class="wip-block">
-          <div class="wip-icon">◈</div>
-          <div class="wip-title">MÓDULO EN DESARROLLO</div>
-          <div class="wip-text">El módulo de Reparto estará disponible próximamente.</div>
+        <div class="filtros-row">
+          <div class="filtros-izq">
+            <div class="card-section-title">// EXPEDIENTES</div>
+            <div class="search-wrap">
+              <input type="text" id="buscar" class="form-input search-input"
+                     placeholder="Buscar consecutivo, municipio, contador, agrupación..." />
+            </div>
+          </div>
+          <div class="filtros-der">
+            <select id="filtro-estado" class="form-input form-input--sm">
+              <option value="">Todos los estados</option>
+              <option value="PENDIENTE REVISION">Pendiente Revisión</option>
+              <option value="OFICIADO">Oficiado</option>
+              <option value="REOFICIADO">Reoficiado</option>
+              <option value="CERTIFICADO">Certificado</option>
+              <option value="CERTIFICADO P">Certificado P</option>
+              <option value="REASIGNADO">Reasignado</option>
+              <option value="RETIRADO">Retirado</option>
+              <option value="NTD">NTD</option>
+              <option value="INVESTIGACION">Investigación</option>
+              <option value="DEVUELTA CONTADOR">Devuelta Contador</option>
+            </select>
+            <select id="filtro-corporacion" class="form-input form-input--sm">
+              <option value="">Todas las corporaciones</option>
+            </select>
+            <select id="filtro-departamento" class="form-input form-input--sm">
+              <option value="">Todos los departamentos</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Barra de stats + paginación superior -->
+        <div class="stats-pag-row">
+          <span id="stats-count" class="stats-count"></span>
+          <button class="btn-excel" onclick="descargarExcel()" title="Descargar todos los registros filtrados">↓ Excel</button>
+          <div class="paginacion">
+            <button class="btn-pag" id="btn-first-top" onclick="irPagina(1)" title="Primera página">&#8676;</button>
+            <button class="btn-pag" id="btn-prev-top"  onclick="cambiarPagina(-1)">&#8592;</button>
+            <span id="pag-info-top" class="pag-info"></span>
+            <button class="btn-pag" id="btn-next-top"  onclick="cambiarPagina(1)">&#8594;</button>
+            <button class="btn-pag" id="btn-last-top"  onclick="irUltimaPagina()" title="Última página">&#8677;</button>
+            <input type="number" id="input-pag-top" class="input-pag" min="1" placeholder="Pág."
+                   onkeydown="if(event.key==='Enter') irPagina(+this.value)" />
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="table-wrap">
+          <table class="reparto-table">
+            <thead>
+              <tr>
+                <th>CONSEC. MANUAL</th>
+                <th>CONSEC. APLICATIVO</th>
+                <th>CORPORACIÓN</th>
+                <th>CIRCUNSCRIPCIÓN</th>
+                <th>DEPARTAMENTO</th>
+                <th>MUNICIPIO</th>
+                <th>AGRUPACIÓN POLÍTICA</th>
+                <th>DERECHO REPOSICIÓN</th>
+                <th>CAJA DIGITAL</th>
+                <th>OBSERVACIÓN</th>
+                <th>N° ACTA ENTREGA</th>
+                <th>NOMBRE CONTADOR</th>
+                <th>CAJA DIGITAL</th>
+                <th>FECHA ACTA</th>
+                <th>DÍAS</th>
+                <th>T. REVISIÓN</th>
+                <th>ESTADO</th>
+                <th>1° N° OFICIO</th>
+                <th>1° FECHA OFICIO</th>
+                <th>1° RESPUESTA</th>
+                <th>1° RADICADO EPX</th>
+                <th>2° N° OFICIO</th>
+                <th>2° FECHA OFICIO</th>
+                <th>2° RESPUESTA</th>
+                <th>2° RADICADO EPX</th>
+                <th>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-reparto">
+              <tr><td colspan="26" class="table-loading">Cargando expedientes...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación inferior -->
+        <div class="stats-pag-row" style="margin-top:12px;">
+          <div id="msg-tabla" class="table-msg"></div>
+          <div class="paginacion">
+            <button class="btn-pag" id="btn-first-bot" onclick="irPagina(1)" title="Primera página">&#8676;</button>
+            <button class="btn-pag" id="btn-prev-bot"  onclick="cambiarPagina(-1)">&#8592;</button>
+            <span id="pag-info-bot" class="pag-info"></span>
+            <button class="btn-pag" id="btn-next-bot"  onclick="cambiarPagina(1)">&#8594;</button>
+            <button class="btn-pag" id="btn-last-bot"  onclick="irUltimaPagina()" title="Última página">&#8677;</button>
+            <input type="number" id="input-pag-bot" class="input-pag" min="1" placeholder="Pág."
+                   onkeydown="if(event.key==='Enter') irPagina(+this.value)" />
+          </div>
         </div>
       </div>
+
     </main>
   </div>
 
+  <!-- Modal editar expediente -->
+  <div class="modal-overlay" id="modal-editar" style="display:none">
+    <div class="modal-box modal-box--wide">
+      <div class="modal-title">// DETALLE Y EDICIÓN DEL EXPEDIENTE</div>
+
+      <!-- Info no editable -->
+      <div class="edit-info-grid" id="edit-info"></div>
+
+      <div style="height:1px;background:rgba(0,212,255,.15);margin:18px 0;"></div>
+
+      <!-- Campos editables -->
+      <div class="edit-section-lbl">DATOS GENERALES</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select id="edit-estado" class="form-input">
+            <option value="PENDIENTE REVISION">Pendiente Revisión</option>
+            <option value="OFFICIADO">Oficiado</option>
+            <option value="REOFICIADO">Reoficiado</option>
+            <option value="CERTIFICADO">Certificado</option>
+            <option value="CERTIFICADO P">Certificado P</option>
+            <option value="REASIGNADO">Reasignado</option>
+            <option value="RETIRADO">Retirado</option>
+            <option value="NTD">NTD</option>
+            <option value="INVESTIGACION">Investigación</option>
+            <option value="DEVUELTA CONTADOR">Devuelta Contador</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre del Contador</label>
+          <input type="text" id="edit-contador" class="form-input" placeholder="Nombre completo" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Consec. Aplicativo</label>
+          <input type="text" id="edit-consec-aplic" class="form-input" placeholder="—" />
+        </div>
+      </div>
+
+      <div class="edit-section-lbl" style="margin-top:16px;">ACTAS Y DOCUMENTOS</div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label">Derecho de Reposición</label>
+          <input type="text" id="edit-der-repos" class="form-input" placeholder="—" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">N° Acta de Entrega</label>
+          <input type="text" id="edit-acta-entrega" class="form-input" placeholder="—" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">N° Acta Reparto</label>
+          <input type="text" id="edit-acta-reparto" class="form-input" placeholder="—" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Acta Reparto</label>
+          <input type="text" id="edit-fecha-acta" class="form-input" placeholder="dd/mm/aaaa" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Días</label>
+          <input type="text" id="edit-dias" class="form-input" placeholder="—" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tiempo de Revisión</label>
+          <select id="edit-tiempo-rev" class="form-input">
+            <option value="">—</option>
+            <option value="EN TERMINO">En Término</option>
+            <option value="VENCIDO">Vencido</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-1" style="margin-top:8px;">
+        <div class="form-group">
+          <label class="form-label">Observación</label>
+          <input type="text" id="edit-observacion" class="form-input" placeholder="—" />
+        </div>
+      </div>
+
+      <div class="edit-section-lbl" style="margin-top:16px;">PRIMER OFICIO</div>
+      <div class="form-row-4">
+        <div class="form-group">
+          <label class="form-label">N° Oficio</label>
+          <input type="text" id="edit-p1-no" class="form-input" placeholder="—" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Oficio</label>
+          <input type="text" id="edit-p1-fecha" class="form-input" placeholder="dd/mm/aaaa" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Respuesta</label>
+          <select id="edit-p1-respuesta" class="form-input">
+            <option value="">—</option>
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Radicado EPX</label>
+          <input type="text" id="edit-p1-radicado" class="form-input" placeholder="—" />
+        </div>
+      </div>
+
+      <div class="edit-section-lbl" style="margin-top:16px;">SEGUNDO OFICIO</div>
+      <div class="form-row-4">
+        <div class="form-group">
+          <label class="form-label">N° Oficio</label>
+          <input type="text" id="edit-p2-no" class="form-input" placeholder="—" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha Oficio</label>
+          <input type="text" id="edit-p2-fecha" class="form-input" placeholder="dd/mm/aaaa" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Respuesta</label>
+          <select id="edit-p2-respuesta" class="form-input">
+            <option value="">—</option>
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Radicado EPX</label>
+          <input type="text" id="edit-p2-radicado" class="form-input" placeholder="—" />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
+        <button class="btn-primary" id="btn-guardar">Guardar Cambios</button>
+      </div>
+      <div id="msg-editar" style="margin-top:10px;font-size:13px;min-height:16px;"></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="/core/auth.js"></script>
   <script src="/components/sidebar.js"></script>
-  <script src="reparto.js"></script>
+  <script type="module" src="reparto.js"></script>
 </body>
 </html>
