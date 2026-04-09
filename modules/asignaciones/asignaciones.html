@@ -22,21 +22,224 @@
       <header class="page-header">
         <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; ASIGNACIONES</div>
         <h1 class="page-title"><span class="title-icon">◎</span> Asignaciones</h1>
-        <p class="page-desc">Consulta y seguimiento de casos asignados al sistema</p>
+        <p class="page-desc">Consulta y selección prioritaria de candidatos pendientes</p>
       </header>
 
-      <div class="content-card">
-        <div class="wip-block">
-          <div class="wip-icon">◎</div>
-          <div class="wip-title">MÓDULO EN DESARROLLO</div>
-          <div class="wip-text">El módulo de Asignaciones estará disponible próximamente.</div>
+      <!-- ══ PANEL DE SELECCIÓN PRIORITARIA ══════════════════════════════════ -->
+      <div class="content-card prioridad-card">
+        <div class="card-section-title">// SELECCIÓN PRIORITARIA</div>
+
+        <!-- Fila 1: Tipo de corporación -->
+        <div class="prio-section-lbl">TIPO DE CORPORACIÓN</div>
+        <div class="prio-tipos-row">
+          <button class="btn-tipo" data-tipo="ALCALDIA"    onclick="selTipo('ALCALDIA')">Alcaldías</button>
+          <button class="btn-tipo" data-tipo="CONCEJO"     onclick="selTipo('CONCEJO')">Concejos</button>
+          <button class="btn-tipo" data-tipo="ASAMBLEA"    onclick="selTipo('ASAMBLEA')">Asambleas</button>
+          <button class="btn-tipo" data-tipo="GOBERNACION" onclick="selTipo('GOBERNACION')">Gobernaciones</button>
+          <button class="btn-tipo" data-tipo="JUNTA"       onclick="selTipo('JUNTA')">JAL</button>
+        </div>
+
+        <!-- Fila 2: Categorías prioritarias -->
+        <div class="prio-section-lbl" style="margin-top:14px;">PRIORIDAD POR CATEGORÍA <span class="prio-hint">(selecciona las que quieres incluir)</span></div>
+        <div class="prio-cats-row">
+          <label class="cat-check"><input type="checkbox" class="chk-cat" value="ESPECIAL" /> Especial</label>
+          <label class="cat-check"><input type="checkbox" class="chk-cat" value="1" /> 1ª</label>
+          <label class="cat-check"><input type="checkbox" class="chk-cat" value="2" /> 2ª</label>
+          <label class="cat-check"><input type="checkbox" class="chk-cat" value="3" /> 3ª</label>
+          <label class="cat-check"><input type="checkbox" class="chk-cat" value="4" /> 4ª</label>
+          <label class="cat-check"><input type="checkbox" class="chk-cat" value="5" /> 5ª</label>
+          <label class="cat-check"><input type="checkbox" class="chk-cat" value="6" /> 6ª</label>
+        </div>
+
+        <!-- Fila 3: Motivo de prioridad -->
+        <div class="prio-section-lbl" style="margin-top:14px;">MOTIVO DE PRIORIDAD</div>
+        <div class="prio-motivos-row">
+          <label class="motivo-check"><input type="checkbox" class="chk-motivo" value="Período vencido" /> Período vencido</label>
+          <label class="motivo-check"><input type="checkbox" class="chk-motivo" value="Solicitado" /> Solicitado</label>
+          <label class="motivo-check"><input type="checkbox" class="chk-motivo" value="Revisión urgente" /> Revisión urgente</label>
+          <label class="motivo-check"><input type="checkbox" class="chk-motivo" value="Municipio especial" /> Municipio especial</label>
+          <label class="motivo-check"><input type="checkbox" class="chk-motivo" value="Alto riesgo" /> Alto riesgo</label>
+          <label class="motivo-check"><input type="checkbox" class="chk-motivo" value="Reoficiado" /> Reoficiado</label>
+          <div class="motivo-custom-wrap">
+            <input type="text" id="motivo-custom" class="motivo-custom-inp" placeholder="Otro motivo..." />
+          </div>
+        </div>
+
+        <!-- Fila 4: Acciones de selección -->
+        <div class="prio-acciones-row">
+          <button class="btn-prio-accion btn-aplicar" onclick="aplicarSelPrioritaria()">◉ Aplicar selección prioritaria</button>
+          <button class="btn-prio-accion btn-todo"    onclick="selTodos()">Seleccionar todos los visibles</button>
+          <button class="btn-prio-accion btn-ninguno" onclick="limpiarSeleccion()">✕ Limpiar selección</button>
+          <button class="btn-prio-accion btn-nuevo-reparto" onclick="abrirNuevoReparto()">⊕ Nuevo Reparto</button>
+          <button class="btn-prio-accion btn-deshacer-reparto-perm" onclick="deshacerUltimoReparto()">↩ Deshacer reparto</button>
+          <span class="sel-badge" id="sel-badge" style="display:none">
+            <span id="sel-count">0</span> seleccionados
+          </span>
         </div>
       </div>
+
+      <!-- ══ TABLA DE REGISTROS ══════════════════════════════════════════════ -->
+      <div class="content-card tabla-card">
+        <div class="filtros-row">
+          <div class="filtros-izq">
+            <div class="card-section-title">// PENDIENTES</div>
+            <div class="search-wrap">
+              <input type="text" id="buscar" class="form-input search-input"
+                     placeholder="Buscar municipio, agrupación, corporación..." />
+            </div>
+          </div>
+          <div class="filtros-der">
+            <select id="filtro-corporacion" class="form-input form-input--sm">
+              <option value="">Todas las corporaciones</option>
+            </select>
+            <select id="filtro-departamento" class="form-input form-input--sm">
+              <option value="">Todos los departamentos</option>
+            </select>
+            <select id="filtro-color" class="form-input form-input--sm">
+              <option value="">Todos los colores</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Stats + paginación superior -->
+        <div class="stats-pag-row">
+          <span id="stats-count" class="stats-count"></span>
+          <button class="btn-excel" onclick="descargarExcel()" title="Descargar todos los registros filtrados">↓ Excel</button>
+          <button class="btn-excel btn-excel--sel" id="btn-dl-sel" onclick="descargarSeleccionados()"
+                  style="display:none" title="Descargar solo los seleccionados">↓ Excel seleccionados</button>
+          <div class="paginacion">
+            <button class="btn-pag" id="btn-first-top" onclick="irPagina(1)" title="Primera página">&#8676;</button>
+            <button class="btn-pag" id="btn-prev-top"  onclick="cambiarPagina(-1)">&#8592;</button>
+            <span id="pag-info-top" class="pag-info"></span>
+            <button class="btn-pag" id="btn-next-top"  onclick="cambiarPagina(1)">&#8594;</button>
+            <button class="btn-pag" id="btn-last-top"  onclick="irUltimaPagina()" title="Última página">&#8677;</button>
+            <input type="number" id="input-pag-top" class="input-pag" min="1" placeholder="Pág."
+                   onkeydown="if(event.key==='Enter') irPagina(+this.value)" />
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="table-wrap">
+          <table class="asig-table">
+            <thead>
+              <tr>
+                <th class="col-chk"><input type="checkbox" id="chk-todos" onchange="toggleTodosVisibles(this.checked)" title="Seleccionar/quitar página actual" /></th>
+                <th>N° CAND.</th>
+                <th>CORPORACIÓN</th>
+                <th>CIRCUNSCRIPCIÓN</th>
+                <th>DEPARTAMENTO</th>
+                <th>COD. DEPTO</th>
+                <th>MUNICIPIO</th>
+                <th>COD. MPIO</th>
+                <th>CATEGORÍA</th>
+                <th>TIPO AGRUPACIÓN</th>
+                <th>AGRUPACIÓN POLÍTICA</th>
+                <th>COLOR</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-asig">
+              <tr><td colspan="12" class="table-loading">Cargando registros...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación inferior -->
+        <div class="stats-pag-row" style="margin-top:12px;">
+          <div id="msg-tabla" class="table-msg"></div>
+          <div class="paginacion">
+            <button class="btn-pag" id="btn-first-bot" onclick="irPagina(1)" title="Primera página">&#8676;</button>
+            <button class="btn-pag" id="btn-prev-bot"  onclick="cambiarPagina(-1)">&#8592;</button>
+            <span id="pag-info-bot" class="pag-info"></span>
+            <button class="btn-pag" id="btn-next-bot"  onclick="cambiarPagina(1)">&#8594;</button>
+            <button class="btn-pag" id="btn-last-bot"  onclick="irUltimaPagina()" title="Última página">&#8677;</button>
+            <input type="number" id="input-pag-bot" class="input-pag" min="1" placeholder="Pág."
+                   onkeydown="if(event.key==='Enter') irPagina(+this.value)" />
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
+  <!-- ══ MODAL: NUEVO REPARTO ════════════════════════════════════════ -->
+  <div id="modal-nuevo-reparto" class="modal-overlay" style="display:none">
+    <div class="modal-box modal-reparto-box">
+      <div class="modal-header">
+        <span class="modal-title">⊕ Nuevo Reparto</span>
+        <button class="modal-close" onclick="cerrarNuevoReparto()">✕</button>
+      </div>
+
+      <!-- Stepper -->
+      <div class="reparto-stepper">
+        <div class="reparto-step" id="step-ind-1"><span class="step-num">1</span><span class="step-lbl">Contadores</span></div>
+        <div class="reparto-step-sep">›</div>
+        <div class="reparto-step" id="step-ind-2"><span class="step-num">2</span><span class="step-lbl">Registros</span></div>
+        <div class="reparto-step-sep">›</div>
+        <div class="reparto-step" id="step-ind-3"><span class="step-num">3</span><span class="step-lbl">Confirmar</span></div>
+      </div>
+
+      <!-- Paso 1: Contadores -->
+      <div id="reparto-paso-1">
+        <p class="reparto-instruccion">Selecciona los contadores que participarán en este reparto.</p>
+        <div id="reparto-contadores-lista" class="reparto-contadores-lista"></div>
+        <div class="reparto-summary" id="reparto-resumen-contadores"></div>
+      </div>
+
+      <!-- Paso 2: Registros -->
+      <div id="reparto-paso-2" style="display:none">
+        <div class="reparto-tabs">
+          <button class="reparto-tab active" id="rtab-criterio" onclick="repartoTab('criterio')">Por Criterio</button>
+          <button class="reparto-tab" id="rtab-manual" onclick="repartoTab('manual')">Selección Manual</button>
+        </div>
+
+        <div id="rpanel-criterio">
+          <p class="reparto-instruccion">Selecciona corporación y categoría. Indica cuántos incluir por combinación (vacío = todos los disponibles).</p>
+          <div class="prio-section-lbl">TIPO DE CORPORACIÓN</div>
+          <div class="prio-tipos-row" style="margin-bottom:12px">
+            <button class="btn-tipo-r" data-tipo="ALCALDIA"    onclick="rSelTipo(this)">Alcaldías</button>
+            <button class="btn-tipo-r" data-tipo="CONCEJO"     onclick="rSelTipo(this)">Concejos</button>
+            <button class="btn-tipo-r" data-tipo="ASAMBLEA"    onclick="rSelTipo(this)">Asambleas</button>
+            <button class="btn-tipo-r" data-tipo="GOBERNACION" onclick="rSelTipo(this)">Gobernaciones</button>
+            <button class="btn-tipo-r" data-tipo="JUNTA"       onclick="rSelTipo(this)">JAL</button>
+          </div>
+          <div class="prio-section-lbl">CATEGORÍA</div>
+          <div class="prio-cats-row" style="margin-bottom:14px">
+            <label class="cat-check"><input type="checkbox" class="chk-rcat" value="ESPECIAL" onchange="actualizarTablaReparto()"> Especial</label>
+            <label class="cat-check"><input type="checkbox" class="chk-rcat" value="1" onchange="actualizarTablaReparto()"> 1ª</label>
+            <label class="cat-check"><input type="checkbox" class="chk-rcat" value="2" onchange="actualizarTablaReparto()"> 2ª</label>
+            <label class="cat-check"><input type="checkbox" class="chk-rcat" value="3" onchange="actualizarTablaReparto()"> 3ª</label>
+            <label class="cat-check"><input type="checkbox" class="chk-rcat" value="4" onchange="actualizarTablaReparto()"> 4ª</label>
+            <label class="cat-check"><input type="checkbox" class="chk-rcat" value="5" onchange="actualizarTablaReparto()"> 5ª</label>
+            <label class="cat-check"><input type="checkbox" class="chk-rcat" value="6" onchange="actualizarTablaReparto()"> 6ª</label>
+          </div>
+          <div id="reparto-criterio-tabla-wrap"></div>
+          <div class="reparto-summary" id="reparto-resumen-criterio"></div>
+        </div>
+
+        <div id="rpanel-manual" style="display:none">
+          <p class="reparto-instruccion">Se usarán los registros actualmente seleccionados en la tabla principal (checkboxes marcados).</p>
+          <div class="reparto-summary" id="reparto-resumen-manual"></div>
+        </div>
+      </div>
+
+      <!-- Paso 3: Previsualización -->
+      <div id="reparto-paso-3" style="display:none">
+        <p class="reparto-instruccion">Distribución equitativa (round-robin). Revisa y confirma el reparto.</p>
+        <div id="reparto-preview-wrap"></div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="reparto-acciones">
+        <button class="btn-rep-sec"      id="btn-rep-atras"     onclick="repartoPasoAtras()"   style="display:none">← Atrás</button>
+        <button class="btn-rep-prim"     id="btn-rep-siguiente" onclick="repartoPasoSiguiente()">Siguiente →</button>
+        <button class="btn-rep-confirmar" id="btn-rep-confirmar" onclick="ejecutarReparto()"   style="display:none">✓ Confirmar Reparto</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="/core/auth.js"></script>
   <script src="/components/sidebar.js"></script>
-  <script src="asignaciones.js"></script>
+  <script type="module" src="asignaciones.js"></script>
 </body>
 </html>
