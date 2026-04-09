@@ -665,7 +665,8 @@ window.ejecutarReparto = async function() {
     // ── 1. Leer reparto actual para obtener máximos ──────────────────────────
     const snapReparto = await getDocs(collection(db, 'reparto'));
     const maxConsec = {};  // prefix → número más alto
-    let   maxActa   = 0;
+    let   maxActa        = 0;
+    let   maxActaReparto = 0;
 
     snapReparto.forEach(d => {
       const data = d.data();
@@ -676,17 +677,21 @@ window.ejecutarReparto = async function() {
         const num = parseInt(mc[2], 10);
         if (!maxConsec[pfx] || num > maxConsec[pfx]) maxConsec[pfx] = num;
       }
-      // Número de acta
+      // Número de acta entrega
       const ma = String(data.numeroActaEntrega || '').match(/(\d{5,6})$/);
       if (ma) {
         const num = parseInt(ma[1], 10);
         if (num > maxActa) maxActa = num;
       }
+      // Número de acta reparto (número simple)
+      const mr = parseInt(data.numeroActaReparto, 10);
+      if (!isNaN(mr) && mr > maxActaReparto) maxActaReparto = mr;
     });
 
     // ── 2. Contadores incrementales para este lote ───────────────────────────
     const nextConsec = { ...maxConsec };  // prefix → próximo a asignar
-    let   nextActa   = maxActa;
+    let   nextActa        = maxActa;
+    let   nextActaReparto = maxActaReparto;
 
     const fechaHoy = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
@@ -695,9 +700,11 @@ window.ejecutarReparto = async function() {
     const escrituras = [];
 
     _cajasReparto.forEach(({ contador, registros, num }) => {
-      // Un número de acta por caja/contador
+      // Un número de acta entrega y un número de acta reparto por caja/contador
       nextActa++;
+      nextActaReparto++;
       const numeroActaEntrega = `CNE-FNFPCE-ACTA-E-ET2023-${String(nextActa).padStart(6, '0')}`;
+      const numeroActaReparto = nextActaReparto;
 
       registros.forEach(reg => {
         const { _id, ...campos } = reg;
@@ -717,6 +724,8 @@ window.ejecutarReparto = async function() {
             ...campos,
             consecutivo,
             numeroActaEntrega,
+            numeroActaReparto,
+            cajaDigital:      num,
             fechaActaReparto: fechaHoy,
             nombreContador:   contador,
             cajaNum:          num,
