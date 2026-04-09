@@ -55,6 +55,24 @@ function badgeColor(color) {
   return `<span class="badge-color" style="background:${color};border-color:${color};" title="${color}"></span>`;
 }
 
+// ── Detectar último repartoId en Firestore y mostrar botón deshacer ──────────
+async function detectarUltimoReparto() {
+  try {
+    const snap = await getDocs(collection(db, 'reparto'));
+    let maxId = null;
+    snap.forEach(d => {
+      const rid = d.data().repartoId;
+      if (rid && (!maxId || rid > maxId)) maxId = rid;
+    });
+    if (maxId) {
+      _ultimoRepartoId = maxId;
+      const msg = document.getElementById('msg-tabla');
+      msg.innerHTML = `Último reparto activo. &nbsp;<button class="btn-deshacer-reparto" onclick="deshacerUltimoReparto()">↩ Deshacer último reparto (verdes)</button>`;
+      msg.style.color = '#00c896';
+    }
+  } catch (_) {}
+}
+
 // ── Cargar desde Firestore ────────────────────────────────────────────────────
 async function cargarRegistros() {
   tbody.innerHTML = '<tr><td colspan="12" class="table-loading">Cargando registros...</td></tr>';
@@ -359,6 +377,7 @@ filtroColor.addEventListener('change', aplicarFiltros);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 cargarRegistros();
+detectarUltimoReparto();
 
 // ══════════════════════════════════════════════════════════════════════════════
 // NUEVO REPARTO
