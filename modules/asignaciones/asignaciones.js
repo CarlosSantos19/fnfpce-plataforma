@@ -55,24 +55,6 @@ function badgeColor(color) {
   return `<span class="badge-color" style="background:${color};border-color:${color};" title="${color}"></span>`;
 }
 
-// ── Detectar último repartoId en Firestore y mostrar botón deshacer ──────────
-async function detectarUltimoReparto() {
-  try {
-    const snap = await getDocs(collection(db, 'reparto'));
-    let maxId = null;
-    snap.forEach(d => {
-      const rid = d.data().repartoId;
-      if (rid && (!maxId || rid > maxId)) maxId = rid;
-    });
-    if (maxId) {
-      _ultimoRepartoId = maxId;
-      const msg = document.getElementById('msg-tabla');
-      msg.innerHTML = `Último reparto activo. &nbsp;<button class="btn-deshacer-reparto" onclick="deshacerUltimoReparto()">↩ Deshacer último reparto (verdes)</button>`;
-      msg.style.color = '#00c896';
-    }
-  } catch (_) {}
-}
-
 // ── Cargar desde Firestore ────────────────────────────────────────────────────
 async function cargarRegistros() {
   tbody.innerHTML = '<tr><td colspan="12" class="table-loading">Cargando registros...</td></tr>';
@@ -377,7 +359,6 @@ filtroColor.addEventListener('change', aplicarFiltros);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 cargarRegistros();
-detectarUltimoReparto();
 
 // ══════════════════════════════════════════════════════════════════════════════
 // NUEVO REPARTO
@@ -816,8 +797,18 @@ window.deshacerTodoReparto = async function() {
 };
 
 window.deshacerUltimoReparto = async function() {
-  if (!_ultimoRepartoId) return;
-  if (!confirm('¿Deshacer el último reparto? Los registros volverán a Pendientes.')) return;
+  // Si no hay repartoId en memoria, buscar el más reciente en Firestore
+  if (!_ultimoRepartoId) {
+    const snapBuscar = await getDocs(collection(db, 'reparto'));
+    let maxId = null;
+    snapBuscar.forEach(d => {
+      const rid = d.data().repartoId;
+      if (rid && (!maxId || rid > maxId)) maxId = rid;
+    });
+    if (!maxId) { alert('No se encontró ningún reparto reciente.'); return; }
+    _ultimoRepartoId = maxId;
+  }
+  if (!confirm('¿Deshacer el último reparto (registros en verde)? Volverán a Pendientes.')) return;
   const msg = document.getElementById('msg-tabla');
   msg.textContent = 'Deshaciendo reparto…';
   msg.style.color = 'rgba(224,244,255,.5)';
