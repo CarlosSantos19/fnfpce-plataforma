@@ -677,7 +677,7 @@ window.ejecutarReparto = async function() {
         if (!maxConsec[pfx] || num > maxConsec[pfx]) maxConsec[pfx] = num;
       }
       // Número de acta
-      const ma = String(data.numeroActaReparto || '').match(/(\d{5,6})$/);
+      const ma = String(data.numeroActaEntrega || '').match(/(\d{5,6})$/);
       if (ma) {
         const num = parseInt(ma[1], 10);
         if (num > maxActa) maxActa = num;
@@ -697,7 +697,7 @@ window.ejecutarReparto = async function() {
     _cajasReparto.forEach(({ contador, registros, num }) => {
       // Un número de acta por caja/contador
       nextActa++;
-      const numeroActaReparto = `CNE-FNFPCE-ACTA-E-ET2023-${String(nextActa).padStart(6, '0')}`;
+      const numeroActaEntrega = `CNE-FNFPCE-ACTA-E-ET2023-${String(nextActa).padStart(6, '0')}`;
 
       registros.forEach(reg => {
         const { _id, ...campos } = reg;
@@ -716,7 +716,7 @@ window.ejecutarReparto = async function() {
           data: {
             ...campos,
             consecutivo,
-            numeroActaReparto,
+            numeroActaEntrega,
             fechaActaReparto: fechaHoy,
             nombreContador:   contador,
             cajaNum:          num,
