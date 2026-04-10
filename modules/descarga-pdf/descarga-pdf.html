@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Descarga de PDF — FNFPCE</title>
+  <link rel="stylesheet" href="/core/base.css" />
+  <link rel="stylesheet" href="/core/module-template.css" />
+  <link rel="stylesheet" href="descarga-pdf.css" />
+</head>
+<body>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; DESCARGA DE PDF</div>
+        <h1 class="page-title"><span class="title-icon">◧</span> Descarga de PDF</h1>
+        <p class="page-desc">Documentos del CNE por organización — ET2023</p>
+      </header>
+
+      <!-- Tabs -->
+      <div class="dp-tabs">
+        <button class="dp-tab active" id="tab-docs" onclick="switchTab('docs')">◧ Documentos</button>
+        <button class="dp-tab" id="tab-cne" onclick="switchTab('cne')">⬡ Descarga CNE</button>
+      </div>
+
+      <!-- ══════ TAB 1: DOCUMENTOS POR ORGANIZACIÓN ══════ -->
+      <div id="panel-docs">
+
+        <!-- Resumen -->
+        <div class="content-card" id="card-resumen" style="display:none">
+          <div class="dp-stats-row" id="dp-stats"></div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="content-card">
+          <div class="dp-filtros-row">
+            <div class="card-section-title">// ORGANIZACIONES</div>
+            <div class="dp-filtros-controls">
+              <select id="filtro-corporacion" class="form-input form-input--sm">
+                <option value="">Todas las corporaciones</option>
+              </select>
+              <input type="text" id="buscar-org" class="form-input form-input--sm"
+                     placeholder="Buscar organización…" />
+            </div>
+          </div>
+
+          <div id="dp-grid" class="dp-grid">
+            <div class="dp-loading">Cargando expedientes…</div>
+          </div>
+          <div id="dp-msg" class="table-msg"></div>
+        </div>
+
+      </div><!-- /panel-docs -->
+
+      <!-- ══════ TAB 2: DESCARGA CNE ══════ -->
+      <div id="panel-cne" style="display:none">
+
+        <!-- Estado del servidor -->
+        <div class="content-card" id="card-server">
+          <div class="dp-server-row">
+            <div class="card-section-title">// SERVIDOR LOCAL</div>
+            <div class="dp-server-status" id="server-status">
+              <span class="dp-server-dot" id="server-dot"></span>
+              <span id="server-txt">Verificando…</span>
+            </div>
+            <button class="btn-secondary btn-sm" onclick="verificarServidor()">↺ Reconectar</button>
+          </div>
+          <div class="dp-server-note" id="server-note" style="display:none"></div>
+        </div>
+
+        <!-- Tabs secundarios: ET2023 / Candidato Público / Resoluciones -->
+        <div class="dp-subtabs">
+          <button class="dp-subtab active" id="subtab-fnfp" onclick="switchSubtab('fnfp')">FNFP — ET2023</button>
+          <button class="dp-subtab" id="subtab-pub" onclick="switchSubtab('pub')">Ficha Pública</button>
+          <button class="dp-subtab" id="subtab-res" onclick="switchSubtab('res')">Resoluciones</button>
+        </div>
+
+        <!-- ─── Sub-panel FNFP ─────────────────────────────── -->
+        <div id="subpanel-fnfp">
+          <div class="content-card">
+            <div class="card-section-title">// CREDENCIALES CNE</div>
+            <div class="dp-form-grid dp-form-grid--2">
+              <div class="dp-field">
+                <label class="dp-label">Usuario CNE</label>
+                <input type="text" id="f-usuario" class="form-input" placeholder="usuario@cne.gov.co" autocomplete="off" />
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Contraseña CNE</label>
+                <div class="dp-pw-wrap">
+                  <input type="password" id="f-password" class="form-input" placeholder="••••••••" autocomplete="off" />
+                  <button class="dp-pw-toggle" onclick="togglePw('f-password',this)" tabindex="-1">👁</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="card-section-title">// DATOS DE LA ORGANIZACIÓN</div>
+            <div class="dp-form-grid dp-form-grid--2">
+              <div class="dp-field">
+                <label class="dp-label">Proceso Electoral</label>
+                <select id="f-proceso" class="form-input">
+                  <option value="ELECCIONES TERRITORIALES 2023">Elecciones Territoriales 2023</option>
+                  <option value="Consultas Internas - 2025">Consultas Internas 2025</option>
+                </select>
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Corporación</label>
+                <select id="f-corp" class="form-input">
+                  <option value="Alc">Alcaldía</option>
+                  <option value="Con">Concejo</option>
+                  <option value="Asa">Asamblea</option>
+                  <option value="Gob">Gobernación</option>
+                </select>
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Circunscripción</label>
+                <select id="f-circ" class="form-input">
+                  <option value="Municipal">Municipal</option>
+                  <option value="Departamental">Departamental</option>
+                </select>
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Tipo de Organización</label>
+                <select id="f-tipo-org" class="form-input">
+                  <option value="Or">Organización Política</option>
+                  <option value="Co">Coalición</option>
+                  <option value="Gr">Grupo Significativo</option>
+                </select>
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Departamento</label>
+                <input type="text" id="f-depto" class="form-input" placeholder="ej: Cundinamarca" />
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Municipio</label>
+                <input type="text" id="f-muni" class="form-input" placeholder="ej: Bogotá" />
+              </div>
+              <div class="dp-field dp-field--full">
+                <label class="dp-label">Agrupación Política</label>
+                <input type="text" id="f-org" class="form-input" placeholder="ej: PARTIDO LIBERAL COLOMBIANO" />
+              </div>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="card-section-title">// MÓDULOS A DESCARGAR</div>
+            <div class="dp-modulos-grid">
+              <label class="dp-mod-check"><input type="checkbox" value="ingresos" checked /> Ingresos FNFP</label>
+              <label class="dp-mod-check"><input type="checkbox" value="gastos" checked /> Gastos FNFP</label>
+              <label class="dp-mod-check"><input type="checkbox" value="consolidados" /> Consolidados</label>
+              <label class="dp-mod-check"><input type="checkbox" value="dictamen" /> Dictamen Auditor</label>
+              <label class="dp-mod-check"><input type="checkbox" value="reporte_partido" /> Reporte Partido</label>
+              <label class="dp-mod-check"><input type="checkbox" value="libro_contable" /> Libro Contable</label>
+            </div>
+            <div class="dp-opciones-row">
+              <label class="dp-switch-wrap">
+                <span class="dp-label">Navegador invisible</span>
+                <label class="dp-switch">
+                  <input type="checkbox" id="f-headless" />
+                  <span class="dp-switch-slider"></span>
+                </label>
+              </label>
+              <div class="dp-field dp-field--inline">
+                <label class="dp-label">Carpeta descargas</label>
+                <input type="text" id="f-carpeta" class="form-input form-input--sm"
+                       value="C:\CNE_Descargas" placeholder="C:\CNE_Descargas" />
+              </div>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="dp-acciones-row">
+              <button class="btn-primary" id="btn-descargar-fnfp" onclick="iniciarDescargaFNFP()">
+                ⬇ Iniciar Descarga
+              </button>
+              <button class="btn-secondary" id="btn-detener-fnfp" onclick="detenerJob()" style="display:none">
+                ✕ Detener
+              </button>
+              <div class="dp-job-id" id="job-id-fnfp"></div>
+            </div>
+          </div>
+        </div><!-- /subpanel-fnfp -->
+
+        <!-- ─── Sub-panel Ficha Pública ───────────────────── -->
+        <div id="subpanel-pub" style="display:none">
+          <div class="content-card">
+            <div class="card-section-title">// FICHA PÚBLICA DE CANDIDATO</div>
+            <p class="dp-help-text">
+              Descarga los PDFs de la ficha pública de uno o más candidatos del portal CNE
+              (no requiere credenciales). Ingresa los IDs del candidato separados por coma.
+            </p>
+            <div class="dp-form-grid dp-form-grid--2">
+              <div class="dp-field dp-field--full">
+                <label class="dp-label">IDs de Candidato (separados por coma)</label>
+                <input type="text" id="pub-ids" class="form-input" placeholder="ej: 93337081, 12345678" />
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Corporación (para organizar)</label>
+                <input type="text" id="pub-corp" class="form-input" placeholder="ej: CONCEJO" />
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Departamento</label>
+                <input type="text" id="pub-depto" class="form-input" placeholder="ej: Cundinamarca" />
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Municipio</label>
+                <input type="text" id="pub-muni" class="form-input" placeholder="ej: Bogotá" />
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Organización (para Storage)</label>
+                <input type="text" id="pub-org" class="form-input" placeholder="ej: PARTIDO LIBERAL" />
+              </div>
+            </div>
+            <div class="dp-opciones-row">
+              <label class="dp-switch-wrap">
+                <span class="dp-label">Navegador invisible</span>
+                <label class="dp-switch">
+                  <input type="checkbox" id="pub-headless" />
+                  <span class="dp-switch-slider"></span>
+                </label>
+              </label>
+            </div>
+            <div class="dp-acciones-row">
+              <button class="btn-primary" id="btn-descargar-pub" onclick="iniciarDescargaPublica()">
+                ⬇ Descargar Fichas
+              </button>
+              <div class="dp-job-id" id="job-id-pub"></div>
+            </div>
+          </div>
+        </div><!-- /subpanel-pub -->
+
+        <!-- ─── Sub-panel Resoluciones ────────────────────── -->
+        <div id="subpanel-res" style="display:none">
+          <div class="content-card">
+            <div class="card-section-title">// RESOLUCIONES CNE</div>
+            <p class="dp-help-text">
+              Descarga resoluciones y notificaciones oficiales del portal CNE (sin login).
+            </p>
+            <div class="dp-form-grid dp-form-grid--1">
+              <div class="dp-field">
+                <label class="dp-label">URL de Notificaciones/Resoluciones</label>
+                <input type="text" id="res-url" class="form-input"
+                       value="https://app.cne.gov.co/usuarios/public/notificaciones"
+                       placeholder="https://app.cne.gov.co/…" />
+              </div>
+              <div class="dp-field">
+                <label class="dp-label">Nombre del conjunto (para Storage)</label>
+                <input type="text" id="res-nombre" class="form-input"
+                       value="RESOLUCIONES_CNE" placeholder="RESOLUCIONES_CNE" />
+              </div>
+            </div>
+            <div class="dp-opciones-row">
+              <label class="dp-switch-wrap">
+                <span class="dp-label">Navegador invisible</span>
+                <label class="dp-switch">
+                  <input type="checkbox" id="res-headless" />
+                  <span class="dp-switch-slider"></span>
+                </label>
+              </label>
+            </div>
+            <div class="dp-acciones-row">
+              <button class="btn-primary" id="btn-descargar-res" onclick="iniciarDescargaResoluciones()">
+                ⬇ Descargar Resoluciones
+              </button>
+              <div class="dp-job-id" id="job-id-res"></div>
+            </div>
+          </div>
+        </div><!-- /subpanel-res -->
+
+        <!-- ─── Consola de logs ──────────────────────────── -->
+        <div class="content-card" id="card-consola" style="display:none">
+          <div class="dp-consola-header">
+            <div class="card-section-title">// CONSOLA</div>
+            <div class="dp-consola-status" id="consola-status"></div>
+            <button class="btn-secondary btn-sm" onclick="limpiarConsola()">✕ Limpiar</button>
+          </div>
+          <div id="dp-progreso-bar" class="dp-progreso-wrap" style="display:none">
+            <div class="dp-bar-track">
+              <div class="dp-bar-fill dp-bar-anim" id="progreso-fill" style="width:0%"></div>
+            </div>
+          </div>
+          <div id="dp-consola" class="dp-consola"></div>
+        </div>
+
+        <!-- ─── Resultados ───────────────────────────────── -->
+        <div class="content-card" id="card-resultados" style="display:none">
+          <div class="card-section-title">// ARCHIVOS SUBIDOS A FIREBASE STORAGE</div>
+          <div id="dp-resultados"></div>
+        </div>
+
+      </div><!-- /panel-cne -->
+
+    </main>
+  </div>
+
+  <!-- Modal de documentos -->
+  <div class="modal-overlay" id="modal-pdf" style="display:none">
+    <div class="modal-box modal-pdf-box">
+      <div class="modal-title" id="modal-pdf-title">// DOCUMENTOS DE LA ORGANIZACIÓN</div>
+      <div class="modal-pdf-org" id="modal-pdf-org"></div>
+
+      <div id="upload-progress" class="dp-upload-progress" style="display:none"></div>
+
+      <div id="upload-area">
+        <div class="dp-drop-zone" id="drop-zone">
+          <div class="dp-drop-icon">⬆</div>
+          <div class="dp-drop-text">Arrastra PDFs aquí o haz clic para seleccionar</div>
+          <div class="dp-drop-sub">Solo archivos .pdf</div>
+          <input type="file" id="file-input" accept=".pdf" multiple style="display:none" />
+        </div>
+      </div>
+
+      <div class="dp-pdf-list-header">
+        <span class="dp-pdf-list-title">// ARCHIVOS</span>
+        <span class="dp-pdf-count" id="pdf-count"></span>
+      </div>
+      <div id="pdf-list" class="dp-pdf-list"></div>
+
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn-secondary" onclick="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/core/auth.js"></script>
+  <script src="/components/sidebar.js"></script>
+  <script type="module" src="descarga-pdf.js"></script>
+</body>
+</html>

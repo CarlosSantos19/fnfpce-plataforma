@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: cne-servidor-descarga
+    runtime: python
+    rootDir: cuentas claras
+    buildCommand: |
+      pip install -r requirements.txt &&
+      apt-get update -qq &&
+      apt-get install -y -qq chromium chromium-driver
+    startCommand: gunicorn servidor_render:app --bind 0.0.0.0:$PORT --timeout 600 --workers 1 --threads 4
+    envVars:
+      - key: FIREBASE_KEY_JSON
+        sync: false        # Se llena manualmente en el dashboard de Render
+      - key: BUCKET
+        value: fnfpce-plataforma.firebasestorage.app
+    healthCheckPath: /api/ping
