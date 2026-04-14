@@ -1,0 +1,33 @@
+FROM python:3.11-slim
+
+# Instalar Chromium desde los repos de Debian
+RUN apt-get update && apt-get install -y \
+    chromium \
+    chromium-driver \
+    --no-install-recommends \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copiar archivos del servidor (sintaxis JSON para manejar espacio en ruta)
+COPY ["cuentas claras/requirements.txt",              "requirements.txt"]
+COPY ["cuentas claras/servidor_render.py",            "servidor_render.py"]
+COPY ["cuentas claras/config_render.py",              "config_render.py"]
+COPY ["cuentas claras/config_render.py",              "config.py"]
+COPY ["cuentas claras/candidato_scraper.py",          "candidato_scraper.py"]
+COPY ["cuentas claras/descargar_ingresos_fnfp.py",    "descargar_ingresos_fnfp.py"]
+COPY ["cuentas claras/descargar_gastos_fnfp.py",      "descargar_gastos_fnfp.py"]
+COPY ["cuentas claras/descargar_consolidados_fnfp.py","descargar_consolidados_fnfp.py"]
+COPY ["cuentas claras/descargar_dictamen_fnfp.py",    "descargar_dictamen_fnfp.py"]
+COPY ["cuentas claras/descargar_reporte_partido_fnfp.py",  "descargar_reporte_partido_fnfp.py"]
+COPY ["cuentas claras/descargar_libro_contable_fnfp.py",   "descargar_libro_contable_fnfp.py"]
+COPY ["cuentas claras/descargar_resoluciones.py",     "descargar_resoluciones.py"]
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN mkdir -p /tmp/cne_descargas
+
+EXPOSE 10000
+
+CMD gunicorn servidor_render:app --bind 0.0.0.0:$PORT --timeout 600 --workers 1 --threads 4
