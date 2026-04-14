@@ -132,13 +132,21 @@ def crear_driver(carpeta_destino=None):
         options.add_experimental_option("prefs", prefs)
 
         # Buscar Chrome/Chromium instalado
-        for binary in ["/usr/bin/google-chrome", "/usr/bin/chromium-browser",
-                        "/usr/bin/chromium", "/usr/local/bin/chromium"]:
+        for binary in ["/usr/bin/chromium", "/usr/bin/chromium-browser",
+                        "/usr/bin/google-chrome", "/usr/local/bin/chromium"]:
             if os.path.exists(binary):
                 options.binary_location = binary
                 break
 
-        driver = webdriver.Chrome(options=options)
+        # Usar chromedriver del sistema (instalado con chromium-driver)
+        chromedriver_path = None
+        for drv in ["/usr/bin/chromedriver", "/usr/lib/chromium/chromedriver"]:
+            if os.path.exists(drv):
+                chromedriver_path = drv
+                break
+
+        service = Service(executable_path=chromedriver_path) if chromedriver_path else Service()
+        driver = webdriver.Chrome(service=service, options=options)
         _habilitar_descargas_headless(driver, download_path)
         return driver
 
