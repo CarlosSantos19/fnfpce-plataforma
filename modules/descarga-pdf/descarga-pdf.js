@@ -23,7 +23,7 @@ const ES_CONTADOR = ROL === 'contador';
 // URL del servidor de descarga. Puede ser:
 //   - Render:    'https://cne-servidor-descarga.onrender.com'
 //   - Local:     'http://localhost:5050'
-const SERVIDOR_DEFAULT = 'https://cne-servidor-descarga.onrender.com';
+const SERVIDOR_DEFAULT = 'https://fnfpce-plataforma.onrender.com';
 let SERVIDOR   = localStorage.getItem('cne_servidor_url') || SERVIDOR_DEFAULT;
 let servidorOK = false;
 let jobActivo  = null;   // job_id del proceso en curso
