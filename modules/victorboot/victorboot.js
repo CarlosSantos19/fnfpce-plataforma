@@ -60,7 +60,7 @@ let userName      = '';
     const snap = await getDocs(collection(db, 'reparto'));
     todosLosDatos = snap.docs
       .map(d => ({ _id: d.id, ...d.data() }))
-      .filter(d => d.corporacion && d.agrupacion);
+      .filter(d => !!(d.consecutivo || '').trim());
 
     if (todosLosDatos.length === 0) {
       dataStatus.className = 'vb-data-status err';
