@@ -141,16 +141,17 @@ function renderTabla() {
     `${total.toLocaleString()} registro${total !== 1 ? 's' : ''}` +
     (nSel ? `  ·  ${nSel} seleccionado${nSel !== 1 ? 's' : ''}` : '');
 
-  // Badge y botón excel-sel
-  const badge = document.getElementById('sel-badge');
+  // Badge y botón excel-sel (pueden estar comentados en el HTML)
+  const badge    = document.getElementById('sel-badge');
   const btnDlSel = document.getElementById('btn-dl-sel');
+  const selCount = document.getElementById('sel-count');
   if (nSel > 0) {
-    document.getElementById('sel-count').textContent = nSel;
-    badge.style.display = '';
-    btnDlSel.style.display = '';
+    if (selCount) selCount.textContent = nSel;
+    if (badge)    badge.style.display    = '';
+    if (btnDlSel) btnDlSel.style.display = '';
   } else {
-    badge.style.display = 'none';
-    btnDlSel.style.display = 'none';
+    if (badge)    badge.style.display    = 'none';
+    if (btnDlSel) btnDlSel.style.display = 'none';
   }
 
   const pagTxt = `Pág. ${paginaActual} / ${totalPags}  (${inicio + 1}–${fin})`;
