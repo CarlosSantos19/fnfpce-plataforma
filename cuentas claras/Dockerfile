@@ -31,19 +31,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copiar solo los archivos necesarios
-COPY requirements.txt .
+COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
-
-COPY config_render.py ./config.py
-COPY servidor_render.py .
-COPY descargar_ingresos_fnfp.py .
-COPY descargar_gastos_fnfp.py .
-COPY descargar_consolidados_fnfp.py .
-COPY descargar_dictamen_fnfp.py .
-COPY descargar_reporte_partido_fnfp.py .
-COPY descargar_libro_contable_fnfp.py .
-COPY candidato_scraper.py .
-COPY descargar_resoluciones.py .
+RUN cp config_render.py config.py
 
 # Carpeta de descargas temporales
 RUN mkdir -p /tmp/cne_descargas
