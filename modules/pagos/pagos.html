@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pagos — FNFPCE</title>
+  <link rel="stylesheet" href="/core/base.css" />
+  <link rel="stylesheet" href="/core/module-template.css" />
+  <link rel="stylesheet" href="pagos.css" />
+</head>
+<body>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; PAGOS</div>
+        <h1 class="page-title"><span class="title-icon">◈</span> Pagos</h1>
+        <p class="page-desc">Registro de reconocimientos y pagos ET2023</p>
+      </header>
+
+      <div class="pagos-layout">
+
+        <!-- ══ PANEL IZQUIERDO: ASISTENTE ══════════════════════════════════════ -->
+        <div class="content-card wizard-card">
+          <div class="card-section-title">// NUEVO REGISTRO DE PAGO</div>
+
+          <!-- PASO 1: Buscar cuenta del reparto -->
+          <div id="paso-1" class="paso">
+            <div class="paso-header">
+              <span class="paso-num">01</span>
+              <span class="paso-label">Seleccionar cuenta del Reparto</span>
+            </div>
+            <div class="paso-body">
+              <input type="text" id="buscar-reparto" class="form-input"
+                     placeholder="Buscar por municipio, agrupación, consecutivo..."
+                     oninput="filtrarReparto()" />
+              <div id="lista-reparto" class="lista-reparto">
+                <p class="hint-text">Cargando cuentas del reparto...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- PASO 2: Valor reconocido -->
+          <div id="paso-2" class="paso" style="display:none">
+            <div class="paso-header">
+              <span class="paso-num">02</span>
+              <span class="paso-label">Valor Reconocido</span>
+            </div>
+            <div class="paso-body">
+              <div class="cuenta-seleccionada" id="resumen-cuenta"></div>
+              <div class="form-row">
+                <label class="form-label">Valor Reconocido ($)</label>
+                <input type="number" id="input-valor" class="form-input"
+                       placeholder="0" min="0" step="1"
+                       oninput="calcularAuditoria()" />
+              </div>
+              <div id="calculo-auditoria" class="calculo-box" style="display:none">
+                <div class="calculo-fila">
+                  <span>Valor Reconocido:</span>
+                  <span id="display-reconocido" class="val-cyan"></span>
+                </div>
+                <div class="calculo-fila">
+                  <span>Auditoría (1%):</span>
+                  <span id="display-auditoria" class="val-warn"></span>
+                </div>
+                <div class="calculo-fila total">
+                  <span>Valor Neto:</span>
+                  <span id="display-neto" class="val-green"></span>
+                </div>
+              </div>
+              <div class="paso-acciones">
+                <button class="btn-sec" onclick="volverPaso(1)">← Volver</button>
+                <button class="btn-prim" id="btn-aceptar-valor" onclick="aceptarValor()" disabled>Aceptar →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PASO 3: Resolución de reconocimiento -->
+          <div id="paso-3" class="paso" style="display:none">
+            <div class="paso-header">
+              <span class="paso-num">03</span>
+              <span class="paso-label">Resolución de Reconocimiento</span>
+            </div>
+            <div class="paso-body">
+              <div class="form-row">
+                <label class="form-label">Número de Resolución de Reconocimiento</label>
+                <input type="text" id="input-res-reconocimiento" class="form-input"
+                       placeholder="Ej: RES-2024-001" />
+              </div>
+              <div class="paso-acciones">
+                <button class="btn-sec" onclick="volverPaso(2)">← Volver</button>
+                <button class="btn-prim" onclick="aceptarReconocimiento()">Aceptar →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PASO 4: Resolución de pago + guardar -->
+          <div id="paso-4" class="paso" style="display:none">
+            <div class="paso-header">
+              <span class="paso-num">04</span>
+              <span class="paso-label">Resolución de Pago</span>
+            </div>
+            <div class="paso-body">
+              <div class="form-row">
+                <label class="form-label">Número de Resolución de Pago</label>
+                <input type="text" id="input-res-pago" class="form-input"
+                       placeholder="Ej: RES-PAGO-2024-001" />
+              </div>
+              <div class="form-row">
+                <label class="form-label">Consecutivo Manual</label>
+                <input type="text" id="input-consecutivo" class="form-input"
+                       placeholder="Ej: PAG-001" />
+              </div>
+              <!-- Resumen final -->
+              <div class="resumen-final" id="resumen-final"></div>
+              <div class="paso-acciones">
+                <button class="btn-sec" onclick="volverPaso(3)">← Volver</button>
+                <button class="btn-prim btn-guardar" onclick="guardarPago()">✓ Incluir en Base</button>
+              </div>
+              <div id="msg-guardar" class="form-msg"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ══ PANEL DERECHO: BASE DE PAGOS ════════════════════════════════════ -->
+        <div class="content-card tabla-card">
+          <div class="card-section-title" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>// BASE DE PAGOS</span>
+            <span id="stats-pagos" class="stats-count"></span>
+          </div>
+
+          <div class="filtros-row" style="margin-bottom:12px;">
+            <input type="text" id="buscar-pagos" class="form-input form-input--sm"
+                   placeholder="Buscar en la base..."
+                   oninput="filtrarPagos()" style="width:100%" />
+          </div>
+
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Consec.</th>
+                  <th>Corporación</th>
+                  <th>Circ.</th>
+                  <th>Depto.</th>
+                  <th>Municipio</th>
+                  <th>Agrupación</th>
+                  <th>Reconocido</th>
+                  <th>Auditoría</th>
+                  <th>Neto</th>
+                  <th>Res. Reconoc.</th>
+                  <th>Res. Pago</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-pagos">
+                <tr><td colspan="12" class="table-loading">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /pagos-layout -->
+    </main>
+  </div>
+
+  <!-- Modal confirmar eliminar -->
+  <div id="modal-confirm" class="modal-overlay" style="display:none" onclick="cerrarModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-actions">
+        <button class="btn-sec" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn-prim" id="btn-modal-confirm" style="border-color:#ff6080;color:#ff6080">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/components/auth.js"></script>
+  <script src="/components/sidebar.js"></script>
+  <script type="module" src="pagos.js"></script>
+</body>
+</html>

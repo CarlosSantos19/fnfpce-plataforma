@@ -21,15 +21,16 @@ const ALL_MODULES = [
   { id: 'descarga-pdf',      label: 'Descarga PDF',   icon: '◧', path: '/modules/descarga-pdf/descarga-pdf.html',              desc: 'Descarga de documentos AUTOCASH' },
   { id: 'horas-extras',      label: 'Horas Extras',   icon: '⏱', path: '/modules/horas-extras/horas-extras.html',              desc: 'Registro y seguimiento de horas extras' },
   { id: 'verificacion',      label: 'Verificación',   icon: '◉', path: '/modules/horas-extras/horas-extras.html',              desc: 'Verificación de horas extras' },
+  { id: 'pagos',             label: 'Pagos',          icon: '◈', path: '/modules/pagos/pagos.html',                            desc: 'Registro de reconocimientos y pagos' },
 ];
 
 const MODULES_BY_ROLE = {
-  administrador:  ['usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'sorteo', 'carpetas', 'revision-carpetas', 'analisis', 'victorboot', 'chat', 'descarga-pdf', 'horas-extras'],
+  administrador:  ['usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'sorteo', 'carpetas', 'revision-carpetas', 'analisis', 'victorboot', 'chat', 'descarga-pdf', 'horas-extras', 'pagos'],
   administrativo: ['reparto', 'asignaciones', 'resumen', 'tablero', 'sorteo', 'revision-carpetas', 'victorboot', 'chat', 'horas-extras'],
   contador:       ['actas', 'cuentas', 'revision', 'resumen', 'tablero', 'carpetas', 'analisis', 'chat', 'descarga-pdf', 'horas-extras'],
   abogado:        ['victorboot', 'chat', 'horas-extras'],
   asistencial:    ['chat', 'horas-extras'],
-  pago:           ['reparto', 'victorboot', 'chat', 'horas-extras'],
+  pago:           ['reparto', 'victorboot', 'chat', 'horas-extras', 'pagos'],
 };
 
 const ROL_LABELS = {

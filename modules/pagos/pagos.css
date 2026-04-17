@@ -1,0 +1,243 @@
+/* ── Pagos Module CSS ─────────────────────────────────────────────────────── */
+
+.pagos-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── Wizard ──────────────────────────────────────────────────────────────── */
+.wizard-card { position: sticky; top: 20px; }
+
+.paso { margin-top: 4px; }
+
+.paso-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.paso-num {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--cyan);
+  background: rgba(0,212,255,.08);
+  border: 1px solid rgba(0,212,255,.3);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+.paso-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  color: rgba(224,244,255,.7);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.paso-body { padding-left: 2px; }
+
+/* ── Lista de reparto ────────────────────────────────────────────────────── */
+.lista-reparto {
+  max-height: 340px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(0,0,0,.2);
+}
+
+.lista-reparto::-webkit-scrollbar { width: 4px; }
+.lista-reparto::-webkit-scrollbar-track { background: transparent; }
+.lista-reparto::-webkit-scrollbar-thumb { background: rgba(0,212,255,.3); border-radius: 2px; }
+
+.reparto-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(0,212,255,.08);
+  cursor: pointer;
+  transition: background .15s;
+}
+.reparto-item:last-child { border-bottom: none; }
+.reparto-item:hover { background: rgba(0,212,255,.08); }
+.reparto-item:active { background: rgba(0,212,255,.15); }
+
+.reparto-item .ri-consec {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--cyan);
+  margin-bottom: 3px;
+}
+.reparto-item .ri-corp {
+  font-size: 12px;
+  color: rgba(224,244,255,.5);
+  margin-bottom: 2px;
+}
+.reparto-item .ri-agrup {
+  font-size: 13px;
+  color: #e0f4ff;
+  font-weight: 600;
+}
+.reparto-item .ri-lugar {
+  font-size: 11px;
+  color: rgba(224,244,255,.4);
+  margin-top: 2px;
+}
+
+/* ── Cuenta seleccionada ─────────────────────────────────────────────────── */
+.cuenta-seleccionada {
+  background: rgba(0,212,255,.05);
+  border: 1px solid rgba(0,212,255,.2);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: rgba(224,244,255,.7);
+  line-height: 1.7;
+}
+.cuenta-seleccionada strong { color: var(--cyan); }
+
+/* ── Cálculo ─────────────────────────────────────────────────────────────── */
+.calculo-box {
+  background: rgba(0,0,0,.3);
+  border: 1px solid rgba(0,212,255,.15);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 12px 0;
+}
+
+.calculo-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+  color: rgba(224,244,255,.6);
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.calculo-fila:last-child { border-bottom: none; }
+.calculo-fila.total {
+  margin-top: 6px;
+  padding-top: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #e0f4ff;
+  border-top: 1px solid rgba(0,212,255,.2);
+}
+
+.val-cyan  { color: var(--cyan); font-family: 'Orbitron', monospace; font-size: 12px; }
+.val-warn  { color: #ffaa00;     font-family: 'Orbitron', monospace; font-size: 12px; }
+.val-green { color: #00ff88;     font-family: 'Orbitron', monospace; font-size: 13px; }
+
+/* ── Resumen final ───────────────────────────────────────────────────────── */
+.resumen-final {
+  background: rgba(0,255,136,.04);
+  border: 1px solid rgba(0,255,136,.2);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  font-size: 12px;
+  color: rgba(224,244,255,.6);
+  line-height: 1.9;
+}
+.resumen-final strong { color: #00ff88; }
+
+/* ── Acciones del paso ───────────────────────────────────────────────────── */
+.paso-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-guardar {
+  background: rgba(0,255,136,.1) !important;
+  border-color: #00ff88 !important;
+  color: #00ff88 !important;
+}
+.btn-guardar:hover {
+  background: rgba(0,255,136,.2) !important;
+}
+
+/* ── Tabla de pagos ──────────────────────────────────────────────────────── */
+.tabla-card { overflow: hidden; }
+
+.table-wrapper {
+  overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: 'Rajdhani', sans-serif;
+  min-width: 900px;
+}
+
+.data-table th {
+  background: rgba(0,212,255,.06);
+  color: var(--cyan);
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0,212,255,.2);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0,212,255,.06);
+  color: #e0f4ff;
+  vertical-align: middle;
+}
+
+.data-table tr:hover td { background: rgba(0,212,255,.04); }
+
+.val-cell {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.val-cell.reconocido { color: var(--cyan); }
+.val-cell.auditoria  { color: #ffaa00; }
+.val-cell.neto       { color: #00ff88; }
+
+.consec-cell {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  color: var(--cyan);
+}
+
+.hint-text {
+  padding: 16px;
+  color: rgba(224,244,255,.35);
+  font-size: 12px;
+  text-align: center;
+}
+
+.btn-eliminar-fila {
+  background: transparent;
+  border: 1px solid rgba(255,96,128,.4);
+  color: #ff6080;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-eliminar-fila:hover { background: rgba(255,96,128,.1); }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .pagos-layout {
+    grid-template-columns: 1fr;
+  }
+  .wizard-card { position: static; }
+}
