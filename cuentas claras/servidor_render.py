@@ -13,7 +13,7 @@ VARIABLES DE ENTORNO requeridas en Render:
   BUCKET              → fnfpce-plataforma.firebasestorage.app  (opcional, tiene default)
 """
 
-import sys, os, platform, threading, uuid, glob, time, traceback, json, re
+import sys, os, platform, threading, uuid, glob, time, traceback, json, re, zipfile, io
 
 # ── En Linux sobreescribir 'config' con config_render antes de cualquier import ──
 if platform.system() == 'Linux':
@@ -170,15 +170,17 @@ def ejecutar_trabajo(job_id, modulos_sel, org_params, headless, storage_key, car
             except Exception as ex:
                 log(f"   [ERROR] {mod}: {str(ex)[:200]}")
                 log(traceback.format_exc()[-400:])
-        log("\n>> Subiendo archivos a Firebase Storage...")
-        urls = subir_carpeta(carpeta_base, storage_key, log)
-        with jobs_lock:
-            jobs[job_id]['pdfs'] = urls
+        archivos = glob.glob(os.path.join(carpeta_base, "**", "*"), recursive=True)
+        archivos = [f for f in archivos if os.path.isfile(f) and
+                    f.lower().endswith(('.pdf', '.xlsx', '.xls'))]
+        log(f"\n>> {len(archivos)} archivo(s) listos para descargar.")
         log("=" * 55)
-        log("PROCESO COMPLETADO")
+        log("PROCESO COMPLETADO — usa el botón 'Descargar ZIP'")
         log("=" * 55)
         with jobs_lock:
-            jobs[job_id]['status'] = 'done'
+            jobs[job_id]['status']      = 'done'
+            jobs[job_id]['carpeta']     = carpeta_base
+            jobs[job_id]['num_archivos'] = len(archivos)
     except Exception as ex:
         log(f"[ERROR FATAL] {ex}")
         with jobs_lock:
@@ -217,15 +219,17 @@ def ejecutar_trabajo_publico(job_id, tipo, params, headless, storage_key, carpet
                 log(f"   [OK] resoluciones completadas")
             except Exception as ex:
                 log(f"   [ERROR] resoluciones: {str(ex)[:200]}")
-        log("\n>> Subiendo archivos a Firebase Storage...")
-        urls = subir_carpeta(carpeta_base, storage_key, log)
-        with jobs_lock:
-            jobs[job_id]['pdfs'] = urls
+        archivos = glob.glob(os.path.join(carpeta_base, "**", "*"), recursive=True)
+        archivos = [f for f in archivos if os.path.isfile(f) and
+                    f.lower().endswith(('.pdf', '.xlsx', '.xls'))]
+        log(f"\n>> {len(archivos)} archivo(s) listos para descargar.")
         log("=" * 55)
-        log("PROCESO COMPLETADO")
+        log("PROCESO COMPLETADO — usa el botón 'Descargar ZIP'")
         log("=" * 55)
         with jobs_lock:
-            jobs[job_id]['status'] = 'done'
+            jobs[job_id]['status']       = 'done'
+            jobs[job_id]['carpeta']      = carpeta_base
+            jobs[job_id]['num_archivos'] = len(archivos)
     except Exception as ex:
         log(f"[ERROR FATAL] {ex}")
         with jobs_lock:
@@ -319,7 +323,51 @@ def estado_trabajo(job_id):
         job = jobs.get(job_id)
     if not job:
         return jsonify({'error': 'Trabajo no encontrado'}), 404
-    return jsonify({'status': job['status'], 'logs': job['logs'], 'pdfs': job['pdfs']})
+    return jsonify({
+        'status':       job['status'],
+        'logs':         job['logs'],
+        'pdfs':         job.get('pdfs', []),
+        'num_archivos': job.get('num_archivos', 0),
+    })
+
+@app.route('/api/descargar_zip/<job_id>', methods=['GET'])
+def descargar_zip(job_id):
+    with jobs_lock:
+        job = jobs.get(job_id)
+    if not job:
+        return jsonify({'error': 'Trabajo no encontrado'}), 404
+    if job['status'] != 'done':
+        return jsonify({'error': 'Trabajo aún no completado'}), 400
+
+    carpeta = job.get('carpeta', '')
+    if not carpeta or not os.path.isdir(carpeta):
+        return jsonify({'error': 'Carpeta de archivos no disponible'}), 404
+
+    archivos = glob.glob(os.path.join(carpeta, "**", "*"), recursive=True)
+    archivos = [f for f in archivos if os.path.isfile(f) and
+                f.lower().endswith(('.pdf', '.xlsx', '.xls'))]
+
+    if not archivos:
+        return jsonify({'error': 'No hay archivos para descargar'}), 404
+
+    # Crear ZIP en memoria
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for ruta in archivos:
+            nombre_zip = os.path.relpath(ruta, carpeta).replace("\\", "/")
+            zf.write(ruta, nombre_zip)
+    buf.seek(0)
+
+    nombre_zip = f"CNE_{job_id}.zip"
+    return Response(
+        buf.getvalue(),
+        mimetype='application/zip',
+        headers={
+            'Content-Disposition': f'attachment; filename="{nombre_zip}"',
+            'Content-Length': str(buf.getbuffer().nbytes),
+            'Access-Control-Expose-Headers': 'Content-Disposition',
+        }
+    )
 
 @app.route('/api/logs/<job_id>', methods=['GET'])
 def stream_logs(job_id):

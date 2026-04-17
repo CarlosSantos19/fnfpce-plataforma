@@ -163,27 +163,29 @@ function escucharLogs(jobId, onFin) {
 // ── Mostrar resultados ────────────────────────────────────────────────────────
 async function mostrarResultados(jobId) {
   try {
-    const res = await fetch(`${SERVIDOR}/api/estado/${jobId}`);
+    const res  = await fetch(`${SERVIDOR}/api/estado/${jobId}`);
     const data = await res.json();
+    const n    = data.num_archivos || 0;
 
-    const pdfs = data.pdfs || [];
     const cardRes = document.getElementById('card-resultados');
     const divRes  = document.getElementById('dp-resultados');
 
-    if (!pdfs.length) {
-      divRes.innerHTML = '<p class="dp-help-text">No se subieron archivos a Firebase Storage (verifique la carpeta de descargas).</p>';
+    if (!n) {
+      divRes.innerHTML = '<p class="dp-help-text">No se encontraron archivos descargados. Verifique los filtros y el nombre de la organización.</p>';
     } else {
+      const urlZip = `${SERVIDOR}/api/descargar_zip/${jobId}`;
       divRes.innerHTML = `
-        <p class="dp-help-text" style="color:#00ff88;">${pdfs.length} archivo(s) subidos correctamente.</p>
-        <div class="dp-resultados-lista">
-          ${pdfs.map(f => `
-            <div class="dp-resultado-item">
-              <span class="dp-pdf-icon">📄</span>
-              <span class="dp-pdf-name">${esc(f.nombre)}</span>
-              <a href="${f.url}" target="_blank" class="dp-pdf-btn-dl">↗ Abrir</a>
-            </div>
-          `).join('')}
-        </div>`;
+        <p class="dp-help-text" style="color:#00ff88;">✔ ${n} archivo(s) descargados correctamente.</p>
+        <div style="margin-top:12px;">
+          <a href="${urlZip}" download class="dp-pdf-btn-dl"
+             style="display:inline-block;padding:10px 24px;background:#00ff88;color:#000;
+                    font-weight:700;border-radius:6px;text-decoration:none;font-size:14px;">
+            ⬇ Descargar ZIP (${n} archivos)
+          </a>
+        </div>
+        <p class="dp-help-text" style="margin-top:8px;font-size:11px;opacity:.6;">
+          El archivo ZIP contiene todos los PDFs organizados por carpetas.
+        </p>`;
     }
     cardRes.style.display = '';
   } catch (e) {
