@@ -10,6 +10,17 @@ const CARDS_CONFIG = {
   actas:        { icon: '◉', titulo: 'Actas',             desc: 'Gestión de actas de entrega, control y seguimiento',  path: '/modules/actas/actas.html' },
   cuentas:      { icon: '◆', titulo: 'Cuentas',           desc: 'Control y revisión de cuentas claras por entidad',    path: '/modules/cuentas/cuentas.html' },
   revision:     { icon: '◌', titulo: 'Revisión',          desc: 'Auditoría y revisión del estado de expedientes',      path: '/modules/revision/revision.html' },
+  resumen:      { icon: '◑', titulo: 'Resumen',           desc: 'Indicadores generales del reparto ET2023',             path: '/modules/resumen/resumen.html' },
+  sorteo:       { icon: '⬡', titulo: 'Sorteo',            desc: 'Distribución y sorteo de cuentas entre contadores',   path: '/modules/sorteo/sorteo.html' },
+  carpetas:            { icon: '▣', titulo: 'Carpetas',       desc: 'Expedientes organizados por número de acta',           path: '/modules/carpetas/carpetas.html' },
+  'revision-carpetas': { icon: '◧', titulo: 'Rev. Carpetas',  desc: 'Verificación de archivos PDF por acta y contador',     path: '/modules/revision-carpetas/revision-carpetas.html' },
+  tablero:             { icon: '⬡', titulo: 'Tablero',        desc: 'Vista general de indicadores y avance del proceso',    path: '/modules/tablero/tablero.html' },
+  analisis:            { icon: '◫', titulo: 'Análisis',       desc: 'Análisis de cuentas de campañas electorales ET2023',   path: 'https://proyectoswyad.com/' },
+  victorboot:          { icon: '⬟', titulo: 'VictorBoot',     desc: 'Módulo VictorBoot',                                    path: '/modules/victorboot/victorboot.html' },
+  chat:                { icon: '◈', titulo: 'Chat',           desc: 'Canal de comunicación institucional en tiempo real',   path: '/modules/chat/chat.html' },
+  'descarga-pdf':      { icon: '◧', titulo: 'Descarga PDF',   desc: 'Gestión de descarga de documentos AUTOCASH por organización', path: '/modules/descarga-pdf/descarga-pdf.html' },
+  'horas-extras':      { icon: '⏱', titulo: 'Horas Extras',  desc: 'Registro y seguimiento de horas extras autorizadas', path: '/modules/horas-extras/horas-extras.html' },
+  pagos:               { icon: '◈', titulo: 'Pagos',         desc: 'Registro de reconocimientos y pagos ET2023',          path: '/modules/pagos/pagos.html' },
 };
 
 // MODULES_BY_ROLE se toma de components/sidebar.js (ya cargado en la misma página)
@@ -31,7 +42,7 @@ if (usuario) {
 
   // Renderizar tarjetas según rol
   const grid = document.getElementById('modules-grid');
-  grid.innerHTML = allowed.map(id => {
+  grid.innerHTML = allowed.filter(id => CARDS_CONFIG[id]).map(id => {
     const c = CARDS_CONFIG[id];
     return `
       <div class="module-card" onclick="window.location.href='${c.path}'">
