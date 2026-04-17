@@ -1,1 +1,227 @@
-/* cuentas.css — Estilos específicos del módulo Cuentas */
+/* cuentas.css — Estilos del módulo Cuentas */
+
+/* ── Override scroll horizontal ── */
+.content-card { overflow: visible; }
+
+/* ── Tarjetas resumen ─────────────────────────────────── */
+.stats-cards {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 110px;
+  background: rgba(252,209,22,.04);
+  border: 1px solid rgba(252,209,22,.15);
+  padding: 16px 20px;
+  text-align: center;
+}
+
+.stat-val {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: .02em;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-lbl {
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: rgba(252,209,22,.45);
+}
+
+.stat-card--cert .stat-val { color: #00ff88; }
+.stat-card--cert { border-color: rgba(0,255,136,.2); }
+
+.stat-card--ofic .stat-val { color: var(--cyan); }
+
+.stat-card--pend .stat-val { color: #f0a500; }
+.stat-card--pend { border-color: rgba(240,165,0,.2); }
+
+.stat-card--venc .stat-val { color: #ff6080; }
+.stat-card--venc { border-color: rgba(255,96,128,.2); }
+
+/* ── Filtros ──────────────────────────────────────────── */
+.filtros-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.filtros-izq { flex: 1; min-width: 260px; }
+.filtros-der {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-wrap { margin-top: 8px; }
+.search-input { width: 100%; max-width: 380px; }
+
+.form-input {
+  background: rgba(252,209,22,.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Rajdhani', monospace;
+  font-size: 14px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.form-input:focus { border-color: var(--cyan); background: rgba(252,209,22,.08); }
+.form-input--sm { padding: 7px 10px; font-size: 13px; min-width: 160px; }
+option { background: #0a1628; }
+
+/* ── Stats + paginación ───────────────────────────────── */
+.stats-pag-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stats-count {
+  font-size: 12px;
+  color: rgba(252,209,22,.5);
+  letter-spacing: .05em;
+}
+
+.paginacion { display: flex; align-items: center; gap: 10px; }
+
+.btn-pag {
+  background: transparent;
+  border: 1px solid rgba(252,209,22,.3);
+  color: rgba(252,209,22,.7);
+  font-family: 'Rajdhani', monospace;
+  font-size: 14px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.btn-pag:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.btn-pag:disabled { opacity: .3; cursor: not-allowed; }
+
+.pag-info {
+  font-size: 11px;
+  color: rgba(252,209,22,.5);
+  letter-spacing: .05em;
+  min-width: 140px;
+  text-align: center;
+}
+
+.input-pag {
+  background: rgba(252,209,22,.05);
+  border: 1px solid rgba(252,209,22,.25);
+  color: var(--cyan);
+  font-family: 'Rajdhani', monospace;
+  font-size: 12px;
+  padding: 4px 8px;
+  width: 64px;
+  outline: none;
+  text-align: center;
+}
+.input-pag:focus { border-color: var(--cyan); }
+.input-pag::-webkit-inner-spin-button { opacity: 0; }
+
+/* ── Tabla ────────────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cuentas-table {
+  min-width: 2000px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.cuentas-table thead tr { border-bottom: 1px solid var(--border); }
+
+.cuentas-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: var(--cyan);
+  opacity: .6;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cuentas-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(252,209,22,.07);
+  color: var(--text);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.cuentas-table tbody tr:hover td { background: rgba(252,209,22,.04); }
+
+.col-consec { font-family: monospace; font-size: 11px; color: rgba(252,209,22,.8); }
+.col-agrup  { max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+.col-oficio { max-width: 220px; overflow: hidden; text-overflow: ellipsis; font-family: monospace; font-size: 11px; }
+.col-fecha  { white-space: nowrap; font-family: monospace; font-size: 11px; }
+.col-centro { text-align: center; }
+.col-dias   { text-align: right; font-variant-numeric: tabular-nums; }
+
+.table-loading,
+.table-empty {
+  text-align: center;
+  padding: 40px !important;
+  color: rgba(252,209,22,.4);
+  font-size: 13px;
+  letter-spacing: .05em;
+}
+
+/* ── Badges estado ────────────────────────────────────── */
+.badge-estado {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  padding: 2px 8px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.badge-estado-cert    { border: 1px solid #00ff88; color: #00ff88; }
+.badge-estado-pend    { border: 1px solid #f0a500; color: #f0a500; }
+.badge-estado-venc    { border: 1px solid #ff6080; color: #ff6080; }
+.badge-estado-ofic    { border: 1px solid var(--cyan); color: var(--cyan); }
+.badge-estado-reof    { border: 1px solid #8888ff; color: #8888ff; }
+.badge-estado-reas    { border: 1px solid #f0a500; color: #f0a500; }
+.badge-estado-reti    { border: 1px solid rgba(255,96,128,.6); color: rgba(255,96,128,.6); }
+.badge-estado-inv     { border: 1px solid #ff9944; color: #ff9944; }
+.badge-estado-dev     { border: 1px solid rgba(252,209,22,.4); color: rgba(252,209,22,.4); }
+.badge-estado-default { border: 1px solid rgba(252,209,22,.3); color: rgba(252,209,22,.5); }
+
+.badge-tiempo {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 2px;
+  letter-spacing: .05em;
+  border: 1px solid rgba(252,209,22,.3);
+  color: rgba(252,209,22,.5);
+}
+.badge-tiempo.vencido    { border-color: #ff6080; color: #ff6080; }
+.badge-tiempo.en-termino { border-color: #00ff88; color: #00ff88; }
+
+/* ── Responsive ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  .filtros-row  { flex-direction: column; align-items: flex-start; }
+  .stats-cards  { flex-direction: column; }
+}

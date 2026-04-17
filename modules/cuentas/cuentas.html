@@ -22,21 +22,124 @@
       <header class="page-header">
         <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; CUENTAS</div>
         <h1 class="page-title"><span class="title-icon">◆</span> Cuentas</h1>
-        <p class="page-desc">Control y revisión de cuentas claras por entidad</p>
+        <p class="page-desc" id="desc-usuario">Expedientes del reparto asignados a su cuenta</p>
       </header>
 
-      <div class="content-card">
-        <div class="wip-block">
-          <div class="wip-icon">◆</div>
-          <div class="wip-title">MÓDULO EN DESARROLLO</div>
-          <div class="wip-text">El módulo de Cuentas estará disponible próximamente.</div>
+      <!-- Tarjetas resumen -->
+      <div class="stats-cards" id="stats-cards" style="display:none">
+        <div class="stat-card">
+          <div class="stat-val" id="st-total">—</div>
+          <div class="stat-lbl">TOTAL</div>
+        </div>
+        <div class="stat-card stat-card--cert">
+          <div class="stat-val" id="st-cert">—</div>
+          <div class="stat-lbl">CERTIFICADOS</div>
+        </div>
+        <div class="stat-card stat-card--ofic">
+          <div class="stat-val" id="st-ofic">—</div>
+          <div class="stat-lbl">OFICIADOS</div>
+        </div>
+        <div class="stat-card stat-card--pend">
+          <div class="stat-val" id="st-pend">—</div>
+          <div class="stat-lbl">PENDIENTES</div>
+        </div>
+        <div class="stat-card stat-card--venc">
+          <div class="stat-val" id="st-venc">—</div>
+          <div class="stat-lbl">VENCIDOS</div>
         </div>
       </div>
+
+      <!-- Tabla de expedientes -->
+      <div class="content-card">
+        <div class="filtros-row">
+          <div class="filtros-izq">
+            <div class="card-section-title">// MIS EXPEDIENTES</div>
+            <div class="search-wrap">
+              <input type="text" id="buscar" class="form-input search-input"
+                     placeholder="Buscar consecutivo, municipio, agrupación..." />
+            </div>
+          </div>
+          <div class="filtros-der">
+            <!-- Filtro por contador: solo visible para admin -->
+            <select id="filtro-contador" class="form-input form-input--sm" style="display:none">
+              <option value="">Todos los contadores</option>
+            </select>
+            <select id="filtro-estado" class="form-input form-input--sm">
+              <option value="">Todos los estados</option>
+              <option value="PENDIENTE REVISION">Pendiente Revisión</option>
+              <option value="OFICIADO">Oficiado</option>
+              <option value="REOFICIADO">Reoficiado</option>
+              <option value="CERTIFICADO">Certificado</option>
+              <option value="CERTIFICADO P">Certificado P</option>
+              <option value="REASIGNADO">Reasignado</option>
+              <option value="RETIRADO">Retirado</option>
+              <option value="NTD">NTD</option>
+              <option value="INVESTIGACION">Investigación</option>
+              <option value="DEVUELTA CONTADOR">Devuelta Contador</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Stats + paginación superior -->
+        <div class="stats-pag-row">
+          <span id="stats-count" class="stats-count"></span>
+          <div class="paginacion">
+            <button class="btn-pag" id="btn-first-top" onclick="irPagina(1)" title="Primera página">&#8676;</button>
+            <button class="btn-pag" id="btn-prev-top"  onclick="cambiarPagina(-1)">&#8592;</button>
+            <span id="pag-info-top" class="pag-info"></span>
+            <button class="btn-pag" id="btn-next-top"  onclick="cambiarPagina(1)">&#8594;</button>
+            <button class="btn-pag" id="btn-last-top"  onclick="irUltimaPagina()" title="Última página">&#8677;</button>
+            <input type="number" id="input-pag-top" class="input-pag" min="1" placeholder="Pág."
+                   onkeydown="if(event.key==='Enter') irPagina(+this.value)" />
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="table-wrap">
+          <table class="cuentas-table">
+            <thead>
+              <tr>
+                <th>CONSEC. MANUAL</th>
+                <th>CORPORACIÓN</th>
+                <th>DEPARTAMENTO</th>
+                <th>MUNICIPIO</th>
+                <th>AGRUPACIÓN POLÍTICA</th>
+                <th>FECHA ACTA</th>
+                <th>ESTADO</th>
+                <th>1° N° OFICIO</th>
+                <th>1° FECHA</th>
+                <th>1° RESPUESTA</th>
+                <th>2° N° OFICIO</th>
+                <th>2° FECHA</th>
+                <th>2° RESPUESTA</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-cuentas">
+              <tr><td colspan="15" class="table-loading">Cargando expedientes...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación inferior -->
+        <div class="stats-pag-row" style="margin-top:12px;">
+          <div></div>
+          <div class="paginacion">
+            <button class="btn-pag" id="btn-first-bot" onclick="irPagina(1)" title="Primera página">&#8676;</button>
+            <button class="btn-pag" id="btn-prev-bot"  onclick="cambiarPagina(-1)">&#8592;</button>
+            <span id="pag-info-bot" class="pag-info"></span>
+            <button class="btn-pag" id="btn-next-bot"  onclick="cambiarPagina(1)">&#8594;</button>
+            <button class="btn-pag" id="btn-last-bot"  onclick="irUltimaPagina()" title="Última página">&#8677;</button>
+            <input type="number" id="input-pag-bot" class="input-pag" min="1" placeholder="Pág."
+                   onkeydown="if(event.key==='Enter') irPagina(+this.value)" />
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
   <script src="/core/auth.js"></script>
   <script src="/components/sidebar.js"></script>
-  <script src="cuentas.js"></script>
+  <script type="module" src="cuentas.js"></script>
 </body>
 </html>

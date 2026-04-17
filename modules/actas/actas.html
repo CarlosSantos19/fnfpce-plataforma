@@ -21,22 +21,60 @@
     <main class="main-content">
       <header class="page-header">
         <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; ACTAS</div>
-        <h1 class="page-title"><span class="title-icon">◉</span> Actas</h1>
-        <p class="page-desc">Gestión de actas de entrega, control y seguimiento</p>
+        <h1 class="page-title"><span class="title-icon">◉</span> Actas de Entrega</h1>
+        <p class="page-desc">Seleccione un acta para visualizarla e imprimirla en formato oficial</p>
       </header>
 
-      <div class="content-card">
-        <div class="wip-block">
-          <div class="wip-icon">◉</div>
-          <div class="wip-title">MÓDULO EN DESARROLLO</div>
-          <div class="wip-text">El módulo de Actas estará disponible próximamente.</div>
+      <!-- ══ PANEL SELECTOR ═══════════════════════════════════════════ -->
+      <div id="panel-selector" class="content-card">
+        <div class="card-section-title">// SELECCIONAR ACTA DE ENTREGA</div>
+
+        <!-- Filtro contador (solo admin/administrativo) -->
+        <div id="filtro-admin" style="display:none" class="filtro-bar">
+          <label class="filtro-label">CONTADOR:</label>
+          <select id="sel-contador" class="filtro-sel" onchange="filtrarPorContador()">
+            <option value="">— Todos los contadores —</option>
+          </select>
+        </div>
+
+        <div id="lista-actas" class="lista-actas">
+          <div class="loading-txt">Cargando actas...</div>
         </div>
       </div>
+
+      <!-- ══ PANEL DOCUMENTO ══════════════════════════════════════════ -->
+      <div id="panel-acta" style="display:none">
+
+        <!-- Controles (se ocultan al imprimir) -->
+        <div class="acta-controles no-print">
+          <button class="btn-paso btn-paso--sec" onclick="volverSelector()">← Volver</button>
+
+          <div class="acta-campos-edit">
+            <div class="campo-edit-group">
+              <label class="campo-edit-lbl">N° ACTA DE REPARTO</label>
+              <input type="text" id="inp-num-acta" class="campo-edit-inp"
+                     placeholder="Ej: 81" oninput="actualizarActa()" />
+            </div>
+            <div class="campo-edit-group">
+              <label class="campo-edit-lbl">CÓDIGO DOCUMENTO</label>
+              <input type="text" id="inp-codigo-doc" class="campo-edit-inp"
+                     placeholder="CNE-FNFPCE-ACTA-E-ET2023-00001-26"
+                     style="min-width:300px" oninput="actualizarActa()" />
+            </div>
+          </div>
+
+          <button class="btn-paso btn-paso--guardar" onclick="window.print()">⬡ Imprimir / PDF</button>
+        </div>
+
+        <!-- Documento oficial -->
+        <div id="acta-documento"></div>
+      </div>
+
     </main>
   </div>
 
   <script src="/core/auth.js"></script>
   <script src="/components/sidebar.js"></script>
-  <script src="actas.js"></script>
+  <script type="module" src="actas.js"></script>
 </body>
 </html>
