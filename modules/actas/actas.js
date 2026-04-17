@@ -41,12 +41,16 @@ async function init() {
   try {
     const snap = await getDocs(collection(db, 'reparto'));
     todosExpedientes = snap.docs
-      .map(d => ({ _id: d.id, ...d.data() }))
-      .filter(e => e.nombreContador); // debe tener contador asignado
+      .map(d => {
+        const data = d.data();
+        if (data.nombreContador !== undefined) data.nombreContador = String(data.nombreContador);
+        return { _id: d.id, ...data };
+      })
+      .filter(e => e.nombreContador && e.nombreContador.trim()); // debe tener contador asignado
 
     if (esContador) {
       todosExpedientes = todosExpedientes.filter(e =>
-        (e.nombreContador || '').trim().toLowerCase() === nombreUsuario.trim().toLowerCase()
+        e.nombreContador.trim().toLowerCase() === nombreUsuario.trim().toLowerCase()
       );
     } else {
       poblarFiltroContador();
