@@ -133,7 +133,6 @@ window.aceptarReconocimiento = function() {
     <strong>Res. Reconocimiento:</strong> ${esc(resReconocimiento)}
   `;
   document.getElementById('input-res-pago').value = '';
-  document.getElementById('input-consecutivo').value = '';
   document.getElementById('msg-guardar').textContent = '';
   irPaso(4);
 };
@@ -141,11 +140,10 @@ window.aceptarReconocimiento = function() {
 // ── Paso 4: Guardar ───────────────────────────────────────────────────────────
 window.guardarPago = async function() {
   const resPago      = document.getElementById('input-res-pago').value.trim();
-  const consecutivo  = document.getElementById('input-consecutivo').value.trim();
+  const consecutivo  = cuentaSeleccionada.consecutivo || '';
   const msgEl        = document.getElementById('msg-guardar');
 
-  if (!resPago)     { msgEl.textContent = '⚠ Ingrese la resolución de pago.';  msgEl.className = 'form-msg err'; return; }
-  if (!consecutivo) { msgEl.textContent = '⚠ Ingrese el consecutivo manual.';  msgEl.className = 'form-msg err'; return; }
+  if (!resPago) { msgEl.textContent = '⚠ Ingrese la resolución de pago.'; msgEl.className = 'form-msg err'; return; }
 
   msgEl.textContent = 'Guardando...';
   msgEl.className   = 'form-msg';
