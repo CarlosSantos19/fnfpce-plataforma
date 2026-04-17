@@ -44,6 +44,9 @@ function badgeRol(rol) {
     administrador:  ['ADMINISTRADOR', 'badge-admin'],
     administrativo: ['ADMINISTRATIVO', 'badge-adm'],
     contador:       ['CONTADOR',       'badge-cont'],
+    abogado:        ['ABOGADO',        'badge-abog'],
+    asistencial:    ['ASISTENCIAL',    'badge-asis'],
+    pago:           ['PAGO',           'badge-pago'],
   };
   const [label, cls] = map[rol] || [rol, ''];
   return `<span class="badge ${cls}">${label}</span>`;
@@ -87,6 +90,7 @@ function renderTabla() {
       ? `<button class="btn-action btn-toggle-on"  data-id="${u.id}" data-activo="false">Desactivar</button>`
       : `<button class="btn-action btn-toggle-off" data-id="${u.id}" data-activo="true">Activar</button>`;
 
+    const btnEditar   = `<button class="btn-action btn-editar"    data-id="${u.id}">Editar</button>`;
     const btnEliminar = `<button class="btn-action btn-eliminar" data-id="${u.id}">Eliminar</button>`;
 
     return `
@@ -94,7 +98,7 @@ function renderTabla() {
         <td>${u.nombre}</td>
         <td>${badgeRol(u.rol)}</td>
         <td>${badgeEstado(u.activo)}</td>
-        <td><div class="actions-cell">${btnToggle}${btnEliminar}</div></td>
+        <td><div class="actions-cell">${btnToggle}${btnEditar}${btnEliminar}</div></td>
       </tr>
     `;
   }).join('');
@@ -106,6 +110,15 @@ function renderTabla() {
       const activo = btn.dataset.activo === 'true';
       const user   = todosLosUsuarios.find(u => u.id === id);
       confirmarToggle(user, activo);
+    });
+  });
+
+  // Eventos en botones de editar
+  tbody.querySelectorAll('.btn-editar').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id   = btn.dataset.id;
+      const user = todosLosUsuarios.find(u => u.id === id);
+      abrirModalEditar(user);
     });
   });
 
@@ -211,5 +224,174 @@ async function toggleUsuario(id, activo) {
   }
 }
 
+// ── Modal editar usuario ─────────────────────────────────────────────────────
+const modalEditar       = document.getElementById('modal-editar');
+const editNombreDisplay = document.getElementById('edit-nombre-display');
+const editRol           = document.getElementById('edit-rol');
+const editPassword      = document.getElementById('edit-password');
+const editCcSection     = document.getElementById('edit-cc-section');
+const editCcUsuario     = document.getElementById('edit-cc-usuario');
+const editCcPassword    = document.getElementById('edit-cc-password');
+const btnGuardarEdicion = document.getElementById('btn-guardar-edicion');
+const msgEditar         = document.getElementById('msg-editar');
+
+let editUserId = null;
+
+function abrirModalEditar(user) {
+  editUserId = user.id;
+  editNombreDisplay.textContent = user.nombre;
+  editRol.value      = user.rol;
+  editPassword.value = '';
+  editCcUsuario.value  = user.cc_usuario  || '';
+  editCcPassword.value = '';
+  // Mostrar sección CC solo para contadores
+  editCcSection.style.display = user.rol === 'contador' ? 'block' : 'none';
+  msgEditar.textContent = '';
+  modalEditar.style.display = 'flex';
+}
+
+// Mostrar/ocultar sección CC al cambiar rol
+editRol.addEventListener('change', () => {
+  editCcSection.style.display = editRol.value === 'contador' ? 'block' : 'none';
+});
+
+window.cerrarModalEditar = function () {
+  modalEditar.style.display = 'none';
+  editUserId = null;
+};
+
+btnGuardarEdicion.addEventListener('click', async () => {
+  if (!editUserId) return;
+
+  const nuevoRol      = editRol.value;
+  const nuevaPassword = editPassword.value.trim();
+  const nuevoCcUser   = editCcUsuario.value.trim();
+  const nuevoCcPass   = editCcPassword.value.trim();
+
+  const updates = { rol: nuevoRol };
+  if (nuevaPassword) updates.password = nuevaPassword;
+  if (nuevoRol === 'contador') {
+    if (nuevoCcUser) updates.cc_usuario = nuevoCcUser;
+    if (nuevoCcPass) updates.cc_password = nuevoCcPass;
+  }
+
+  btnGuardarEdicion.disabled = true;
+  msgEditar.textContent = 'Guardando...';
+  msgEditar.style.color = 'var(--cyan)';
+
+  try {
+    await updateDoc(doc(db, 'usuarios', editUserId), updates);
+    const u = todosLosUsuarios.find(u => u.id === editUserId);
+    if (u) {
+      u.rol = nuevoRol;
+      if (nuevaPassword) u.password = nuevaPassword;
+      if (nuevoCcUser)   u.cc_usuario = nuevoCcUser;
+      if (nuevoCcPass)   u.cc_password = nuevoCcPass;
+    }
+    renderTabla();
+    msgEditar.textContent = '✔ Cambios guardados.';
+    msgEditar.style.color = '#00ff88';
+    setTimeout(() => cerrarModalEditar(), 1200);
+  } catch (err) {
+    msgEditar.textContent = '✘ Error: ' + err.message;
+    msgEditar.style.color = '#ff6080';
+  } finally {
+    btnGuardarEdicion.disabled = false;
+  }
+});
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 cargarUsuarios();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// USUARIOS MÓDULO ANÁLISIS  (colección: analisis_usuarios)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const formNuevoAnalisis  = document.getElementById('form-nuevo-analisis');
+const auUsuario          = document.getElementById('au-usuario');
+const auPassword         = document.getElementById('au-password');
+const btnCrearAnalisis   = document.getElementById('btn-crear-analisis');
+const msgFormAnalisis    = document.getElementById('msg-form-analisis');
+const tbodyAnalisis      = document.getElementById('tbody-analisis');
+const msgTablaAnalisis   = document.getElementById('msg-tabla-analisis');
+
+let analisisUsuarios = [];
+
+async function cargarAnalisisUsuarios() {
+  tbodyAnalisis.innerHTML = '<tr><td colspan="2" class="table-loading">Cargando...</td></tr>';
+  try {
+    const snap = await getDocs(collection(db, 'analisis_usuarios'));
+    analisisUsuarios = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    analisisUsuarios.sort((a, b) => a.usuario.localeCompare(b.usuario));
+    renderTablaAnalisis();
+  } catch (err) {
+    tbodyAnalisis.innerHTML = `<tr><td colspan="2" class="table-loading">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function renderTablaAnalisis() {
+  if (!analisisUsuarios.length) {
+    tbodyAnalisis.innerHTML = '<tr><td colspan="2" class="table-empty">Sin usuarios registrados.</td></tr>';
+    return;
+  }
+  tbodyAnalisis.innerHTML = analisisUsuarios.map(u => `
+    <tr>
+      <td>${u.usuario}</td>
+      <td><div class="actions-cell">
+        <button class="btn-action btn-eliminar" data-aid="${u.id}" data-ausu="${u.usuario}">Eliminar</button>
+      </div></td>
+    </tr>
+  `).join('');
+
+  tbodyAnalisis.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id   = btn.dataset.aid;
+      const user = btn.dataset.ausu;
+      modalTitle.textContent   = '¿ELIMINAR usuario Análisis?';
+      modalBody.textContent    = `"${user}" — esta acción no se puede deshacer.`;
+      btnModalConf.textContent = 'ELIMINAR';
+      btnModalConf.style.borderColor = '#ff6080';
+      btnModalConf.style.color       = '#ff6080';
+      modalCallback = () => eliminarAnalisisUsuario(id, user);
+      modalOverlay.style.display = 'flex';
+    });
+  });
+}
+
+formNuevoAnalisis.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const usuario  = auUsuario.value.trim();
+  const password = auPassword.value.trim();
+  if (!usuario || !password) {
+    showMsg(msgFormAnalisis, 'Complete todos los campos.', 'err');
+    return;
+  }
+  btnCrearAnalisis.disabled = true;
+  showMsg(msgFormAnalisis, 'Guardando...', '');
+  try {
+    await addDoc(collection(db, 'analisis_usuarios'), { usuario, password });
+    showMsg(msgFormAnalisis, '✔ Usuario creado correctamente.', 'ok');
+    formNuevoAnalisis.reset();
+    await cargarAnalisisUsuarios();
+  } catch (err) {
+    showMsg(msgFormAnalisis, '✘ Error: ' + err.message, 'err');
+  } finally {
+    btnCrearAnalisis.disabled = false;
+  }
+});
+
+async function eliminarAnalisisUsuario(id, usuario) {
+  try {
+    await deleteDoc(doc(db, 'analisis_usuarios', id));
+    analisisUsuarios = analisisUsuarios.filter(u => u.id !== id);
+    renderTablaAnalisis();
+    msgTablaAnalisis.textContent = `✔ "${usuario}" eliminado.`;
+    msgTablaAnalisis.style.color = '#ff6080';
+    setTimeout(() => { msgTablaAnalisis.textContent = ''; }, 3000);
+  } catch (err) {
+    msgTablaAnalisis.textContent = '✘ Error: ' + err.message;
+    msgTablaAnalisis.style.color = '#ff6080';
+  }
+}
+
+cargarAnalisisUsuarios();

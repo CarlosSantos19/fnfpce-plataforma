@@ -41,6 +41,9 @@
                 <option value="administrador">Administrador</option>
                 <option value="administrativo">Administrativo</option>
                 <option value="contador">Contador</option>
+                <option value="abogado">Abogado</option>
+                <option value="asistencial">Asistencial</option>
+                <option value="pago">Pago</option>
               </select>
             </div>
             <div class="form-group">
@@ -65,6 +68,9 @@
               <option value="administrador">Administrador</option>
               <option value="administrativo">Administrativo</option>
               <option value="contador">Contador</option>
+              <option value="abogado">Abogado</option>
+              <option value="asistencial">Asistencial</option>
+              <option value="pago">Pago</option>
             </select>
             <select id="filtro-estado" class="form-input form-input--sm">
               <option value="">Todos</option>
@@ -93,10 +99,48 @@
         <div id="msg-tabla" class="table-msg"></div>
       </div>
 
+      <!-- Usuarios Análisis -->
+      <div class="content-card" id="card-analisis-usuarios">
+        <div class="card-section-title">// USUARIOS MÓDULO ANÁLISIS</div>
+        <p style="font-size:13px;opacity:.6;margin-bottom:18px;">Credenciales independientes para el login del módulo de Análisis de Cuentas.</p>
+
+        <form id="form-nuevo-analisis" autocomplete="off">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Usuario</label>
+              <input type="text" id="au-usuario" class="form-input" placeholder="Ej: jramirez" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contraseña</label>
+              <input type="password" id="au-password" class="form-input" placeholder="Contraseña de acceso" required />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" id="btn-crear-analisis">◫ Agregar Usuario Análisis</button>
+            <span id="msg-form-analisis" class="form-msg"></span>
+          </div>
+        </form>
+
+        <div class="table-wrap" style="margin-top:18px;">
+          <table class="usuarios-table" id="tabla-analisis">
+            <thead>
+              <tr>
+                <th>USUARIO</th>
+                <th>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-analisis">
+              <tr><td colspan="2" class="table-loading">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="msg-tabla-analisis" class="table-msg"></div>
+      </div>
+
     </main>
   </div>
 
-  <!-- Modal confirmación -->
+  <!-- Modal confirmación (activar/desactivar/eliminar) -->
   <div class="modal-overlay" id="modal-confirm" style="display:none">
     <div class="modal-box">
       <div class="modal-title" id="modal-title">¿Confirmar acción?</div>
@@ -105,6 +149,46 @@
         <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
         <button class="btn-danger" id="btn-modal-confirm">Confirmar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal editar usuario -->
+  <div class="modal-overlay" id="modal-editar" style="display:none">
+    <div class="modal-box">
+      <div class="modal-title">// EDITAR USUARIO</div>
+      <div class="modal-body" id="edit-nombre-display" style="margin-bottom:20px;"></div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">Rol</label>
+        <select id="edit-rol" class="form-input">
+          <option value="administrador">Administrador</option>
+          <option value="administrativo">Administrativo</option>
+          <option value="contador">Contador</option>
+          <option value="abogado">Abogado</option>
+          <option value="asistencial">Asistencial</option>
+          <option value="pago">Pago</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">Nueva contraseña <span style="opacity:.5;font-size:11px;">(dejar vacío para no cambiar)</span></label>
+        <input type="password" id="edit-password" class="form-input" placeholder="••••••••" />
+      </div>
+      <!-- Credenciales Módulo Análisis — solo contadores -->
+      <div id="edit-cc-section" style="display:none;border-top:1px solid rgba(0,212,255,.15);padding-top:14px;margin-bottom:14px;">
+        <div style="font-size:11px;letter-spacing:.1em;color:rgba(0,212,255,.6);margin-bottom:10px;">// CREDENCIALES MÓDULO ANÁLISIS</div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label class="form-label">Usuario Análisis <span style="opacity:.5;font-size:11px;">(cédula)</span></label>
+          <input type="text" id="edit-cc-usuario" class="form-input" placeholder="Número de documento" autocomplete="off" />
+        </div>
+        <div class="form-group" style="margin-bottom:4px;">
+          <label class="form-label">Contraseña Análisis <span style="opacity:.5;font-size:11px;">(dejar vacío para no cambiar)</span></label>
+          <input type="password" id="edit-cc-password" class="form-input" placeholder="••••••••" autocomplete="off" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
+        <button class="btn-primary" id="btn-guardar-edicion">Guardar Cambios</button>
+      </div>
+      <div id="msg-editar" style="margin-top:10px;font-size:13px;min-height:16px;"></div>
     </div>
   </div>
 

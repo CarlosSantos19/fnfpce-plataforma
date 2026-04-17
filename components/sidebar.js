@@ -10,18 +10,35 @@ const ALL_MODULES = [
   { id: 'actas',        label: 'Actas',             icon: '◉', path: '/modules/actas/actas.html',               desc: 'Gestión de actas' },
   { id: 'cuentas',      label: 'Cuentas',           icon: '◆', path: '/modules/cuentas/cuentas.html',           desc: 'Control de cuentas' },
   { id: 'revision',     label: 'Revisión',          icon: '◌', path: '/modules/revision/revision.html',         desc: 'Revisión y auditoría' },
+  { id: 'resumen',      label: 'Resumen',            icon: '◑', path: '/modules/resumen/resumen.html',             desc: 'Indicadores generales' },
+  { id: 'sorteo',       label: 'Sorteo',             icon: '⬡', path: '/modules/sorteo/sorteo.html',               desc: 'Sorteo de cuentas' },
+  { id: 'carpetas',          label: 'Carpetas',       icon: '▣', path: '/modules/carpetas/carpetas.html',                      desc: 'Carpetas por número de acta' },
+  { id: 'revision-carpetas', label: 'Rev. Carpetas',  icon: '◧', path: '/modules/revision-carpetas/revision-carpetas.html',  desc: 'Revisión de carpetas por acta' },
+  { id: 'tablero',           label: 'Tablero',        icon: '⬡', path: '/modules/tablero/tablero.html',                       desc: 'Vista general de indicadores ET2023' },
+  { id: 'analisis',          label: 'Análisis',       icon: '◫', path: 'https://proyectoswyad.com/',                          desc: 'Análisis de cuentas electorales' },
+  { id: 'victorboot',        label: 'VictorBoot',     icon: '⬟', path: '/modules/victorboot/victorboot.html',                  desc: 'Módulo VictorBoot' },
+  { id: 'chat',              label: 'Chat',           icon: '◈', path: '/modules/chat/chat.html',                              desc: 'Chat institucional' },
+  { id: 'descarga-pdf',      label: 'Descarga PDF',   icon: '◧', path: '/modules/descarga-pdf/descarga-pdf.html',              desc: 'Descarga de documentos AUTOCASH' },
+  { id: 'horas-extras',      label: 'Horas Extras',   icon: '⏱', path: '/modules/horas-extras/horas-extras.html',              desc: 'Registro y seguimiento de horas extras' },
+  { id: 'verificacion',      label: 'Verificación',   icon: '◉', path: '/modules/horas-extras/horas-extras.html',              desc: 'Verificación de horas extras' },
 ];
 
 const MODULES_BY_ROLE = {
-  administrador:  ['usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision'],
-  administrativo: ['reparto', 'asignaciones'],
-  contador:       ['actas', 'cuentas', 'revision'],
+  administrador:  ['usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'sorteo', 'carpetas', 'revision-carpetas', 'analisis', 'victorboot', 'chat', 'descarga-pdf', 'horas-extras'],
+  administrativo: ['reparto', 'asignaciones', 'resumen', 'tablero', 'sorteo', 'revision-carpetas', 'victorboot', 'chat', 'horas-extras'],
+  contador:       ['actas', 'cuentas', 'revision', 'resumen', 'tablero', 'carpetas', 'analisis', 'chat', 'descarga-pdf', 'horas-extras'],
+  abogado:        ['victorboot', 'chat', 'horas-extras'],
+  asistencial:    ['chat', 'horas-extras'],
+  pago:           ['reparto', 'victorboot', 'chat', 'horas-extras'],
 };
 
 const ROL_LABELS = {
   administrador:  'Administrador',
   administrativo: 'Administrativo',
   contador:       'Contador',
+  abogado:        'Abogado',
+  asistencial:    'Asistencial',
+  pago:           'Pago',
 };
 
 function renderSidebar(activeId = '') {
