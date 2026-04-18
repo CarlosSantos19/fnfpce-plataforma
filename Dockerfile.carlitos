@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copiar el proyecto Carlitos
+COPY ["PT NUEVO/carlitos/",         "carlitos/"]
+COPY ["PT NUEVO/parser_pdf.py",     "parser_pdf.py"]
+COPY ["PT NUEVO/normatividad_db/",  "normatividad_db/"]
+COPY ["PT NUEVO/topes_data.py",     "topes_data.py"]
+COPY ["PT NUEVO/datos_soporte.py",  "datos_soporte.py"]
+
+# Instalar dependencias
+RUN pip install --no-cache-dir \
+    fastapi \
+    "uvicorn[standard]" \
+    anthropic \
+    pdfplumber \
+    python-docx \
+    openpyxl \
+    numpy
+
+# Carpeta de trabajo en /tmp (Render solo permite escritura en /tmp)
+ENV CNE_DOWNLOAD_DIR=/tmp/cne_descargas
+ENV CNE_OUTPUT_DIR=/tmp/cne_descargas/Liquidaciones_Generadas
+
+RUN mkdir -p /tmp/cne_descargas /tmp/cne_descargas/Liquidaciones_Generadas
+
+EXPOSE 8532
+
+CMD uvicorn carlitos.presentation.app:app --host 0.0.0.0 --port ${PORT:-8532}

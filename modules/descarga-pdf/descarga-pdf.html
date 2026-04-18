@@ -63,10 +63,10 @@
       <!-- ══════ TAB 2: DESCARGA CNE ══════ -->
       <div id="panel-cne" style="display:none">
 
-        <!-- Estado del servidor -->
+        <!-- Estado del servidor + Carpeta destino -->
         <div class="content-card" id="card-server">
           <div class="dp-server-row">
-            <div class="card-section-title">// SERVIDOR LOCAL</div>
+            <div class="card-section-title">// SERVIDOR</div>
             <div class="dp-server-status" id="server-status">
               <span class="dp-server-dot" id="server-dot"></span>
               <span id="server-txt">Verificando…</span>
@@ -74,6 +74,19 @@
             <button class="btn-secondary btn-sm" onclick="verificarServidor()">↺ Reconectar</button>
           </div>
           <div class="dp-server-note" id="server-note" style="display:none"></div>
+
+          <!-- Carpeta destino -->
+          <div class="dp-server-row" style="margin-top:14px;border-top:1px solid rgba(0,212,255,.12);padding-top:14px;">
+            <div>
+              <div class="card-section-title" style="margin-bottom:4px;">// CARPETA DESTINO</div>
+              <div id="carpeta-nombre" style="font-size:12px;opacity:.7;font-family:'Rajdhani',sans-serif;">
+                Sin carpeta seleccionada
+              </div>
+            </div>
+            <button class="btn-primary btn-sm" id="btn-carpeta" onclick="seleccionarCarpeta()">
+              ◧ Seleccionar carpeta
+            </button>
+          </div>
         </div>
 
         <!-- Tabs secundarios: ET2023 / Candidato Público / Resoluciones -->
@@ -293,7 +306,7 @@
 
         <!-- ─── Resultados ───────────────────────────────── -->
         <div class="content-card" id="card-resultados" style="display:none">
-          <div class="card-section-title">// ARCHIVOS SUBIDOS A FIREBASE STORAGE</div>
+          <div class="card-section-title">// ARCHIVOS DESCARGADOS</div>
           <div id="dp-resultados"></div>
         </div>
 

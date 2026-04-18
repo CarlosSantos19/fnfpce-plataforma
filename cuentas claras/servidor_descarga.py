@@ -15,7 +15,7 @@ El servidor queda en http://localhost:5050
 import sys, os, threading, uuid, glob, time, traceback, json, re, shutil
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-from flask import Flask, request, jsonify, Response, stream_with_context
+from flask import Flask, request, jsonify, Response, stream_with_context, send_file
 from flask_cors import CORS
 
 # ── Agregar la carpeta de scrapers al path ─────────────────────────────────────
@@ -318,7 +318,7 @@ def iniciar_descarga():
 
     job_id = str(uuid.uuid4())[:8]
     with jobs_lock:
-        jobs[job_id] = {'status': 'running', 'logs': [], 'pdfs': []}
+        jobs[job_id] = {'status': 'running', 'logs': [], 'pdfs': [], 'carpeta_base': carpeta_base}
 
     t = threading.Thread(
         target=ejecutar_trabajo,
@@ -378,7 +378,7 @@ def iniciar_descarga_publica():
 
     job_id = str(uuid.uuid4())[:8]
     with jobs_lock:
-        jobs[job_id] = {'status': 'running', 'logs': [], 'pdfs': []}
+        jobs[job_id] = {'status': 'running', 'logs': [], 'pdfs': [], 'carpeta_base': carpeta_base}
 
     t = threading.Thread(
         target=ejecutar_trabajo_publico,
@@ -403,6 +403,43 @@ def estado_trabajo(job_id):
         'logs':   job['logs'],
         'pdfs':   job['pdfs'],
     })
+
+
+@app.route('/api/lista_archivos/<job_id>', methods=['GET'])
+def listar_archivos_job(job_id):
+    """Lista los archivos descargados por un job (para File System Access API)."""
+    with jobs_lock:
+        job = jobs.get(job_id)
+    if not job:
+        return jsonify({'error': 'Trabajo no encontrado'}), 404
+    carpeta = job.get('carpeta_base', '')
+    if not carpeta or not os.path.isdir(carpeta):
+        return jsonify({'archivos': []})
+    todos = glob.glob(os.path.join(carpeta, '**', '*'), recursive=True)
+    archivos = [
+        os.path.relpath(f, carpeta).replace('\\', '/')
+        for f in todos
+        if os.path.isfile(f) and f.lower().endswith(('.pdf', '.xlsx', '.xls'))
+    ]
+    return jsonify({'archivos': archivos})
+
+
+@app.route('/api/archivo/<job_id>/<path:filename>', methods=['GET'])
+def servir_archivo_job(job_id, filename):
+    """Sirve un archivo individual de un job para descarga directa."""
+    with jobs_lock:
+        job = jobs.get(job_id)
+    if not job:
+        return jsonify({'error': 'Trabajo no encontrado'}), 404
+    carpeta = job.get('carpeta_base', '')
+    filepath = os.path.normpath(os.path.join(carpeta, filename.replace('/', os.sep)))
+    # Seguridad: el archivo debe estar dentro de la carpeta del job
+    if not filepath.startswith(os.path.normpath(carpeta)):
+        return jsonify({'error': 'Acceso denegado'}), 403
+    if not os.path.isfile(filepath):
+        return jsonify({'error': 'Archivo no encontrado'}), 404
+    return send_file(filepath, as_attachment=True,
+                     download_name=os.path.basename(filepath))
 
 
 @app.route('/api/logs/<job_id>', methods=['GET'])

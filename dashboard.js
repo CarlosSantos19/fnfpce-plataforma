@@ -21,6 +21,7 @@ const CARDS_CONFIG = {
   'descarga-pdf':      { icon: '◧', titulo: 'Descarga PDF',   desc: 'Gestión de descarga de documentos AUTOCASH por organización', path: '/modules/descarga-pdf/descarga-pdf.html' },
   'horas-extras':      { icon: '⏱', titulo: 'Horas Extras',  desc: 'Registro y seguimiento de horas extras autorizadas', path: '/modules/horas-extras/horas-extras.html' },
   pagos:               { icon: '◈', titulo: 'Pagos',         desc: 'Registro de reconocimientos y pagos ET2023',          path: '/modules/pagos/pagos.html' },
+  carlitos:            { icon: '🤖', titulo: 'Carlitos',      desc: 'Asistente IA para análisis de informes financieros CNE', path: '/modules/carlitos/carlitos.html' },
 };
 
 // MODULES_BY_ROLE se toma de components/sidebar.js (ya cargado en la misma página)

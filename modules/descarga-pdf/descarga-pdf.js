@@ -26,7 +26,7 @@ const ES_CONTADOR = ROL === 'contador';
 const SERVIDOR_DEFAULT = 'https://fnfpce-plataforma-1.onrender.com';
 let SERVIDOR   = localStorage.getItem('cne_servidor_url') || SERVIDOR_DEFAULT;
 let servidorOK = false;
-let jobActivo  = null;   // job_id del proceso en curso
+let jobActivo = null;   // job_id del proceso en curso
 
 // ── Partículas ────────────────────────────────────────────────────────────────
 (function () {
@@ -160,37 +160,163 @@ function escucharLogs(jobId, onFin) {
   };
 }
 
-// ── Mostrar resultados ────────────────────────────────────────────────────────
-async function mostrarResultados(jobId) {
+// ── Carpeta destino (File System Access API + IndexedDB) ─────────────────────
+let carpetaHandle = null;
+
+function abrirIDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open('cne_descarga_v1', 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('handles');
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+
+async function guardarCarpetaIDB(handle) {
   try {
-    const res  = await fetch(`${SERVIDOR}/api/estado/${jobId}`);
-    const data = await res.json();
-    const n    = data.num_archivos || 0;
+    const db = await abrirIDB();
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(handle, 'carpeta_cne');
+  } catch (_) {}
+}
 
-    const cardRes = document.getElementById('card-resultados');
-    const divRes  = document.getElementById('dp-resultados');
+async function cargarCarpetaIDB() {
+  try {
+    const db = await abrirIDB();
+    const handle = await new Promise((res, rej) => {
+      const tx  = db.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get('carpeta_cne');
+      req.onsuccess = () => res(req.result);
+      req.onerror   = () => rej(req.error);
+    });
+    if (!handle) return;
+    const perm = await handle.queryPermission({ mode: 'readwrite' });
+    if (perm === 'granted') { carpetaHandle = handle; actualizarUICarpeta(); }
+  } catch (_) {}
+}
 
-    if (!n) {
-      divRes.innerHTML = '<p class="dp-help-text">No se encontraron archivos descargados. Verifique los filtros y el nombre de la organización.</p>';
-    } else {
-      const urlZip = `${SERVIDOR}/api/descargar_zip/${jobId}`;
-      divRes.innerHTML = `
-        <p class="dp-help-text" style="color:#00ff88;">✔ ${n} archivo(s) descargados correctamente.</p>
-        <div style="margin-top:12px;">
-          <a href="${urlZip}" download class="dp-pdf-btn-dl"
-             style="display:inline-block;padding:10px 24px;background:#00ff88;color:#000;
-                    font-weight:700;border-radius:6px;text-decoration:none;font-size:14px;">
-            ⬇ Descargar ZIP (${n} archivos)
-          </a>
-        </div>
-        <p class="dp-help-text" style="margin-top:8px;font-size:11px;opacity:.6;">
-          El archivo ZIP contiene todos los PDFs organizados por carpetas.
-        </p>`;
-    }
-    cardRes.style.display = '';
-  } catch (e) {
-    consolaLog(`[ERROR] No se pudo obtener resultados: ${e.message}`);
+function actualizarUICarpeta() {
+  const el  = document.getElementById('carpeta-nombre');
+  const btn = document.getElementById('btn-carpeta');
+  if (carpetaHandle) {
+    el.textContent  = carpetaHandle.name;
+    el.style.color  = '#00ff88';
+    btn.textContent = '✔ ' + carpetaHandle.name;
+  } else {
+    el.textContent  = 'Sin carpeta seleccionada';
+    el.style.color  = '';
+    btn.textContent = '◧ Seleccionar carpeta';
   }
+}
+
+window.seleccionarCarpeta = async function() {
+  if (!('showDirectoryPicker' in window)) {
+    alert('Tu navegador no soporta selección de carpetas.\nUsa Google Chrome o Microsoft Edge.');
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    carpetaHandle = handle;
+    actualizarUICarpeta();
+    guardarCarpetaIDB(handle);
+  } catch (e) {
+    if (e.name !== 'AbortError') consolaLog(`[ERROR] Carpeta: ${e.message}`);
+  }
+};
+
+// ── Guardar archivos en la carpeta local elegida ──────────────────────────────
+async function guardarArchivosLocales(jobId) {
+  const cardRes = document.getElementById('card-resultados');
+  const divRes  = document.getElementById('dp-resultados');
+  cardRes.style.display = '';
+
+  if (!carpetaHandle) {
+    divRes.innerHTML = `
+      <p class="dp-help-text" style="color:#ffcc00;">
+        ⚠ No has seleccionado una carpeta destino.<br>
+        Haz clic en <strong>◧ Seleccionar carpeta</strong> y elige <strong>C:\\CNE_Descargas</strong>.
+      </p>`;
+    return;
+  }
+
+  // Verificar/pedir permiso si fue revocado
+  let perm = await carpetaHandle.queryPermission({ mode: 'readwrite' });
+  if (perm !== 'granted') {
+    perm = await carpetaHandle.requestPermission({ mode: 'readwrite' });
+  }
+  if (perm !== 'granted') {
+    divRes.innerHTML = '<p class="dp-help-text" style="color:#ff6080;">✕ Permiso denegado a la carpeta.</p>';
+    return;
+  }
+
+  // Obtener lista de archivos del servidor
+  let archivos = [];
+  try {
+    const r = await fetch(`${SERVIDOR}/api/lista_archivos/${jobId}`);
+    const d = await r.json();
+    archivos = d.archivos || [];
+  } catch (e) {
+    consolaLog(`[ERROR] No se pudo obtener lista de archivos: ${e.message}`);
+    return;
+  }
+
+  if (!archivos.length) {
+    divRes.innerHTML = '<p class="dp-help-text">No se encontraron archivos para guardar. Verifique los filtros.</p>';
+    return;
+  }
+
+  consolaLog(`[LOCAL] Guardando ${archivos.length} archivo(s) en ${carpetaHandle.name}…`);
+  divRes.innerHTML = `<p class="dp-help-text" style="color:#00d4ff;">Guardando ${archivos.length} archivo(s)…</p>`;
+
+  let guardados = 0;
+  const errores = [];
+
+  for (const relPath of archivos) {
+    try {
+      // Crear subcarpetas si el path tiene directorios
+      const partes    = relPath.split('/');
+      const nombre    = partes.pop();
+      let   dirHandle = carpetaHandle;
+      for (const parte of partes) {
+        dirHandle = await dirHandle.getDirectoryHandle(parte, { create: true });
+      }
+
+      // Descargar el archivo del servidor Render
+      const res  = await fetch(`${SERVIDOR}/api/archivo/${jobId}/${relPath}`);
+      const blob = await res.blob();
+
+      // Escribir al disco
+      const fh  = await dirHandle.getFileHandle(nombre, { create: true });
+      const writable = await fh.createWritable();
+      await writable.write(blob);
+      await writable.close();
+
+      guardados++;
+      consolaLog(`[LOCAL] ✔ ${nombre}`);
+    } catch (e) {
+      errores.push(relPath);
+      consolaLog(`[ERROR] ${relPath}: ${e.message}`);
+    }
+  }
+
+  // Mostrar resumen
+  const listaHTML = archivos.map(p => {
+    const nombre = p.split('/').pop();
+    const ok     = !errores.includes(p);
+    return `
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;
+                  border-bottom:1px solid rgba(0,212,255,.1);">
+        <span style="color:${ok ? '#00ff88' : '#ff6080'}">${ok ? '✔' : '✕'}</span>
+        <span style="font-size:12px;opacity:.85;">${esc(nombre)}</span>
+      </div>`;
+  }).join('');
+
+  divRes.innerHTML = `
+    <p class="dp-help-text" style="color:#00ff88;margin-bottom:8px;">
+      ✔ ${guardados} de ${archivos.length} archivo(s) guardados en
+      <strong>${esc(carpetaHandle.name)}</strong>
+    </p>
+    <div style="max-height:260px;overflow-y:auto;">${listaHTML}</div>`;
 }
 
 // ── Botones de acción (enable/disable) ───────────────────────────────────────
@@ -273,7 +399,7 @@ window.iniciarDescargaFNFP = async function() {
       if (estado.status === 'done') {
         setConsolaStatus('Completado', 'ok');
         consolaLog('[SISTEMA] ✔ Proceso finalizado correctamente.');
-        await mostrarResultados(jobActivo);
+        await guardarArchivosLocales(jobActivo);
       } else {
         setConsolaStatus('Finalizado con errores', 'err');
       }
@@ -352,7 +478,7 @@ window.iniciarDescargaPublica = async function() {
       const estado = await fetch(`${SERVIDOR}/api/estado/${jobActivo}`).then(r => r.json());
       setConsolaStatus(estado.status === 'done' ? 'Completado' : 'Con errores',
                        estado.status === 'done' ? 'ok' : 'err');
-      await mostrarResultados(jobActivo);
+      await guardarArchivosLocales(jobActivo);
       setBotonesDescarga('pub', false);
       jobActivo = null;
     });
@@ -412,7 +538,7 @@ window.iniciarDescargaResoluciones = async function() {
       const estado = await fetch(`${SERVIDOR}/api/estado/${jobActivo}`).then(r => r.json());
       setConsolaStatus(estado.status === 'done' ? 'Completado' : 'Con errores',
                        estado.status === 'done' ? 'ok' : 'err');
-      await mostrarResultados(jobActivo);
+      await guardarArchivosLocales(jobActivo);
       setBotonesDescarga('res', false);
       jobActivo = null;
     });
@@ -795,3 +921,4 @@ function esc(str) {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 cargar();
+cargarCarpetaIDB();

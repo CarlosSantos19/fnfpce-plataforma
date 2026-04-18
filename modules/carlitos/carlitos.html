@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carlitos — FNFPCE</title>
+  <link rel="stylesheet" href="/core/base.css" />
+  <link rel="stylesheet" href="/core/module-template.css" />
+  <style>
+    .carlitos-wrap {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 130px);
+      margin-top: 16px;
+    }
+    .carlitos-frame {
+      flex: 1;
+      width: 100%;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 8px;
+      background: #020b18;
+    }
+    .carlitos-offline {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 16px;
+      color: rgba(0, 212, 255, 0.5);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+    }
+    .carlitos-offline .ico { font-size: 48px; }
+    .carlitos-offline .msg { opacity: .7; text-align: center; }
+    .carlitos-offline .retry-btn {
+      margin-top: 8px;
+      padding: 8px 24px;
+      background: transparent;
+      border: 1px solid rgba(0,212,255,.4);
+      color: #00d4ff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      letter-spacing: 1px;
+    }
+    .carlitos-offline .retry-btn:hover { background: rgba(0,212,255,.08); }
+  </style>
+</head>
+<body>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; CARLITOS</div>
+        <h1 class="page-title"><span class="title-icon">🤖</span> Carlitos</h1>
+        <p class="page-desc">Asistente IA para análisis de informes financieros CNE</p>
+      </header>
+
+      <div class="carlitos-wrap">
+        <iframe
+          id="carlitos-frame"
+          class="carlitos-frame"
+          src="https://carlitos-cne.onrender.com"
+          allow="microphone"
+          title="Carlitos - Asistente CNE">
+        </iframe>
+        <div class="carlitos-offline" id="carlitos-offline">
+          <span class="ico">🤖</span>
+          <span class="msg">
+            El servidor de Carlitos está iniciando…<br>
+            Puede tardar hasta 60 segundos la primera vez.
+          </span>
+          <button class="retry-btn" onclick="reintentarCarga()">↺ Reintentar</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/core/auth.js"></script>
+  <script src="/components/sidebar.js"></script>
+  <script>
+    Auth.requireAuth();
+    renderSidebar('carlitos');
+
+    const frame  = document.getElementById('carlitos-frame');
+    const ofline = document.getElementById('carlitos-offline');
+
+    frame.addEventListener('error', () => {
+      frame.style.display = 'none';
+      ofline.style.display = 'flex';
+    });
+
+    // Si después de 90s el iframe no cargó, mostrar mensaje
+    const timer = setTimeout(() => {
+      try {
+        if (!frame.contentDocument || frame.contentDocument.body.innerHTML === '') {
+          frame.style.display = 'none';
+          ofline.style.display = 'flex';
+        }
+      } catch (_) {}
+    }, 90000);
+
+    frame.addEventListener('load', () => clearTimeout(timer));
+
+    window.reintentarCarga = function() {
+      frame.style.display = '';
+      ofline.style.display = 'none';
+      frame.src = frame.src;
+    };
+  </script>
+</body>
+</html>

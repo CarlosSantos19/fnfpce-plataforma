@@ -10,3 +10,13 @@ services:
       - key: BUCKET
         value: fnfpce-plataforma.firebasestorage.app
     healthCheckPath: /api/ping
+
+  - type: web
+    name: carlitos-cne
+    runtime: docker
+    dockerfilePath: Dockerfile.carlitos
+    dockerContext: .
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false        # Se llena manualmente en el dashboard de Render
+    healthCheckPath: /
