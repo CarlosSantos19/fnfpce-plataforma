@@ -151,6 +151,73 @@ _ger_pdf_cache: dict  = {}    # cand_id(str) -> {gerente_nombre, gerente_cc, con
 _buscar_loaded: bool  = False
 _buscar_lock = threading.Lock()
 
+# Caché financiero offline: cc_financiero_v2.json cand_id(str) -> {total_ingreso, total_gasto}
+_fin_offline:      dict = {}
+_fin_offline_lock  = threading.Lock()
+_fin_offline_loaded = False
+
+def _load_fin_offline(portal_dir: str) -> None:
+    global _fin_offline, _fin_offline_loaded
+    with _fin_offline_lock:
+        if _fin_offline_loaded:
+            return
+        path = os.path.join(portal_dir, "data", "cc_financiero_v2.json")
+        try:
+            with open(path, encoding="utf-8") as f:
+                raw = json.load(f)
+            _fin_offline = {str(k): v for k, v in raw.items() if isinstance(v, dict)}
+            print(f"[FinOffline] {len(_fin_offline)} registros cargados")
+        except Exception as e:
+            print(f"[FinOffline] Error: {e}")
+        _fin_offline_loaded = True
+
+def _proxy_sin_sesion_fallback(endpoint: str, qs: dict) -> dict | None:
+    """
+    Cuando no hay sesión CNE, intenta responder con datos locales.
+    Retorna dict serializable o None si no hay fallback.
+    """
+    ep = endpoint.lstrip("/")
+
+    # Totales financieros desde cc_financiero_v2.json
+    cand_id = str(qs.get("id_candi") or qs.get("idCandidato") or "")
+
+    if ep in ("ingreso/listarIngresos",):
+        fin = _fin_offline.get(cand_id, {})
+        total = fin.get("total_ingreso", 0)
+        items = [{"codigo": "100", "nom_formato": "Total Ingresos Campaña",
+                  "valor": total, "archivo": ""}] if total else []
+        return {"ingreso": {"data": items, "pagination": {"last_page": 1, "total": len(items)}}}
+
+    if ep in ("gasto/listarGastos",):
+        fin = _fin_offline.get(cand_id, {})
+        total = fin.get("total_gasto", 0)
+        items = [{"codigo": "200", "nom_formato": "Total Gastos Campaña",
+                  "valor": total, "archivo": ""}] if total else []
+        return {"gasto": {"data": items, "pagination": {"last_page": 1, "total": len(items)}}}
+
+    if ep in ("ingresos-campana",):
+        fin = _fin_offline.get(cand_id, {})
+        total = fin.get("total_ingreso", 0)
+        return [{"id": 0, "nombre": "Total Ingresos", "valor": total}] if total else []
+
+    if ep in ("gastos-campana",):
+        fin = _fin_offline.get(cand_id, {})
+        total = fin.get("total_gasto", 0)
+        return [{"id": 0, "nombre": "Total Gastos", "valor": total}] if total else []
+
+    if ep in ("consultaConsolidado",):
+        return []  # sin consolidados individuales
+
+    # Historiales vacíos pero válidos (evitan errores JS)
+    if ep in ("envio",):
+        return {"envioInforme": {"data": []}}
+    if ep in ("devolucionInformes",):
+        return {"cuenta": []}
+    if "respuestaInformes" in ep:
+        return {"cuenta": []}
+
+    return None  # sin fallback, dejar que falle normalmente
+
 def _norm_search(s: str) -> str:
     """Normaliza texto para búsqueda: mayúsculas, sin tildes."""
     s = unicodedata.normalize("NFD", str(s or "").upper())
@@ -1286,9 +1353,21 @@ class Handler(SimpleHTTPRequestHandler):
         Proxy a Cuentas Claras del CNE.
         /api/cne/<endpoint>?params → CNE_API/<endpoint>?params
         Devuelve JSON o PDF segun lo que devuelva CNE.
+        Sin sesión: intenta fallback con datos locales antes de devolver error.
         """
+        parsed   = urlparse(self.path)
+        endpoint = parsed.path[len("/api/cne"):]
+        qs       = {k: v[0] for k, v in parse_qs(parsed.query).items() if v}
+
         if _cne_session is None:
-            body = b"Sin sesion CNE. Use /api/cne_login o ejecute indexar_cuentas_claras.py"
+            # Cargar datos offline la primera vez
+            portal_dir = self.server.portal_dir if hasattr(self.server, "portal_dir") else os.getcwd()
+            _load_fin_offline(portal_dir)
+            fallback = _proxy_sin_sesion_fallback(endpoint.lstrip("/"), qs)
+            if fallback is not None:
+                self._send_json(fallback)
+                return
+            body = b"Sin sesion CNE. Use /api/cne_login"
             self.send_response(401)
             self.send_header("Content-Type", "text/plain; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
@@ -1296,8 +1375,6 @@ class Handler(SimpleHTTPRequestHandler):
             self.wfile.write(body)
             return
 
-        parsed   = urlparse(self.path)
-        endpoint = parsed.path[len("/api/cne"):]
         cne_url  = CNE_API + endpoint + ("?" + parsed.query if parsed.query else "")
 
         try:
