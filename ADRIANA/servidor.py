@@ -53,6 +53,10 @@ _indice_lock = threading.Lock()
 _fin_estado: dict = {"fase": "idle", "pct": 0, "msg": "", "error": ""}
 _fin_lock_est = threading.Lock()
 
+# Estado del indexador Congreso 2026
+_idx26_estado: dict = {"fase": "idle", "pct": 0, "msg": "", "error": ""}
+_idx26_lock = threading.Lock()
+
 
 # ── Utilidades ────────────────────────────────────────────────────────────────
 
@@ -474,6 +478,68 @@ def _indexar_financiero_bg() -> None:
         _fin_set("error", 0, "Error en indexación financiera", traceback.format_exc())
 
 
+# ── Indexador Congreso 2026 ───────────────────────────────────────────────────
+
+def _idx26_set(fase: str, pct: int, msg: str, error: str = "") -> None:
+    with _idx26_lock:
+        _idx26_estado.update({"fase": fase, "pct": pct, "msg": msg, "error": error})
+    print(f"[Congreso2026] {msg}")
+
+def _indexar_congreso_2026_bg(usuario: str, password: str) -> None:
+    """Corre indexar_congreso_2026.py en segundo plano desde servidor.py."""
+    import importlib.util, sys as _sys, os as _os, traceback
+    _idx26_set("trabajando", 5, "Iniciando login en 2026.cne.gov.co…")
+    try:
+        script = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                               "indexar_congreso_2026.py")
+        spec = importlib.util.spec_from_file_location("_idx26", script)
+        mod  = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+
+        _idx26_set("trabajando", 10, "Conectando…")
+        sess = mod._login(usuario, password)
+        if sess is None:
+            _idx26_set("error", 0, "Login fallido. Verifica credenciales.", "login")
+            return
+
+        _idx26_set("trabajando", 20, "Detectando proceso Congreso 2026…")
+        procesos, candidatos_26 = mod._detectar_proceso(sess)
+
+        # Guardar cc_procesos.json
+        import json as _j
+        data_dir = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "data")
+        _os.makedirs(data_dir, exist_ok=True)
+        with open(_os.path.join(data_dir, "cc_procesos.json"), "w", encoding="utf-8") as fh:
+            _j.dump([{"id": p["id"], "nombre": p["nombre"], "fecha": p["fecha"]}
+                     for p in procesos], fh, ensure_ascii=False, indent=2)
+
+        if not candidatos_26:
+            _idx26_set("error", 0, "No se encontró proceso Congreso 2026 en el CNE.", "no_proceso")
+            return
+
+        proceso_id = candidatos_26[0]["id"]
+        nombre_proc = candidatos_26[0]["nombre"]
+        _idx26_set("trabajando", 30, f"Proceso detectado: [{proceso_id}] {nombre_proc}")
+
+        # Monkey-patch para reportar progreso
+        _orig_ok = mod._ok
+        def _ok_prog(msg):
+            _orig_ok(msg)
+            if "candidatos" in msg.lower():
+                _idx26_set("trabajando", 60, msg)
+            elif "archivos" in msg.lower():
+                _idx26_set("trabajando", 85, msg)
+            elif "ndice" in msg.lower():
+                _idx26_set("trabajando", 90, msg)
+        mod._ok = _ok_prog
+
+        _idx26_set("trabajando", 35, f"Descargando candidatos del proceso {proceso_id}…")
+        mod.indexar(sess, proceso_id)
+        _idx26_set("listo", 100, f"Indexación completada. Proceso [{proceso_id}] listo.")
+    except Exception:
+        _idx26_set("error", 0, "Error en indexación", traceback.format_exc())
+
+
 # ── Handler ───────────────────────────────────────────────────────────────────
 
 class Handler(SimpleHTTPRequestHandler):
@@ -526,6 +592,9 @@ class Handler(SimpleHTTPRequestHandler):
                 self._handle_indice_status()
             elif path == "/api/fin_status":
                 self._handle_fin_status()
+            elif path == "/api/idx26_status":
+                with _idx26_lock:
+                    self._send_json(dict(_idx26_estado))
             elif path.startswith("/api/cne/"):
                 self._handle_cne_proxy()
             elif path == "/api/lista_respuestas":
@@ -548,6 +617,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self._handle_construir_indice()
             elif path == "/api/indexar_financiero":
                 self._handle_indexar_financiero()
+            elif path == "/api/indexar_congreso_2026":
+                self._handle_indexar_congreso_2026()
             elif path == "/api/cne_import_cookies":
                 self._handle_cne_import_cookies()
             elif path == "/api/guardar_liquidacion":
@@ -594,6 +665,26 @@ class Handler(SimpleHTTPRequestHandler):
     def _handle_fin_status(self):
         with _fin_lock_est:
             self._send_json(dict(_fin_estado))
+
+    def _handle_indexar_congreso_2026(self):
+        length = int(self.headers.get("Content-Length", 0))
+        raw    = self.rfile.read(length).decode("utf-8", errors="replace") if length else ""
+        try:
+            import json as _j2
+            body = _j2.loads(raw) if raw else {}
+        except Exception:
+            body = {}
+        usuario  = (body.get("usuario")  or "").strip()
+        password = (body.get("password") or "").strip()
+        if not usuario or not password:
+            return self._send_error_json("Falta usuario o contraseña.", 400)
+        with _idx26_lock:
+            if _idx26_estado["fase"] == "trabajando":
+                return self._send_json({"ok": False, "msg": "Ya hay una indexación en curso."})
+        t = threading.Thread(target=_indexar_congreso_2026_bg,
+                             args=(usuario, password), daemon=True)
+        t.start()
+        self._send_json({"ok": True, "msg": "Indexación Congreso 2026 iniciada."})
 
     def _handle_indexar_financiero(self):
         if _cne_session is None:
