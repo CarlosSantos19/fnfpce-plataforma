@@ -12,6 +12,8 @@ const ALL_MODULES = [
   { id: 'cuentas',      label: 'Cuentas',            icon: '◆', path: '/modules/cuentas/cuentas.html',             desc: 'Control de cuentas' },
   { id: 'revision',          label: 'Revisión',           icon: '◌', path: 'https://portal-cc-cne.onrender.com',                  desc: 'Revisión y auditoría — Portal Cuentas Claras' },
   { id: 'revision-abogado',  label: 'Revisión',           icon: '◌', path: 'https://portal-cc-cne.onrender.com?rol=abogado',       desc: 'Resoluciones de proyección y pago' },
+  { id: 'res-proyeccion',    label: 'Res. Proyección',    icon: '◫', path: 'https://portal-cc-cne.onrender.com?rol=abogado&doc=proyeccion', desc: 'Resoluciones de proyección de reconocimiento' },
+  { id: 'res-pago',          label: 'Res. Pago',          icon: '◈', path: 'https://portal-cc-cne.onrender.com?rol=abogado&doc=pago',       desc: 'Resoluciones de pago' },
   { id: 'resumen',      label: 'Resumen',            icon: '◑', path: '/modules/resumen/resumen.html',             desc: 'Indicadores generales' },
   { id: 'sorteo',       label: 'Sorteo',             icon: '⬡', path: '/modules/sorteo/sorteo.html',               desc: 'Sorteo de cuentas' },
   { id: 'carpetas',          label: 'Carpetas',        icon: '▣', path: '/modules/carpetas/carpetas.html',                     desc: 'Carpetas por número de acta' },
@@ -34,7 +36,7 @@ const MODULES_BY_ROLE = {
   administrador:  ['noticias', 'usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'sorteo', 'carpetas', 'revision-carpetas', 'analisis', 'consultor', 'chat', 'descarga-pdf', 'horas-extras', 'pagos', 'carlitos', 'reportes', 'calendario', 'dashboard-ejecutivo', 'requerimientos'],
   administrativo: ['noticias', 'reparto', 'asignaciones', 'resumen', 'tablero', 'sorteo', 'revision-carpetas', 'consultor', 'chat', 'horas-extras', 'carlitos', 'reportes', 'calendario', 'dashboard-ejecutivo', 'requerimientos'],
   contador:       ['noticias', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'carpetas', 'analisis', 'chat', 'descarga-pdf', 'horas-extras', 'carlitos', 'reportes', 'calendario', 'requerimientos'],
-  abogado:        ['noticias', 'revision-abogado', 'consultor', 'chat', 'horas-extras', 'carlitos'],
+  abogado:        ['noticias', 'res-proyeccion', 'res-pago', 'chat', 'horas-extras', 'carlitos'],
   asistencial:    ['noticias', 'chat', 'horas-extras', 'carlitos'],
   pago:           ['noticias', 'reparto', 'consultor', 'chat', 'horas-extras', 'pagos', 'carlitos'],
 };
