@@ -16,7 +16,7 @@ const CARDS_CONFIG = {
   'revision-carpetas': { icon: '◧', titulo: 'Rev. Carpetas',  desc: 'Verificación de archivos PDF por acta y contador',     path: '/modules/revision-carpetas/revision-carpetas.html' },
   tablero:             { icon: '⬡', titulo: 'Tablero',        desc: 'Vista general de indicadores y avance del proceso',    path: '/modules/tablero/tablero.html' },
   analisis:            { icon: '◫', titulo: 'Análisis',       desc: 'Análisis de cuentas de campañas electorales ET2023',   path: '/modules/analisis/analisis.html' },
-  victorboot:          { icon: '⬟', titulo: 'VictorBoot',     desc: 'Módulo VictorBoot',                                    path: '/modules/victorboot/victorboot.html' },
+  consultor:           { icon: '⬟', titulo: 'Consultas ET2023', desc: 'Consultor de expedientes ET2023',                    path: '/modules/consultor/consultor.html' },
   chat:                { icon: '◈', titulo: 'Chat',           desc: 'Canal de comunicación institucional en tiempo real',   path: '/modules/chat/chat.html' },
   'descarga-pdf':      { icon: '◧', titulo: 'Descarga PDF',   desc: 'Gestión de descarga de documentos AUTOCASH por organización', path: '/modules/descarga-pdf/descarga-pdf.html' },
   'horas-extras':      { icon: '⏱', titulo: 'Horas Extras',  desc: 'Registro y seguimiento de horas extras autorizadas', path: '/modules/horas-extras/horas-extras.html' },

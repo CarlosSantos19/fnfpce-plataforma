@@ -16,6 +16,7 @@ const ALL_MODULES = [
   { id: 'revision-carpetas', label: 'Rev. Carpetas',  icon: '◧', path: '/modules/revision-carpetas/revision-carpetas.html',  desc: 'Revisión de carpetas por acta' },
   { id: 'tablero',           label: 'Tablero',        icon: '⬡', path: '/modules/tablero/tablero.html',                       desc: 'Vista general de indicadores ET2023' },
   { id: 'analisis',          label: 'Análisis',       icon: '◫', path: '/modules/analisis/analisis.html',                     desc: 'Análisis de cuentas electorales' },
+  { id: 'consultor',         label: 'Consultas ET2023', icon: '⬟', path: '/modules/consultor/consultor.html',                  desc: 'Consultor de expedientes ET2023' },
   { id: 'chat',              label: 'Chat',           icon: '◈', path: '/modules/chat/chat.html',                              desc: 'Chat institucional' },
   { id: 'descarga-pdf',      label: 'Descarga PDF',   icon: '◧', path: '/modules/descarga-pdf/descarga-pdf.html',              desc: 'Descarga de documentos AUTOCASH' },
   { id: 'horas-extras',      label: 'Horas Extras',   icon: '⏱', path: '/modules/horas-extras/horas-extras.html',              desc: 'Registro y seguimiento de horas extras' },
@@ -25,10 +26,10 @@ const ALL_MODULES = [
 ];
 
 const MODULES_BY_ROLE = {
-  administrador:  ['usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'sorteo', 'carpetas', 'revision-carpetas', 'analisis', 'chat', 'descarga-pdf', 'horas-extras', 'pagos', 'carlitos'],
+  administrador:  ['usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'sorteo', 'carpetas', 'revision-carpetas', 'analisis', 'consultor', 'chat', 'descarga-pdf', 'horas-extras', 'pagos', 'carlitos'],
   administrativo: ['reparto', 'asignaciones', 'resumen', 'tablero', 'sorteo', 'revision-carpetas', 'chat', 'horas-extras', 'carlitos'],
   contador:       ['actas', 'cuentas', 'revision', 'resumen', 'tablero', 'carpetas', 'analisis', 'chat', 'descarga-pdf', 'horas-extras', 'carlitos'],
-  abogado:        ['chat', 'horas-extras', 'carlitos'],
+  abogado:        ['consultor', 'chat', 'horas-extras', 'carlitos'],
   asistencial:    ['chat', 'horas-extras', 'carlitos'],
   pago:           ['reparto', 'chat', 'horas-extras', 'pagos', 'carlitos'],
 };
