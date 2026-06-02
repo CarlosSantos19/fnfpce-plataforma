@@ -9422,13 +9422,18 @@ function _renderCertificadoInner(c){
       '<button class="btn btn-sm btn-warning text-dark fw-semibold" onclick="generarDocxCert(\''+uid+'\')"><i class="fa fa-file-word me-1"></i>Descargar DOCX con cambios</button>'+
     '</div></div>'+
     '<div class="card-body" style="background:#e8e8e8;padding:28px 20px;">'+
-      '<div class="text-muted small mb-2 text-center"><i class="fa fa-pencil-alt me-1"></i>Haga clic en cualquier parte del documento para editar</div>'+
-      '<div id="'+uid+'_resumen" contenteditable="true" spellcheck="false" '+
-        'style="white-space:pre-wrap;font-family:\'Times New Roman\',serif;font-size:12pt;'+
-        'line-height:1.9;min-height:500px;background:#fff;'+
-        'padding:2.5cm 3cm 3cm 3cm;max-width:21cm;margin:0 auto;'+
-        'box-shadow:0 4px 16px rgba(0,0,0,.18);outline:none;color:#000;'+
-        'border:1px solid #ccc;">'+
+      '<div class="text-muted small mb-2 text-center"><i class="fa fa-pencil-alt me-1"></i>Haga clic en el texto para editar · El logo aparece automáticamente en el DOCX</div>'+
+      '<div style="background:#fff;max-width:21cm;margin:0 auto;box-shadow:0 4px 16px rgba(0,0,0,.18);border:1px solid #ccc;">'+
+        '<div style="text-align:center;padding:1cm 3cm 0.7cm;border-bottom:1px solid #dee2e6;">'+
+          '<img src="logo.jpg" style="height:58px;max-width:240px;object-fit:contain;" alt="CNE" '+
+               'onerror="this.parentElement.innerHTML=\'<span style=\\\'font-weight:bold;font-size:1.1rem\\\'>CNE — Consejo Nacional Electoral</span>\'">'+
+        '</div>'+
+        '<div id="'+uid+'_resumen" contenteditable="true" spellcheck="false" '+
+          'style="white-space:pre-wrap;font-family:Arial,sans-serif;font-size:12pt;'+
+          'line-height:1.9;min-height:500px;'+
+          'padding:0.8cm 3cm 3cm 3cm;'+
+          'outline:none;color:#000;">'+
+        '</div>'+
       '</div>'+
     '</div></div>';
 
@@ -10316,99 +10321,18 @@ function _certVaciarRango(xml, desde, hasta){
 function generarDocxCert(uid){
   var c=CAND_SELEC;
   if(!c){alert('Seleccione un candidato.');return;}
-
-  // Leer el texto exactamente como está en la vista previa (incluye ediciones del usuario)
   var resEl=document.getElementById(uid+'_resumen');
   if(!resEl){alert('No se encontró el panel de certificación.');return;}
   var texto=resEl.innerText||resEl.textContent||'';
   if(!texto.trim()){alert('El texto de certificación está vacío. Presione "Restaurar" primero.');return;}
 
-  function _x(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  // Intentar obtener el logo; continuar sin él si no está disponible
+  fetch('logo.jpg')
+    .then(function(r){return r.ok?r.arrayBuffer():null;})
+    .catch(function(){return null;})
+    .then(function(logoBuffer){_doGenerarDocx(c,texto,logoBuffer,uid);});
 
-  function _buildParas(text){
-    var lines=text.split('\n');
-    var xml='';
-    for(var i=0;i<lines.length;i++){
-      var line=lines[i];
-      var trim=line.trim();
-      if(!trim){
-        xml+='<w:p><w:pPr><w:spacing w:after="0" w:before="0"/></w:pPr></w:p>';
-        continue;
-      }
-      var isBold=/^(LA JEFE|HACE CONSTAR:|CERTIFICAR:)/.test(trim);
-      var isCenter=/^(LA JEFE|HACE CONSTAR:|CERTIFICAR:)/.test(trim);
-      var isMono=/[│|]/.test(line)&&/^[\s\w#|│─\-.:, ]+$/.test(line);
-      var font=isMono?'Courier New':'Times New Roman';
-      xml+='<w:p>'+
-        '<w:pPr>'+
-          '<w:spacing w:after="'+(isMono?'0':'120')+'" w:line="360" w:lineRule="auto"/>'+
-          '<w:jc w:val="'+(isCenter?'center':'both')+'"/>'+
-        '</w:pPr>'+
-        '<w:r>'+
-          '<w:rPr>'+
-            '<w:rFonts w:ascii="'+font+'" w:hAnsi="'+font+'" w:cs="'+font+'"/>'+
-            '<w:sz w:val="24"/><w:szCs w:val="24"/>'+
-            (isBold?'<w:b/>':'')+
-          '</w:rPr>'+
-          '<w:t xml:space="preserve">'+_x(line)+'</w:t>'+
-        '</w:r>'+
-      '</w:p>';
-    }
-    return xml;
-  }
-
-  var docXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'+
-    ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
-    '<w:body>'+_buildParas(texto)+
-    '<w:sectPr>'+
-      '<w:pgSz w:w="12240" w:h="15840"/>'+
-      '<w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1701"'+
-        ' w:header="709" w:footer="709" w:gutter="0"/>'+
-    '</w:sectPr>'+
-    '</w:body></w:document>';
-
-  var contentTypes='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
-    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
-    '<Default Extension="xml" ContentType="application/xml"/>'+
-    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'+
-    '</Types>';
-
-  var pkgRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
-    '<Relationship Id="rId1"'+
-    ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"'+
-    ' Target="word/document.xml"/>'+
-    '</Relationships>';
-
-  var wordRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
-    '</Relationships>';
-
-  var zip=new JSZip();
-  zip.file('[Content_Types].xml',contentTypes);
-  zip.file('_rels/.rels',pkgRels);
-  zip.file('word/document.xml',docXml);
-  zip.file('word/_rels/document.xml.rels',wordRels);
-
-  zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'})
-  .then(function(blob){
-    var safe=(c.partido||'cert').replace(/[^\w\-]/g,'_').substring(0,40);
-    var fname='Certificacion_'+safe+'_'+c.id+'.docx';
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=fname;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function(){URL.revokeObjectURL(a.href);},5000);
-  }).catch(function(e){
-    alert('Error generando DOCX: '+e.message);
-    console.error(e);
-  });
-
-  return; // DOCX generado arriba desde _resumen — código legado ignorado
+  return; // generación async continúa en _doGenerarDocx — código legado ignorado
   var cargo=String(c.cargo||'').toUpperCase();
   var esGobAsamblea=(cargo.indexOf('GOBERNAC')>=0||cargo.indexOf('ASAMBLEA')>=0);
   var isAlcaldia=cargo.indexOf('ALCALD')>=0;
@@ -10702,6 +10626,135 @@ function generarDocxCert(uid){
     a.download=fname;
     a.click();
     URL.revokeObjectURL(a.href);
+  }).catch(function(e){
+    alert('Error generando DOCX: '+e.message);
+    console.error(e);
+  });
+}
+
+function _doGenerarDocx(c,texto,logoBuffer,uid){
+  function _x(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  function _buildParas(text){
+    var lines=text.split('\n'), xml='';
+    for(var i=0;i<lines.length;i++){
+      var line=lines[i], trim=line.trim();
+      if(!trim){xml+='<w:p><w:pPr><w:spacing w:after="0" w:before="0"/></w:pPr></w:p>';continue;}
+      var isBold=/^(LA JEFE|HACE CONSTAR:|CERTIFICAR:)/.test(trim);
+      var isCenter=/^(LA JEFE|HACE CONSTAR:|CERTIFICAR:)/.test(trim);
+      var isMono=/[│|]/.test(line)&&/^[\s\w#|│─\-.:, ]+$/.test(line);
+      var font=isMono?'Courier New':'Arial';
+      xml+='<w:p>'+
+        '<w:pPr>'+
+          '<w:spacing w:after="'+(isMono?'0':'120')+'" w:line="360" w:lineRule="auto"/>'+
+          '<w:jc w:val="'+(isCenter?'center':'both')+'"/>'+
+        '</w:pPr>'+
+        '<w:r>'+
+          '<w:rPr>'+
+            '<w:rFonts w:ascii="'+font+'" w:hAnsi="'+font+'" w:cs="'+font+'"/>'+
+            '<w:sz w:val="24"/><w:szCs w:val="24"/>'+
+            (isBold?'<w:b/>':'')+
+          '</w:rPr>'+
+          '<w:t xml:space="preserve">'+_x(line)+'</w:t>'+
+        '</w:r>'+
+      '</w:p>';
+    }
+    return xml;
+  }
+
+  // Párrafo del logo
+  var logoParaXml='';
+  if(logoBuffer){
+    var lW=1440000, lH=504000; // ~4cm × 1.4cm en EMU
+    logoParaXml=
+      '<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="240"/></w:pPr>'+
+      '<w:r><w:drawing>'+
+        '<wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">'+
+          '<wp:extent cx="'+lW+'" cy="'+lH+'"/>'+
+          '<wp:docPr id="1" name="Logo CNE"/>'+
+          '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'+
+            '<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'+
+              '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'+
+                '<pic:nvPicPr><pic:cNvPr id="0" name="logo.jpg"/><pic:cNvPicPr/></pic:nvPicPr>'+
+                '<pic:blipFill>'+
+                  '<a:blip r:embed="rId2" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>'+
+                  '<a:stretch><a:fillRect/></a:stretch>'+
+                '</pic:blipFill>'+
+                '<pic:spPr>'+
+                  '<a:xfrm><a:off x="0" y="0"/><a:ext cx="'+lW+'" cy="'+lH+'"/></a:xfrm>'+
+                  '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'+
+                '</pic:spPr>'+
+              '</pic:pic>'+
+            '</a:graphicData>'+
+          '</a:graphic>'+
+        '</wp:inline>'+
+      '</w:drawing></w:r></w:p>';
+  }
+
+  var docXml=
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'+
+    ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"'+
+    ' xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"'+
+    ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"'+
+    ' xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'+
+    '<w:body>'+
+      logoParaXml+
+      _buildParas(texto)+
+      '<w:sectPr>'+
+        '<w:pgSz w:w="12240" w:h="15840"/>'+
+        '<w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1701"'+
+          ' w:header="709" w:footer="709" w:gutter="0"/>'+
+      '</w:sectPr>'+
+    '</w:body></w:document>';
+
+  var contentTypes=
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+    '<Default Extension="xml" ContentType="application/xml"/>'+
+    '<Default Extension="jpg" ContentType="image/jpeg"/>'+
+    '<Override PartName="/word/document.xml"'+
+    ' ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'+
+    '</Types>';
+
+  var pkgRels=
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1"'+
+    ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"'+
+    ' Target="word/document.xml"/>'+
+    '</Relationships>';
+
+  var logoRel=logoBuffer
+    ?'<Relationship Id="rId2"'+
+      ' Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"'+
+      ' Target="media/logo.jpg"/>'
+    :'';
+  var wordRels=
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    logoRel+
+    '</Relationships>';
+
+  var zip=new JSZip();
+  if(logoBuffer) zip.file('word/media/logo.jpg',logoBuffer);
+  zip.file('[Content_Types].xml',contentTypes);
+  zip.file('_rels/.rels',pkgRels);
+  zip.file('word/document.xml',docXml);
+  zip.file('word/_rels/document.xml.rels',wordRels);
+
+  zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'})
+  .then(function(blob){
+    var safe=(c.partido||'cert').replace(/[^\w\-]/g,'_').substring(0,40);
+    var fname='Certificacion_'+safe+'_'+c.id+'.docx';
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=fname;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(a.href);},5000);
   }).catch(function(e){
     alert('Error generando DOCX: '+e.message);
     console.error(e);
