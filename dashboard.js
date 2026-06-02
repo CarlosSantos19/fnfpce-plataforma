@@ -9,7 +9,7 @@ const CARDS_CONFIG = {
   asignaciones: { icon: '◎', titulo: 'Asignaciones',      desc: 'Consulta y seguimiento de casos asignados',           path: '/modules/asignaciones/asignaciones.html' },
   actas:        { icon: '◉', titulo: 'Actas',             desc: 'Gestión de actas de entrega, control y seguimiento',  path: '/modules/actas/actas.html' },
   cuentas:      { icon: '◆', titulo: 'Cuentas',           desc: 'Control y revisión de cuentas claras por entidad',    path: '/modules/cuentas/cuentas.html' },
-  revision:     { icon: '◌', titulo: 'Revisión',          desc: 'Auditoría y revisión del estado de expedientes',      path: '/modules/revision/revision.html' },
+  revision:     { icon: '◌', titulo: 'Revisión',          desc: 'Auditoría y revisión del estado de expedientes',      path: 'https://portal-cc-cne.onrender.com' },
   resumen:      { icon: '◑', titulo: 'Resumen',           desc: 'Indicadores generales del reparto ET2023',             path: '/modules/resumen/resumen.html' },
   sorteo:       { icon: '⬡', titulo: 'Sorteo',            desc: 'Distribución y sorteo de cuentas entre contadores',   path: '/modules/sorteo/sorteo.html' },
   carpetas:            { icon: '▣', titulo: 'Carpetas',       desc: 'Expedientes organizados por número de acta',           path: '/modules/carpetas/carpetas.html' },

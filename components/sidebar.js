@@ -9,7 +9,7 @@ const ALL_MODULES = [
   { id: 'asignaciones', label: 'Asignaciones',      icon: '◎', path: '/modules/asignaciones/asignaciones.html', desc: 'Asignación de casos' },
   { id: 'actas',        label: 'Actas',             icon: '◉', path: '/modules/actas/actas.html',               desc: 'Gestión de actas' },
   { id: 'cuentas',      label: 'Cuentas',           icon: '◆', path: '/modules/cuentas/cuentas.html',           desc: 'Control de cuentas' },
-  { id: 'revision',     label: 'Revisión',          icon: '◌', path: '/modules/revision/revision.html',         desc: 'Revisión y auditoría' },
+  { id: 'revision',     label: 'Revisión',          icon: '◌', path: 'https://portal-cc-cne.onrender.com',      desc: 'Revisión y auditoría — Portal Cuentas Claras' },
   { id: 'resumen',      label: 'Resumen',            icon: '◑', path: '/modules/resumen/resumen.html',             desc: 'Indicadores generales' },
   { id: 'sorteo',       label: 'Sorteo',             icon: '⬡', path: '/modules/sorteo/sorteo.html',               desc: 'Sorteo de cuentas' },
   { id: 'carpetas',          label: 'Carpetas',       icon: '▣', path: '/modules/carpetas/carpetas.html',                      desc: 'Carpetas por número de acta' },
