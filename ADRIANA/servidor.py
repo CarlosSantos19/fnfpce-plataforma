@@ -24,10 +24,20 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
 # ── Constantes ────────────────────────────────────────────────────────────────
+# Sistema Territoriales 2023
 CNE_API        = "https://app.cne.gov.co/fondo/public"
 CNE_LOGIN_URL  = "https://app.cne.gov.co/usuarios/public/login"
-CNE_LOGIN_HOME = "https://app.cne.gov.co/usuarios/public/"   # GET aquí para CSRF
+CNE_LOGIN_HOME = "https://app.cne.gov.co/usuarios/public/"
 CNE_AUTOLOGIN  = "https://app.cne.gov.co/usuarios/public/autoLoginRedirect/1"
+
+# Sistema Congreso 2026 (portal separado del CNE)
+CNE_API_2026        = "https://app_cng_2026.cne.gov.co/fondo_cng_2026/public"
+CNE_LOGIN_URL_2026  = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/login"
+CNE_LOGIN_HOME_2026 = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/"
+CNE_AUTOLOGIN_2026  = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/autoLoginRedirect/1"
+
+# URL activa — se actualiza al hacer login exitoso
+_cne_api_activo = CNE_API
 DRIVE     = "P:"
 _cne_session: requests.Session | None = None
 _cne_session_ts: float = 0.0
@@ -631,10 +641,36 @@ class Handler(SimpleHTTPRequestHandler):
             "Accept-Language": "es-CO,es;q=0.9",
         })
 
-        try:
-            # Paso 1: GET home de usuarios para obtener CSRF
-            print(f"[CNE Login] Paso 1: obteniendo CSRF desde {CNE_LOGIN_HOME}...")
-            r1 = sess.get(CNE_LOGIN_HOME, timeout=15)
+        # Perfiles a intentar: 2026 primero, luego 2023 como fallback
+        _perfiles = [
+            {"nombre": "Congreso 2026",
+             "home":      CNE_LOGIN_HOME_2026,
+             "login_url": CNE_LOGIN_URL_2026,
+             "autologin": CNE_AUTOLOGIN_2026,
+             "api":       CNE_API_2026},
+            {"nombre": "Territoriales 2023",
+             "home":      CNE_LOGIN_HOME,
+             "login_url": CNE_LOGIN_URL,
+             "autologin": CNE_AUTOLOGIN,
+             "api":       CNE_API},
+        ]
+
+        ultimo_error = "Error desconocido"
+        for perfil in _perfiles:
+          try:
+            p_nombre   = perfil["nombre"]
+            p_home     = perfil["home"]
+            p_login    = perfil["login_url"]
+            p_autologin= perfil["autologin"]
+            p_api      = perfil["api"]
+
+            print(f"[CNE Login] Intentando {p_nombre} → {p_home}")
+            sess2 = requests.Session()
+            sess2.verify = False
+            sess2.headers.update(sess.headers)
+
+            # Paso 1: CSRF
+            r1 = sess2.get(p_home, timeout=15)
             csrf_m = _re.search(
                 r"name=[\"']_token[\"'].*?value=[\"'](.*?)[\"']", r1.text)
             if not csrf_m:
@@ -642,84 +678,68 @@ class Handler(SimpleHTTPRequestHandler):
                     r"meta[^>]+name=[\"']csrf-token[\"'][^>]+content=[\"'](.*?)[\"']",
                     r1.text)
             if not csrf_m:
-                return self._send_error_json(
-                    "No se pudo obtener el token CSRF del portal CNE. "
-                    "Intente más tarde.", 502)
+                print(f"[CNE Login] {p_nombre}: sin CSRF, probando siguiente...")
+                ultimo_error = f"Sin CSRF en {p_home}"
+                continue
             csrf = csrf_m.group(1)
 
-            # Paso 2: POST login con usuario + contraseña
-            print(f"[CNE Login] Paso 2: enviando credenciales para {usuario}...")
-            r2 = sess.post(
-                CNE_LOGIN_URL,
+            # Paso 2: credenciales
+            r2 = sess2.post(
+                p_login,
                 data={"_token": csrf, "usuario": usuario, "password": password},
-                allow_redirects=True,
-                timeout=20,
+                allow_redirects=True, timeout=20,
             )
-
-            # Detectar credenciales incorrectas
             txt2 = r2.text.lower()
             if any(k in txt2 for k in ("incorrectos", "inválid", "invalid",
                                         "aceptadas", "credentials")):
-                print("[CNE Login] Credenciales inválidas")
+                # Credenciales definitivamente malas — no seguir con otro perfil
                 return self._send_json({
                     "ok": False,
                     "mensaje": "Usuario o contraseña incorrectos. "
                                "Verifique sus credenciales del portal CNE-Cuentas Claras."})
-
             if r2.status_code >= 400:
-                return self._send_error_json(
-                    f"El servidor CNE respondió con error {r2.status_code}. "
-                    "Intente más tarde.", 502)
+                print(f"[CNE Login] {p_nombre}: HTTP {r2.status_code}, probando siguiente...")
+                ultimo_error = f"HTTP {r2.status_code}"
+                continue
+            if "login" in r2.url.lower() and "centralizadoredirect" not in r2.url.lower():
+                print(f"[CNE Login] {p_nombre}: redirect a login ({r2.url}), probando siguiente...")
+                ultimo_error = f"Redirigido a login: {r2.url}"
+                continue
 
-            if "centralizadoredirect" not in r2.url.lower() and \
-               "login" in r2.url.lower():
-                return self._send_json({
-                    "ok": False,
-                    "mensaje": "Credenciales no aceptadas por el portal CNE.",
-                    "detalle": f"URL final: {r2.url}"})
+            print(f"[CNE Login] {p_nombre}: credenciales aceptadas, URL={r2.url}")
+            sess = sess2  # usar esta sesión desde aquí
 
-            print(f"[CNE Login] Login exitoso, URL: {r2.url}")
-
-            # Paso 3: autoLoginRedirect → llevar la sesión al módulo FNFP
-            print("[CNE Login] Paso 3: activando sesión en módulo FNFP...")
+            # Paso 3: autoLoginRedirect
             r4_url = ""
-
-            # Intentar varias variantes del autoLogin (el ID de módulo puede variar)
-            for al_url in [CNE_AUTOLOGIN,
-                           "https://app.cne.gov.co/usuarios/public/autoLoginRedirect/2",
-                           "https://app.cne.gov.co/usuarios/public/autoLoginRedirect"]:
+            for al_url in [p_autologin,
+                           p_autologin.replace("/autoLoginRedirect/1", "/autoLoginRedirect/2"),
+                           p_autologin.replace("/autoLoginRedirect/1", "/autoLoginRedirect")]:
                 try:
                     r3 = sess.get(al_url, allow_redirects=False, timeout=15)
                     loc = r3.headers.get("Location", "")
-                    print(f"[CNE Login] autoLogin {al_url} → Location: {loc or '(sin redirect)'}")
+                    print(f"[CNE Login] autoLogin {al_url} → {loc or '(sin redirect)'}")
                     if loc:
-                        _time.sleep(12)  # CNE necesita ~10-12s para persistir el token
+                        _time.sleep(12)
                         r4 = sess.get(loc, allow_redirects=True, timeout=25)
                         r4_url = r4.url
                     else:
                         r3f = sess.get(al_url, allow_redirects=True, timeout=25)
                         r4_url = r3f.url
-                    print(f"[CNE Login] URL final tras autoLogin: {r4_url}")
-                    if "/fondo/" in r4_url or "fondo" in r4_url:
+                    print(f"[CNE Login] URL final: {r4_url}")
+                    if "fondo" in r4_url:
                         break
                 except Exception as _e:
-                    print(f"[CNE Login] autoLogin {al_url} falló: {_e}")
+                    print(f"[CNE Login] autoLogin {al_url} error: {_e}")
 
-            # Paso 4: verificar acceso al API del fondo
-            print("[CNE Login] Paso 4: verificando acceso al API...")
+            # Paso 4: verificar API
             xsrf_val = requests.utils.unquote(sess.cookies.get("XSRF-TOKEN", ""))
-            api_headers = {
-                "Accept": "application/json",
-                "X-Requested-With": "XMLHttpRequest",
-                "X-XSRF-TOKEN": xsrf_val,
-                "Referer": CNE_API + "/",
-            }
+            api_hdrs = {"Accept": "application/json", "X-Requested-With": "XMLHttpRequest",
+                        "X-XSRF-TOKEN": xsrf_val, "Referer": p_api + "/"}
             r5_status = 0
-            for vurl in [CNE_API + "/departamento",
-                         CNE_API + "/proceso",
-                         CNE_API + "/candidatos?idproceso=7&page=1"]:
+            for vurl in [p_api + "/departamento", p_api + "/proceso",
+                         p_api + "/candidatos?page=1"]:
                 try:
-                    r5 = sess.get(vurl, headers=api_headers, timeout=15)
+                    r5 = sess.get(vurl, headers=api_hdrs, timeout=15)
                     r5_status = r5.status_code
                     print(f"[CNE Login] Verificación {vurl}: {r5_status}")
                     if r5_status == 200:
@@ -727,47 +747,55 @@ class Handler(SimpleHTTPRequestHandler):
                 except Exception:
                     continue
 
+            # Éxito si API responde 200
             if r5_status == 200:
-                print(f"[CNE Login] Sesión verificada para: {usuario}")
+                print(f"[CNE Login] OK {p_nombre} — sesión verificada para {usuario}")
                 _cne_session    = sess
                 _cne_session_ts = _time.time()
                 _cne_usuario    = usuario
+                global _cne_api_activo
+                _cne_api_activo = p_api
                 return self._send_json({
                     "ok": True,
-                    "mensaje": f"Sesión iniciada correctamente para {usuario}"})
+                    "mensaje": f"Sesión iniciada ({p_nombre}) para {usuario}"})
 
-            # Si llegamos al fondo aunque el API no devuelva 200, aceptar
-            if "/fondo/" in r4_url or "fondo" in r4_url:
-                print(f"[CNE Login] En módulo fondo (API {r5_status}), aceptando sesión")
+            # Éxito parcial: llegamos al fondo aunque API no responda 200
+            if "fondo" in r4_url:
+                print(f"[CNE Login] OK {p_nombre} — en fondo (API {r5_status})")
                 _cne_session    = sess
                 _cne_session_ts = _time.time()
                 _cne_usuario    = usuario
+                _cne_api_activo = p_api
                 return self._send_json({
                     "ok": True,
-                    "mensaje": f"Sesión iniciada para {usuario} (modo fondo)"})
+                    "mensaje": f"Sesión iniciada ({p_nombre}) para {usuario}"})
 
-            # Fallback final: credenciales aceptadas por CNE (pasaron etapa 2),
-            # la sesión es válida aunque el autoLogin no haya llegado a /fondo/.
-            print(f"[CNE Login] Credenciales OK — aceptando sesión (API {r5_status}, url={r4_url})")
+            # Fallback: credenciales correctas → aceptar sesión igual
+            print(f"[CNE Login] Fallback {p_nombre} — credenciales OK, API status={r5_status}")
             _cne_session    = sess
             _cne_session_ts = _time.time()
             _cne_usuario    = usuario
+            _cne_api_activo = p_api
             return self._send_json({
                 "ok": True,
-                "mensaje": f"Sesión iniciada para {usuario}"})
+                "mensaje": f"Sesión iniciada ({p_nombre}) para {usuario}"})
 
-        except requests.Timeout:
-            return self._send_error_json(
-                "Tiempo de espera agotado conectando con el servidor CNE. "
-                "Intente más tarde.", 504)
-        except requests.ConnectionError:
-            print("[CNE Login] Error de conexión")
-            return self._send_error_json(
-                "No se pudo conectar con el servidor CNE. "
-                "Verifique su conexión a internet.", 503)
-        except Exception as e:
-            return self._send_error_json(
-                f"Error durante el login: {e}", 500)
+          except requests.Timeout:
+            print(f"[CNE Login] Timeout en {perfil['nombre']}, probando siguiente...")
+            ultimo_error = "Timeout"
+            continue
+          except requests.ConnectionError as _ce:
+            print(f"[CNE Login] Sin conexión a {perfil['nombre']}: {_ce}")
+            ultimo_error = f"Sin conexión: {_ce}"
+            continue
+          except Exception as _ex:
+            print(f"[CNE Login] Error en {perfil['nombre']}: {_ex}")
+            ultimo_error = str(_ex)
+            continue
+
+        # Si llegamos aquí, todos los perfiles fallaron
+        return self._send_error_json(
+            f"No se pudo conectar con ningún sistema CNE. Último error: {ultimo_error}", 503)
 
     # ── /api/cne_buscar_candidatos ────────────────────────────────────────────
 
