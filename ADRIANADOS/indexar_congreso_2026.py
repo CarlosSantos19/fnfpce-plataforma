@@ -35,10 +35,10 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # ── Constantes ────────────────────────────────────────────────────────────────
-CNE_API        = "https://app.cne.gov.co/fondo/public"
-CNE_LOGIN_HOME = "https://app.cne.gov.co/usuarios/public/"
-CNE_LOGIN_URL  = "https://app.cne.gov.co/usuarios/public/login"
-CNE_AUTOLOGIN  = "https://app.cne.gov.co/usuarios/public/autoLoginRedirect/1"
+CNE_API        = "https://app_cng_2026.cne.gov.co/fondo_cng_2026/public"
+CNE_LOGIN_HOME = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/"
+CNE_LOGIN_URL  = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/login"
+CNE_AUTOLOGIN  = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/autoLoginRedirect/1"
 DATA_DIR       = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 # Corp IDs del API CNE — incluye Senado (4) y Cámara (1) ausentes en Territoriales 2023
