@@ -15,7 +15,7 @@ const ALL_MODULES = [
   { id: 'carpetas',          label: 'Carpetas',       icon: '▣', path: '/modules/carpetas/carpetas.html',                      desc: 'Carpetas por número de acta' },
   { id: 'revision-carpetas', label: 'Rev. Carpetas',  icon: '◧', path: '/modules/revision-carpetas/revision-carpetas.html',  desc: 'Revisión de carpetas por acta' },
   { id: 'tablero',           label: 'Tablero',        icon: '⬡', path: '/modules/tablero/tablero.html',                       desc: 'Vista general de indicadores ET2023' },
-  { id: 'analisis',          label: 'Análisis',       icon: '◫', path: '/modules/analisis/analisis.html',                     desc: 'Análisis de cuentas electorales' },
+  { id: 'analisis',          label: 'Análisis',       icon: '◫', path: 'https://proyectoswyad.com/',                          desc: 'Análisis de cuentas electorales' },
   { id: 'consultor',         label: 'Consultas ET2023', icon: '⬟', path: '/modules/consultor/consultor.html',                  desc: 'Consultor de expedientes ET2023' },
   { id: 'chat',              label: 'Chat',           icon: '◈', path: '/modules/chat/chat.html',                              desc: 'Chat institucional' },
   { id: 'descarga-pdf',      label: 'Descarga PDF',   icon: '◧', path: '/modules/descarga-pdf/descarga-pdf.html',              desc: 'Descarga de documentos AUTOCASH' },
