@@ -6,7 +6,95 @@
   <title>Revisión — FNFPCE</title>
   <link rel="stylesheet" href="/core/base.css" />
   <link rel="stylesheet" href="/core/module-template.css" />
-  <link rel="stylesheet" href="revision.css" />
+  <style>
+    .revision-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-top: 8px;
+    }
+
+    .rev-card {
+      background: rgba(4, 20, 40, 0.85);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 12px;
+      padding: 32px 28px;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .rev-card:hover {
+      border-color: rgba(252, 209, 22, 0.6);
+      box-shadow: 0 0 28px rgba(252, 209, 22, 0.12);
+      transform: translateY(-2px);
+    }
+    .rev-card.disabled {
+      opacity: 0.45;
+      cursor: default;
+      pointer-events: none;
+    }
+    .rev-card-scan {
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(252,209,22,0.04), transparent);
+      animation: scan-card 4s linear infinite;
+    }
+    @keyframes scan-card { to { left: 160%; } }
+
+    .rev-card-icon {
+      font-size: 2.8rem;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .rev-card-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .rev-card-desc {
+      font-size: 0.82rem;
+      color: rgba(224, 244, 255, 0.55);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .rev-card-badge {
+      display: inline-block;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .badge-active {
+      background: rgba(0, 230, 118, 0.12);
+      border: 1px solid rgba(0, 230, 118, 0.4);
+      color: #00e676;
+    }
+    .badge-dev {
+      background: rgba(252, 209, 22, 0.08);
+      border: 1px solid rgba(252, 209, 22, 0.3);
+      color: rgba(252, 209, 22, 0.7);
+    }
+    .rev-card-arrow {
+      position: absolute;
+      bottom: 20px;
+      right: 24px;
+      font-size: 1.1rem;
+      color: rgba(0, 212, 255, 0.4);
+      transition: color 0.2s, transform 0.2s;
+    }
+    .rev-card:hover .rev-card-arrow {
+      color: var(--accent);
+      transform: translateX(4px);
+    }
+  </style>
 </head>
 <body>
   <div class="corner corner-tl"></div>
@@ -22,15 +110,45 @@
       <header class="page-header">
         <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; REVISIÓN</div>
         <h1 class="page-title"><span class="title-icon">◌</span> Revisión</h1>
-        <p class="page-desc">Auditoría y revisión del estado de expedientes ET2023</p>
+        <p class="page-desc">Selecciona el proceso electoral a revisar</p>
       </header>
 
-      <div class="content-card">
-        <div class="wip-block">
-          <div class="wip-icon">◌</div>
-          <div class="wip-title">MÓDULO EN DESARROLLO</div>
-          <div class="wip-text">El módulo de Revisión estará disponible próximamente.</div>
+      <div class="revision-grid">
+
+        <!-- Territoriales 2023 -->
+        <div class="rev-card" onclick="abrirPortal('2023')">
+          <div class="rev-card-scan"></div>
+          <span class="rev-card-icon">◉</span>
+          <div class="rev-card-title">Territoriales 2023</div>
+          <div class="rev-card-desc">
+            Revisión de cuentas de campañas electorales — Elecciones Territoriales del 29 de octubre de 2023.
+          </div>
+          <span class="rev-card-badge badge-active">Activo</span>
+          <span class="rev-card-arrow">→</span>
         </div>
+
+        <!-- Consultas 2025 -->
+        <div class="rev-card disabled">
+          <div class="rev-card-scan"></div>
+          <span class="rev-card-icon">◑</span>
+          <div class="rev-card-title">Consultas 2025</div>
+          <div class="rev-card-desc">
+            Revisión de cuentas de consultas internas de partidos y movimientos políticos — 2025.
+          </div>
+          <span class="rev-card-badge badge-dev">En desarrollo</span>
+        </div>
+
+        <!-- Congreso 2026 -->
+        <div class="rev-card disabled">
+          <div class="rev-card-scan"></div>
+          <span class="rev-card-icon">◫</span>
+          <div class="rev-card-title">Congreso 2026</div>
+          <div class="rev-card-desc">
+            Revisión de cuentas de campañas electorales — Elecciones Congreso 2026.
+          </div>
+          <span class="rev-card-badge badge-dev">En desarrollo</span>
+        </div>
+
       </div>
     </main>
   </div>
