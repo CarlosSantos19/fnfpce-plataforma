@@ -94,6 +94,43 @@
       color: var(--accent);
       transform: translateX(4px);
     }
+
+    /* ── Congreso 2026 inline ── */
+    .cng-filtros { display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:flex-end; }
+    .cng-filtros label { font-size:.7rem;color:rgba(224,244,255,.5);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em; }
+    .cng-filtros select, .cng-filtros input { background:rgba(4,20,40,.9);border:1px solid rgba(0,212,255,.25);color:var(--text);border-radius:6px;padding:5px 10px;font-size:.8rem;min-width:150px; }
+    .cng-table { width:100%;border-collapse:collapse;font-size:.78rem; }
+    .cng-table th { background:rgba(0,212,255,.08);color:rgba(224,244,255,.55);font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;padding:7px 10px;text-align:left;border-bottom:1px solid rgba(0,212,255,.15);cursor:pointer;user-select:none; }
+    .cng-table th:hover { color:var(--accent); }
+    .cng-table td { padding:7px 10px;border-bottom:1px solid rgba(0,212,255,.07);color:var(--text);vertical-align:middle; }
+    .cng-table tr:hover td { background:rgba(252,209,22,.03);cursor:pointer; }
+    .monto-pos { color:#4caf50; }
+    .monto-neg { color:#ef5350; }
+    .cng-badge-corp { font-size:.6rem;padding:2px 7px;border-radius:10px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:rgba(0,212,255,.8); }
+    .cng-ani-v   { font-size:.65rem;padding:2px 8px;border-radius:10px;border:1px solid;display:inline-block;font-weight:600; }
+
+    /* Modal */
+    .cng-modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center; }
+    .cng-modal-overlay.open { display:flex; }
+    .cng-modal { background:#060f1e;border:1px solid rgba(0,212,255,.25);border-radius:12px;width:92%;max-width:900px;max-height:88vh;overflow-y:auto;padding:26px;position:relative; }
+    .cng-modal-close { position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(224,244,255,.4);font-size:1.3rem;cursor:pointer; }
+    .cng-modal-close:hover { color:var(--accent); }
+    .cng-modal-title { font-family:'Orbitron',monospace;font-size:.95rem;color:var(--accent);margin-bottom:14px;padding-right:30px; }
+    .cng-tabs { display:flex;gap:3px;border-bottom:1px solid rgba(0,212,255,.15);margin-bottom:14px; }
+    .cng-tab { background:none;border:none;border-bottom:2px solid transparent;color:rgba(224,244,255,.45);font-size:.77rem;padding:6px 13px;cursor:pointer;margin-bottom:-1px; }
+    .cng-tab:hover { color:var(--text); }
+    .cng-tab-active { color:var(--accent)!important;border-bottom-color:var(--accent)!important;font-weight:600; }
+    .cng-detail-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px; }
+    .cng-detail-box { background:rgba(4,20,40,.7);border:1px solid rgba(0,212,255,.12);border-radius:8px;padding:12px; }
+    .cng-detail-box h4 { font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(0,212,255,.6);margin:0 0 9px 0; }
+    .cng-detail-row { display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:4px; }
+    .cng-detail-row span:first-child { color:rgba(224,244,255,.45); }
+    .cng-det-wrap { overflow-x:auto;max-height:340px;overflow-y:auto; }
+    .cng-det-tbl { width:100%;border-collapse:collapse;font-size:.74rem;white-space:nowrap; }
+    .cng-det-tbl th { position:sticky;top:0;background:#060f1e;color:rgba(224,244,255,.5);font-size:.63rem;text-transform:uppercase;letter-spacing:.05em;padding:6px 9px;text-align:left;border-bottom:1px solid rgba(0,212,255,.2); }
+    .cng-det-tbl td { padding:5px 9px;border-bottom:1px solid rgba(0,212,255,.06);color:var(--text);max-width:250px;overflow:hidden;text-overflow:ellipsis; }
+    .cng-det-tbl tr:hover td { background:rgba(252,209,22,.03); }
+    .cng-tab-msg { text-align:center;padding:28px;color:rgba(224,244,255,.3);font-size:.8rem; }
   </style>
 </head>
 <body>
@@ -139,7 +176,7 @@
         </div>
 
         <!-- Congreso 2026 -->
-        <div class="rev-card" onclick="abrirPortal('2026')">
+        <div class="rev-card" onclick="abrirCongreso()">
           <div class="rev-card-scan"></div>
           <span class="rev-card-icon">◫</span>
           <div class="rev-card-title">Congreso 2026</div>
@@ -151,7 +188,118 @@
         </div>
 
       </div>
+
+      <!-- ══ PANEL CONGRESO 2026 ══ -->
+      <div id="seccionCongreso" style="display:none">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <button onclick="cerrarCongreso()" style="background:none;border:1px solid rgba(0,212,255,0.3);color:rgba(224,244,255,0.6);border-radius:6px;padding:5px 14px;cursor:pointer;font-size:0.78rem">← Volver</button>
+          <h2 style="font-family:'Orbitron',monospace;font-size:0.95rem;color:var(--accent);margin:0">Congreso 2026</h2>
+          <span id="cng-stat-total" style="font-size:0.75rem;color:rgba(224,244,255,0.4);margin-left:auto"></span>
+        </div>
+
+        <!-- Filtros -->
+        <div class="cng-filtros">
+          <div><label>Corporación</label><select id="cngSelCorp" onchange="cngOnCorpChange()"><option value="">Todas</option></select></div>
+          <div><label>Circunscripción</label><select id="cngSelCirc" onchange="cngOnCircChange()"><option value="">Todas</option></select></div>
+          <div><label>Partido</label><select id="cngSelPartido" onchange="cngFiltrar()"><option value="">Todos</option></select></div>
+          <div><label>Buscar</label><input id="cngTxtBuscar" type="text" placeholder="Nombre…" oninput="cngFiltrar()"></div>
+          <div><label>ANI</label>
+            <select id="cngSelANI" onchange="cngFiltrar()">
+              <option value="">Todos</option>
+              <option value="Vigente">Vigente</option>
+              <option value="NO ENCONTRADA">No encontrada</option>
+              <option value="ERROR">Error / Sin consulta</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="card" style="margin-bottom:0">
+          <div class="card-body" style="padding:0;overflow-x:auto">
+            <table class="cng-table">
+              <thead><tr>
+                <th onclick="cngSort('nombre')">Candidato ↕</th>
+                <th onclick="cngSort('org')">Partido ↕</th>
+                <th>Corporación</th>
+                <th>Circunscripción</th>
+                <th onclick="cngSort('total_ingresos')">Ingresos ↕</th>
+                <th onclick="cngSort('total_gastos')">Gastos ↕</th>
+                <th>Contador</th>
+                <th>ANI</th>
+              </tr></thead>
+              <tbody id="cngTablaBody"><tr><td colspan="8" style="text-align:center;padding:24px;color:rgba(224,244,255,0.3)">Cargando…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </main>
+  </div>
+
+  <!-- Modal detalle candidato Congreso -->
+  <div class="cng-modal-overlay" id="cngModalOverlay">
+    <div class="cng-modal">
+      <button class="cng-modal-close" onclick="cngCerrarDetalle()">✕</button>
+      <div class="cng-modal-title" id="cngModalTitulo"></div>
+
+      <div class="cng-tabs">
+        <button class="cng-tab cng-tab-active" id="cngTabBtnConsolidado" onclick="cngActivarTab('consolidado')">Consolidado</button>
+        <button class="cng-tab" id="cngTabBtnIngresos" onclick="cngActivarTab('ingresos')">Ingresos</button>
+        <button class="cng-tab" id="cng-tabBtnGastos" onclick="cngActivarTab('gastos')">Gastos</button>
+        <button class="cng-tab" id="cngTabBtnAni" onclick="cngActivarTab('ani')">ANI</button>
+      </div>
+
+      <!-- Consolidado -->
+      <div class="cng-tab-panel" id="cngPanelConsolidado">
+        <div class="cng-detail-grid">
+          <div class="cng-detail-box">
+            <h4>Datos</h4>
+            <div class="cng-detail-row"><span>Partido</span><span id="cngMOrg"></span></div>
+            <div class="cng-detail-row"><span>Corporación</span><span id="cngMCorp"></span></div>
+            <div class="cng-detail-row"><span>Circunscripción</span><span id="cngMCirc"></span></div>
+          </div>
+          <div class="cng-detail-box">
+            <h4>Financiero</h4>
+            <div class="cng-detail-row"><span>Ingresos</span><span class="monto-pos" id="cngMTotIng"></span></div>
+            <div class="cng-detail-row"><span>Registros</span><span id="cngMNumIng"></span></div>
+            <div class="cng-detail-row" style="margin-top:8px"><span>Gastos</span><span class="monto-neg" id="cngMTotGas"></span></div>
+            <div class="cng-detail-row"><span>Registros</span><span id="cngMNumGas"></span></div>
+          </div>
+          <div class="cng-detail-box">
+            <h4>Contador electoral</h4>
+            <div class="cng-detail-row"><span>Nombre</span><span id="cngMContNombre"></span></div>
+            <div class="cng-detail-row"><span>Documento</span><span id="cngMContDoc"></span></div>
+            <div class="cng-detail-row"><span>Tarjeta</span><span id="cngMContTarjeta"></span></div>
+            <div class="cng-detail-row"><span>Email</span><span id="cngMContEmail"></span></div>
+            <div class="cng-detail-row"><span>Teléfono</span><span id="cngMContTel"></span></div>
+          </div>
+          <div class="cng-detail-box">
+            <h4>Gerente de campaña</h4>
+            <div class="cng-detail-row"><span>Nombre</span><span id="cngMGerNombre"></span></div>
+            <div class="cng-detail-row"><span>Documento</span><span id="cngMGerDoc"></span></div>
+            <div class="cng-detail-row"><span>Banco</span><span id="cngMGerBanco"></span></div>
+            <div class="cng-detail-row"><span>Cuenta</span><span id="cngMGerCuenta"></span></div>
+            <div class="cng-detail-row"><span>Email</span><span id="cngMGerEmail"></span></div>
+            <div class="cng-detail-row"><span>Teléfono</span><span id="cngMGerTel"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ingresos -->
+      <div class="cng-tab-panel" id="cngPanelIngresos" style="display:none">
+        <div id="cngIngContent"><p class="cng-tab-msg">Cargando…</p></div>
+      </div>
+
+      <!-- Gastos -->
+      <div class="cng-tab-panel" id="cngPanelGastos" style="display:none">
+        <div id="cngGasContent"><p class="cng-tab-msg">Cargando…</p></div>
+      </div>
+
+      <!-- ANI -->
+      <div class="cng-tab-panel" id="cngPanelAni" style="display:none">
+        <div id="cngAniContent"><p class="cng-tab-msg">Cargando…</p></div>
+      </div>
+    </div>
   </div>
 
   <script src="/core/auth.js"></script>
