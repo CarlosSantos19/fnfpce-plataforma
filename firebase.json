@@ -6,7 +6,28 @@
       "**/.*",
       "**/node_modules/**",
       "**/*.xlsx",
-      "**/*.xls"
+      "**/*.xls",
+      "**/*.py",
+      "**/*.bat",
+      "**/*.exe",
+      "**/__pycache__/**",
+      "**/*.cpython-*.pyc",
+      "**/*.db",
+      "**/*.sqlite",
+      "**/*.csv",
+      "**/*.log",
+      "**/*.zip",
+      "**/*.pdf",
+      "ADRIANADOS/**",
+      "modules/congreso/data/candidatos/**",
+      "ADRIANA/**",
+      "BOOTRESPUESTA/**",
+      "cuentas claras/**",
+      "PT NUEVO/**",
+      "INDEXACION_CNE/**",
+      "dist/**",
+      "standalone/**",
+      "functions/**"
     ],
     "rewrites": [
       {
@@ -21,6 +42,15 @@
           {
             "key": "Cache-Control",
             "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "ADRIANA/data/**/*.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600, stale-while-revalidate=86400"
           }
         ]
       }

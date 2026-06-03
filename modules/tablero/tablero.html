@@ -3,10 +3,213 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tablero — FNFPCE</title>
+  <title>Tablero ET2023 — FNFPCE</title>
   <link rel="stylesheet" href="/core/base.css" />
   <link rel="stylesheet" href="/core/module-template.css" />
   <link rel="stylesheet" href="tablero.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    /* ── KPIs ── */
+    .tb-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .tb-kpi {
+      background: rgba(4,20,40,.85);
+      border: 1px solid rgba(0,212,255,.2);
+      border-radius: 8px;
+      padding: 14px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .tb-kpi::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+    .tb-kpi-lbl { font-size: 10px; letter-spacing: 2px; opacity: .55; font-family: 'Orbitron', sans-serif; }
+    .tb-kpi-val { font-size: 22px; font-weight: 700; font-family: 'Orbitron', sans-serif; color: var(--accent); margin: 4px 0 2px; }
+    .tb-kpi-sub { font-size: 11px; opacity: .5; font-family: 'Rajdhani', sans-serif; }
+    .tb-kpi.ok  { --accent: #00ff88; }
+    .tb-kpi.warn{ --accent: #ffcc00; }
+    .tb-kpi.err { --accent: #ff6080; }
+    .tb-kpi.info{ --accent: #00d4ff; }
+
+    /* ── Tabs ── */
+    .tb-tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      border-bottom: 1px solid rgba(0,212,255,.15);
+      padding-bottom: 4px;
+    }
+    .tb-tab {
+      padding: 7px 16px;
+      background: transparent;
+      border: 1px solid rgba(0,212,255,.2);
+      border-radius: 6px 6px 0 0;
+      color: rgba(0,212,255,.6);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      letter-spacing: .5px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tb-tab:hover  { background: rgba(0,212,255,.07); color: #00d4ff; }
+    .tb-tab.active { background: rgba(0,212,255,.12); color: #00d4ff; border-color: rgba(0,212,255,.5); }
+
+    /* ── Panels ── */
+    .tb-panel { display: none; }
+    .tb-panel.active { display: block; }
+
+    /* ── Mapa ── */
+    .tb-mapa-wrap {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 14px;
+      height: 520px;
+    }
+    #mapa-colombia {
+      border-radius: 8px;
+      border: 1px solid rgba(0,212,255,.2);
+      background: #020b18;
+    }
+    .tb-detalle {
+      background: rgba(4,20,40,.9);
+      border: 1px solid rgba(0,212,255,.2);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .tb-detalle-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      color: #00d4ff;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0,212,255,.2);
+    }
+    .tb-detalle-empty {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      opacity: .4;
+      text-align: center;
+      margin-top: 40px;
+    }
+    .tb-det-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(0,212,255,.08);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+    }
+    .tb-det-lbl { opacity: .6; }
+    .tb-det-val { color: #00d4ff; font-weight: 600; }
+    .tb-det-val.ok   { color: #00ff88; }
+    .tb-det-val.warn { color: #ffcc00; }
+
+    /* Leyenda mapa */
+    .tb-leyenda {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 11px;
+      opacity: .6;
+    }
+    .tb-leyenda-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #081830, #0057ff, #00d4ff);
+    }
+    .tb-toggle-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .tb-toggle {
+      padding: 4px 12px;
+      border: 1px solid rgba(0,212,255,.25);
+      border-radius: 20px;
+      background: transparent;
+      color: rgba(0,212,255,.6);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tb-toggle.active { background: rgba(0,212,255,.15); color: #00d4ff; border-color: rgba(0,212,255,.5); }
+
+    /* ── Iframe panels ── */
+    .tb-iframe-wrap {
+      width: 100%;
+      height: 600px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(0,212,255,.2);
+      background: #020b18;
+    }
+    .tb-iframe-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .tb-iframe-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 600px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      opacity: .4;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ── Server notice ── */
+    .tb-server-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px;
+      background: rgba(0,212,255,.05);
+      border: 1px solid rgba(0,212,255,.15);
+      border-radius: 6px;
+      margin-bottom: 14px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+    }
+    .tb-server-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffcc00; flex-shrink: 0; }
+    .tb-server-dot.ok  { background: #00ff88; }
+    .tb-server-dot.err { background: #ff6080; }
+    .tb-server-txt { flex: 1; opacity: .7; }
+    .tb-server-btn {
+      padding: 3px 12px;
+      border: 1px solid rgba(0,212,255,.3);
+      border-radius: 4px;
+      background: transparent;
+      color: rgba(0,212,255,.7);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .tb-server-btn:hover { background: rgba(0,212,255,.08); }
+
+    @media (max-width: 900px) {
+      .tb-kpis { grid-template-columns: repeat(2, 1fr); }
+      .tb-mapa-wrap { grid-template-columns: 1fr; height: auto; }
+      #mapa-colombia { height: 360px; }
+    }
+  </style>
 </head>
 <body>
   <div class="corner corner-tl"></div>
@@ -21,125 +224,98 @@
     <main class="main-content">
       <header class="page-header">
         <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; TABLERO</div>
-        <h1 class="page-title"><span class="title-icon">⬡</span> Tablero</h1>
-        <p class="page-desc">Herramientas de análisis del proceso ET2023 — Servidor local requerido</p>
+        <h1 class="page-title"><span class="title-icon">⬡</span> Tablero ET2023</h1>
+        <p class="page-desc">Centro de decisiones — Financiación de campañas electorales Colombia 2023</p>
       </header>
 
-      <!-- Aviso servidor local -->
-      <div class="server-notice" id="serverNotice">
-        <span class="notice-icon">⚠</span>
-        <span class="notice-text">
-          Si el servidor está inactivo puede tardar ~30 segundos en despertar (plan gratuito).
-        </span>
-        <button class="notice-btn" onclick="verificarServidor()">Verificar conexión</button>
-        <span class="notice-status" id="noticeStatus"></span>
+      <!-- Estado servidor -->
+      <div class="tb-server-row" id="server-row">
+        <span class="tb-server-dot" id="srv-dot"></span>
+        <span class="tb-server-txt" id="srv-txt">Verificando servidor de datos…</span>
+        <button class="tb-server-btn" onclick="verificarServidor()">↺ Reconectar</button>
       </div>
 
-      <!-- Módulos ADRIANADOS -->
-      <div class="content-card" id="cardAdrianados">
-        <div class="card-header-row">
-          <span class="card-title">◫ Herramientas de Análisis</span>
-          <span class="card-badge">8 módulos</span>
+      <!-- KPIs -->
+      <div class="tb-kpis">
+        <div class="tb-kpi info">
+          <div class="tb-kpi-lbl">REGISTROS ET2023</div>
+          <div class="tb-kpi-val">2.637</div>
+          <div class="tb-kpi-sub">pagos territoriales 2023</div>
         </div>
-        <div class="adriana-grid">
-
-          <div class="adriana-card" data-path="/analisis_cc.html">
-            <div class="adriana-card-scan"></div>
-            <div class="adriana-icon">◆</div>
-            <div class="adriana-body">
-              <div class="adriana-title">Análisis CC</div>
-              <div class="adriana-desc">Análisis financiero Cuentas Claras por municipio</div>
-            </div>
-            <div class="adriana-footer">
-              <span class="adriana-action">Abrir →</span>
-            </div>
-          </div>
-
-          <div class="adriana-card" data-path="/buscar.html">
-            <div class="adriana-card-scan"></div>
-            <div class="adriana-icon">◎</div>
-            <div class="adriana-body">
-              <div class="adriana-title">Búsqueda Global</div>
-              <div class="adriana-desc">Búsqueda global de candidatos por nombre o cédula</div>
-            </div>
-            <div class="adriana-footer">
-              <span class="adriana-action">Abrir →</span>
-            </div>
-          </div>
-
-          <div class="adriana-card" data-path="/detalle_dpto.html">
-            <div class="adriana-card-scan"></div>
-            <div class="adriana-icon">◈</div>
-            <div class="adriana-body">
-              <div class="adriana-title">Detalle Dpto.</div>
-              <div class="adriana-desc">Detalle financiero por departamento y corporación</div>
-            </div>
-            <div class="adriana-footer">
-              <span class="adriana-action">Abrir →</span>
-            </div>
-          </div>
-
-          <div class="adriana-card" data-path="/liquidacion.html">
-            <div class="adriana-card-scan"></div>
-            <div class="adriana-icon">◉</div>
-            <div class="adriana-body">
-              <div class="adriana-title">Liquidación</div>
-              <div class="adriana-desc">Liquidación de financiación por partido político</div>
-            </div>
-            <div class="adriana-footer">
-              <span class="adriana-action">Abrir →</span>
-            </div>
-          </div>
-
-          <div class="adriana-card" data-path="/partido.html">
-            <div class="adriana-card-scan"></div>
-            <div class="adriana-icon">◑</div>
-            <div class="adriana-body">
-              <div class="adriana-title">Por Partido</div>
-              <div class="adriana-desc">Análisis financiero consolidado por partido político</div>
-            </div>
-            <div class="adriana-footer">
-              <span class="adriana-action">Abrir →</span>
-            </div>
-          </div>
-
-          <div class="adriana-card" data-path="/pagos_partido.html">
-            <div class="adriana-card-scan"></div>
-            <div class="adriana-icon">💰</div>
-            <div class="adriana-body">
-              <div class="adriana-title">Pagos por Partido</div>
-              <div class="adriana-desc">Valor reconocido, auditoría y neto girado por partido — ET2023</div>
-            </div>
-            <div class="adriana-footer">
-              <span class="adriana-action">Abrir →</span>
-            </div>
-          </div>
-
-          <div class="adriana-card" data-path="/presupuesto.html">
-            <div class="adriana-card-scan"></div>
-            <div class="adriana-icon">📊</div>
-            <div class="adriana-body">
-              <div class="adriana-title">Presupuesto ET2023</div>
-              <div class="adriana-desc">Seguimiento de pagos por corporación y departamento — reconocido, pagado, pendiente</div>
-            </div>
-            <div class="adriana-footer">
-              <span class="adriana-action">Abrir →</span>
-            </div>
-          </div>
-
-          <div class="adriana-card" data-path="/explorador.html">
-            <div class="adriana-card-scan"></div>
-            <div class="adriana-icon">🔍</div>
-            <div class="adriana-body">
-              <div class="adriana-title">Explorador ET2023</div>
-              <div class="adriana-desc">Drill-down Corp → Depto → Municipio → Partido con CC y estado de pago</div>
-            </div>
-            <div class="adriana-footer">
-              <span class="adriana-action">Abrir →</span>
-            </div>
-          </div>
-
+        <div class="tb-kpi info">
+          <div class="tb-kpi-lbl">VALOR RECONOCIDO</div>
+          <div class="tb-kpi-val" id="kpi-rec">$148.1B</div>
+          <div class="tb-kpi-sub">todos los conceptos ET2023</div>
         </div>
+        <div class="tb-kpi ok">
+          <div class="tb-kpi-lbl">VALOR PAGADO</div>
+          <div class="tb-kpi-val" id="kpi-pag">$77.4B</div>
+          <div class="tb-kpi-sub">desembolsado a partidos</div>
+        </div>
+        <div class="tb-kpi warn">
+          <div class="tb-kpi-lbl">PENDIENTE PAGO</div>
+          <div class="tb-kpi-val" id="kpi-pen">$70.7B</div>
+          <div class="tb-kpi-sub">por desembolsar</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tb-tabs">
+        <button class="tb-tab active" onclick="cambiarTab('mapa', this)">🗺️ Mapa</button>
+        <button class="tb-tab" onclick="cambiarTab('busqueda', this)">🔍 Búsqueda</button>
+        <button class="tb-tab" onclick="cambiarTab('analisis', this)">◆ Análisis CC</button>
+        <button class="tb-tab" onclick="cambiarTab('partido', this)">◑ Por Partido</button>
+        <button class="tb-tab" onclick="cambiarTab('pagos', this)">💰 Pagos</button>
+        <button class="tb-tab" onclick="cambiarTab('presupuesto', this)">📊 Presupuesto</button>
+        <button class="tb-tab" onclick="cambiarTab('liquidacion', this)">⚖️ Liquidación</button>
+        <button class="tb-tab" onclick="cambiarTab('explorador', this)">🔭 Explorador</button>
+      </div>
+
+      <!-- Panel Mapa -->
+      <div class="tb-panel active" id="panel-mapa">
+        <div class="tb-toggle-row">
+          <button class="tb-toggle active" id="tog-rec" onclick="cambiarMetrica('reconocido', this)">Reconocido</button>
+          <button class="tb-toggle" id="tog-neto" onclick="cambiarMetrica('neto', this)">Valor Neto</button>
+          <button class="tb-toggle" id="tog-n" onclick="cambiarMetrica('n', this)">Nº Registros</button>
+        </div>
+        <div class="tb-mapa-wrap">
+          <div id="mapa-colombia"></div>
+          <div class="tb-detalle" id="detalle-panel">
+            <div class="tb-detalle-title">// DETALLE DEPARTAMENTO</div>
+            <div class="tb-detalle-empty">
+              Haz clic sobre un departamento<br>para ver su detalle
+            </div>
+          </div>
+        </div>
+        <div class="tb-leyenda">
+          <span>Menor</span>
+          <div class="tb-leyenda-bar"></div>
+          <span>Mayor</span>
+          <span style="margin-left:12px;opacity:.4;">ET2023 — valor reconocido por departamento</span>
+        </div>
+      </div>
+
+      <!-- Panels iframe -->
+      <div class="tb-panel" id="panel-busqueda">
+        <div class="tb-iframe-wrap"><iframe id="frame-busqueda" src="about:blank" title="Búsqueda"></iframe></div>
+      </div>
+      <div class="tb-panel" id="panel-analisis">
+        <div class="tb-iframe-wrap"><iframe id="frame-analisis" src="about:blank" title="Análisis CC"></iframe></div>
+      </div>
+      <div class="tb-panel" id="panel-partido">
+        <div class="tb-iframe-wrap"><iframe id="frame-partido" src="about:blank" title="Por Partido"></iframe></div>
+      </div>
+      <div class="tb-panel" id="panel-pagos">
+        <div class="tb-iframe-wrap"><iframe id="frame-pagos" src="about:blank" title="Pagos"></iframe></div>
+      </div>
+      <div class="tb-panel" id="panel-presupuesto">
+        <div class="tb-iframe-wrap"><iframe id="frame-presupuesto" src="about:blank" title="Presupuesto"></iframe></div>
+      </div>
+      <div class="tb-panel" id="panel-liquidacion">
+        <div class="tb-iframe-wrap"><iframe id="frame-liquidacion" src="about:blank" title="Liquidación"></iframe></div>
+      </div>
+      <div class="tb-panel" id="panel-explorador">
+        <div class="tb-iframe-wrap"><iframe id="frame-explorador" src="about:blank" title="Explorador"></iframe></div>
       </div>
 
     </main>
@@ -147,39 +323,7 @@
 
   <script src="/core/auth.js"></script>
   <script src="/components/sidebar.js"></script>
-  <script>
-    Auth.requireRole(['administrador', 'administrativo', 'contador']);
-    renderSidebar('tablero');
-
-    // ── URL del servidor ADRIANADOS ────────────────────────────────────────────
-    // Cambie esta URL cuando el servidor esté desplegado en Render:
-    const SERVIDOR = 'https://tablero-rsrw.onrender.com';
-    // ──────────────────────────────────────────────────────────────────────────
-
-    // Inyectar URL en cada tarjeta
-    document.querySelectorAll('.adriana-card[data-path]').forEach(card => {
-      card.onclick = () => window.open(SERVIDOR + card.dataset.path, '_blank');
-    });
-
-    async function verificarServidor() {
-      const status = document.getElementById('noticeStatus');
-      const notice = document.getElementById('serverNotice');
-      status.textContent = 'Verificando…';
-      status.style.color = 'rgba(252,209,22,0.6)';
-      try {
-        const r = await fetch(SERVIDOR + '/api/cc_stats', { signal: AbortSignal.timeout(5000) });
-        if (r.ok) {
-          status.textContent = '✓ Servidor activo';
-          status.style.color = '#00ff88';
-          notice.classList.add('notice--ok');
-        } else { throw new Error(); }
-      } catch {
-        status.textContent = '✗ No responde — verifique que el servidor esté activo';
-        status.style.color = '#ff6080';
-      }
-    }
-
-    verificarServidor();
-  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="tablero.js"></script>
 </body>
 </html>

@@ -1,0 +1,353 @@
+/* tablero.css — Estilos del módulo Tablero */
+
+/* ── Aviso servidor local ──────────────────────────────── */
+.server-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: rgba(0, 56, 147, 0.18);
+  border: 1px solid rgba(252, 209, 22, 0.25);
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin-bottom: 24px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .88rem;
+  color: rgba(224, 244, 255, 0.7);
+}
+
+.server-notice.notice--ok {
+  background: rgba(0, 80, 20, 0.2);
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.notice-icon {
+  font-size: 1.1rem;
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+
+.notice-text code {
+  font-family: 'Orbitron', monospace;
+  font-size: .72rem;
+  color: var(--cyan);
+  background: rgba(252, 209, 22, 0.08);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.notice-btn {
+  margin-left: auto;
+  padding: 6px 16px;
+  background: transparent;
+  border: 1px solid rgba(252, 209, 22, 0.35);
+  border-radius: 4px;
+  color: var(--cyan);
+  font-family: 'Orbitron', monospace;
+  font-size: .65rem;
+  letter-spacing: .08em;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  white-space: nowrap;
+}
+
+.notice-btn:hover {
+  background: rgba(252, 209, 22, 0.08);
+  border-color: var(--cyan);
+}
+
+.notice-status {
+  font-family: 'Orbitron', monospace;
+  font-size: .7rem;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+
+
+/* ── KPI Grid ─────────────────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  position: relative;
+  background: rgba(4, 20, 40, 0.85);
+  border: 1px solid rgba(252, 209, 22, 0.25);
+  border-radius: 10px;
+  padding: 24px 20px 20px;
+  text-align: center;
+  overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.kpi-card:hover {
+  border-color: rgba(252, 209, 22, 0.55);
+  box-shadow: 0 0 20px rgba(252, 209, 22, 0.08);
+}
+
+.kpi-card--accent {
+  border-color: rgba(0, 87, 255, 0.45);
+  background: rgba(0, 30, 70, 0.7);
+}
+
+.kpi-card--accent:hover {
+  border-color: rgba(0, 87, 255, 0.7);
+  box-shadow: 0 0 20px rgba(0, 87, 255, 0.1);
+}
+
+.kpi-scan {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #FCD116, transparent);
+  animation: scanMove 3s linear infinite;
+}
+
+.kpi-card--accent .kpi-scan {
+  background: linear-gradient(90deg, transparent, #003893, transparent);
+}
+
+@keyframes scanMove {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.kpi-icon {
+  font-size: 1.6rem;
+  color: rgba(252, 209, 22, 0.5);
+  margin-bottom: 8px;
+}
+
+.kpi-card--accent .kpi-icon {
+  color: rgba(0, 87, 255, 0.6);
+}
+
+.kpi-valor {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #FCD116;
+  letter-spacing: .04em;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.kpi-card--accent .kpi-valor {
+  color: #FCD116;
+}
+
+.kpi-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .78rem;
+  font-weight: 600;
+  color: rgba(224, 244, 255, 0.45);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+/* ── Barra de progreso ───────────────────────────────────── */
+.progress-track {
+  height: 10px;
+  background: rgba(252, 209, 22, 0.08);
+  border: 1px solid rgba(252, 209, 22, 0.18);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 14px 0 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #003893, #FCD116);
+  border-radius: 6px;
+  transition: width .8s ease;
+  box-shadow: 0 0 10px rgba(252, 209, 22, 0.4);
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .78rem;
+  color: rgba(224, 244, 255, 0.4);
+  letter-spacing: .05em;
+}
+
+/* ── Tabla contadores ────────────────────────────────────── */
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.tbl-data {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .88rem;
+}
+
+.tbl-data thead tr {
+  background: rgba(252, 209, 22, 0.06);
+  border-bottom: 1px solid rgba(252, 209, 22, 0.2);
+}
+
+.tbl-data th {
+  padding: 9px 14px;
+  text-align: left;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: rgba(252, 209, 22, 0.6);
+  text-transform: uppercase;
+}
+
+.tbl-data td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: #e0f4ff;
+}
+
+.tbl-data tbody tr:hover td {
+  background: rgba(252, 209, 22, 0.04);
+}
+
+.tbl-loading {
+  text-align: center;
+  color: rgba(224, 244, 255, 0.3);
+  padding: 24px !important;
+  font-style: italic;
+}
+
+/* Mini barra de avance en tabla */
+.mini-bar-track {
+  height: 5px;
+  background: rgba(252, 209, 22, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.mini-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #003893, #FCD116);
+  border-radius: 3px;
+}
+
+/* ── Card header row (título + badge) ────────────────────── */
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-family: 'Orbitron', monospace;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.card-badge {
+  font-family: 'Orbitron', monospace;
+  font-size: .68rem;
+  color: rgba(252, 209, 22, 0.45);
+  letter-spacing: .08em;
+  border: 1px solid rgba(252, 209, 22, 0.2);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* ── Grid de módulos ADRIANADOS ──────────────────────────── */
+#cardAdrianados {
+  margin-top: 24px;
+}
+
+.adriana-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.adriana-card {
+  position: relative;
+  background: rgba(4, 20, 40, 0.7);
+  border: 1px solid rgba(252, 209, 22, 0.2);
+  border-radius: 8px;
+  padding: 20px 18px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+
+.adriana-card:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 20px rgba(252, 209, 22, 0.1), 0 6px 24px rgba(0, 0, 0, 0.4);
+  transform: translateY(-3px);
+}
+
+.adriana-card-scan {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+  animation: scanMove 3s linear infinite;
+}
+
+.adriana-card:hover .adriana-card-scan {
+  opacity: 1;
+}
+
+.adriana-icon {
+  font-size: 1.5rem;
+  color: var(--cyan);
+  opacity: .7;
+  line-height: 1;
+}
+
+.adriana-body {
+  flex: 1;
+}
+
+.adriana-title {
+  font-family: 'Orbitron', monospace;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: .05em;
+  margin-bottom: 5px;
+}
+
+.adriana-desc {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: .82rem;
+  color: rgba(224, 244, 255, 0.45);
+  line-height: 1.4;
+}
+
+.adriana-footer {
+  border-top: 1px solid rgba(252, 209, 22, 0.1);
+  padding-top: 8px;
+}
+
+.adriana-action {
+  font-family: 'Orbitron', monospace;
+  font-size: .65rem;
+  letter-spacing: .1em;
+  color: rgba(252, 209, 22, 0.4);
+  transition: color .2s;
+}
+
+.adriana-card:hover .adriana-action {
+  color: var(--cyan);
+}

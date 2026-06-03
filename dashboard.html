@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plataforma FNFPCE</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#FCD116" />
   <link rel="stylesheet" href="/core/base.css" />
   <link rel="stylesheet" href="dashboard.css" />
 </head>
@@ -57,5 +59,10 @@
   <script src="/core/auth.js"></script>
   <script src="/components/sidebar.js"></script>
   <script src="dashboard.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>

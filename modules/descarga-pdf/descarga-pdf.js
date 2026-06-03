@@ -249,19 +249,36 @@ async function guardarArchivosLocales(jobId) {
     return;
   }
 
-  // Obtener lista de archivos del servidor
+  // Intentar obtener lista de archivos; si falla, ofrecer ZIP directo
   let archivos = [];
+  let usarZip  = false;
   try {
     const r = await fetch(`${SERVIDOR}/api/lista_archivos/${jobId}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const ct = r.headers.get('content-type') || '';
+    if (!ct.includes('json')) throw new Error('Respuesta no es JSON');
     const d = await r.json();
     archivos = d.archivos || [];
   } catch (e) {
-    consolaLog(`[ERROR] No se pudo obtener lista de archivos: ${e.message}`);
-    return;
+    usarZip = true;
   }
 
-  if (!archivos.length) {
-    divRes.innerHTML = '<p class="dp-help-text">No se encontraron archivos para guardar. Verifique los filtros.</p>';
+  // Fallback: botón de descarga ZIP directa
+  if (usarZip || !archivos.length) {
+    const zipUrl = `${SERVIDOR}/api/descargar_zip/${jobId}`;
+    divRes.innerHTML = `
+      <p class="dp-help-text" style="color:#00ff88;margin-bottom:12px;">
+        ✔ Proceso completado. Haz clic para descargar el ZIP con todos los archivos.
+      </p>
+      <a href="${zipUrl}" download
+         style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;
+                background:rgba(0,212,255,.15);border:1px solid #00d4ff;border-radius:6px;
+                color:#00d4ff;font-family:Orbitron,sans-serif;font-size:13px;
+                text-decoration:none;cursor:pointer;"
+         onclick="consolaLog('[LOCAL] Descargando ZIP…')">
+        ⬇ Descargar ZIP
+      </a>`;
+    consolaLog(`[LOCAL] Descarga ZIP disponible: ${zipUrl}`);
     return;
   }
 
@@ -273,24 +290,18 @@ async function guardarArchivosLocales(jobId) {
 
   for (const relPath of archivos) {
     try {
-      // Crear subcarpetas si el path tiene directorios
       const partes    = relPath.split('/');
       const nombre    = partes.pop();
       let   dirHandle = carpetaHandle;
       for (const parte of partes) {
         dirHandle = await dirHandle.getDirectoryHandle(parte, { create: true });
       }
-
-      // Descargar el archivo del servidor Render
       const res  = await fetch(`${SERVIDOR}/api/archivo/${jobId}/${relPath}`);
       const blob = await res.blob();
-
-      // Escribir al disco
-      const fh  = await dirHandle.getFileHandle(nombre, { create: true });
+      const fh   = await dirHandle.getFileHandle(nombre, { create: true });
       const writable = await fh.createWritable();
       await writable.write(blob);
       await writable.close();
-
       guardados++;
       consolaLog(`[LOCAL] ✔ ${nombre}`);
     } catch (e) {
@@ -299,7 +310,6 @@ async function guardarArchivosLocales(jobId) {
     }
   }
 
-  // Mostrar resumen
   const listaHTML = archivos.map(p => {
     const nombre = p.split('/').pop();
     const ok     = !errores.includes(p);

@@ -7,12 +7,12 @@
 }
 
 :root {
-  --cyan: #00d4ff;
-  --blue: #0057ff;
-  --dark: #020b18;
-  --panel: rgba(4, 20, 40, 0.85);
-  --border: rgba(0, 212, 255, 0.25);
-  --glow: rgba(0, 212, 255, 0.6);
+  --cyan:   #FCD116;              /* CNE amarillo */
+  --blue:   #003893;              /* CNE azul */
+  --dark:   #04101e;
+  --panel:  rgba(3, 12, 35, 0.92);
+  --border: rgba(252, 209, 22, 0.22);
+  --glow:   rgba(252, 209, 22, 0.45);
 }
 
 body {
@@ -32,8 +32,8 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(0, 56, 147, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 56, 147, 0.07) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
 }
@@ -43,7 +43,7 @@ body::after {
   content: '';
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0, 87, 255, 0.12) 0%, transparent 70%);
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0, 56, 147, 0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -92,7 +92,7 @@ body::after {
   transform: translateX(-50%);
   font-family: 'Orbitron', monospace;
   font-size: 10px;
-  color: rgba(0, 212, 255, 0.5);
+  color: rgba(252, 209, 22, 0.5);
   letter-spacing: 3px;
   text-transform: uppercase;
 }
@@ -128,9 +128,9 @@ body::after {
   border-radius: 4px;
   backdrop-filter: blur(20px);
   box-shadow:
-    0 0 0 1px rgba(0, 212, 255, 0.05),
+    0 0 0 1px rgba(252, 209, 22, 0.05),
     0 30px 80px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(0, 212, 255, 0.1);
+    inset 0 1px 0 rgba(252, 209, 22, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -178,8 +178,8 @@ body::after {
 .logo-inner {
   position: absolute;
   inset: 10px;
-  background: rgba(0, 212, 255, 0.08);
-  border: 1px solid rgba(0, 212, 255, 0.4);
+  background: rgba(252, 209, 22, 0.08);
+  border: 1px solid rgba(252, 209, 22, 0.4);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -202,12 +202,12 @@ body::after {
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 4px;
-  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+  text-shadow: 0 0 20px rgba(252, 209, 22, 0.5);
   text-transform: uppercase;
 }
 
 .login-header p {
-  color: rgba(0, 212, 255, 0.5);
+  color: rgba(252, 209, 22, 0.5);
   font-size: 11px;
   margin-top: 8px;
   letter-spacing: 1px;
@@ -222,7 +222,7 @@ body::after {
 .login-body h2 {
   text-align: center;
   font-family: 'Orbitron', monospace;
-  color: rgba(0, 212, 255, 0.7);
+  color: rgba(252, 209, 22, 0.7);
   font-size: 11px;
   font-weight: 400;
   letter-spacing: 4px;
@@ -240,7 +240,7 @@ body::after {
   font-family: 'Orbitron', monospace;
   font-size: 10px;
   font-weight: 600;
-  color: rgba(0, 212, 255, 0.6);
+  color: rgba(252, 209, 22, 0.6);
   margin-bottom: 8px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -251,7 +251,7 @@ body::after {
   width: 100%;
   padding: 13px 16px;
   background: rgba(0, 20, 40, 0.8);
-  border: 1px solid rgba(0, 212, 255, 0.2);
+  border: 1px solid rgba(252, 209, 22, 0.2);
   border-radius: 3px;
   font-family: 'Rajdhani', sans-serif;
   font-size: 15px;
@@ -270,7 +270,7 @@ body::after {
 
 .form-group select {
   cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%2300d4ff' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23FCD116' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 36px;
@@ -279,11 +279,11 @@ body::after {
 .form-group select:focus,
 .form-group input:focus {
   border-color: var(--cyan);
-  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1), 0 0 16px rgba(0, 212, 255, 0.15);
+  box-shadow: 0 0 0 2px rgba(252, 209, 22, 0.1), 0 0 16px rgba(252, 209, 22, 0.15);
 }
 
 .form-group input::placeholder {
-  color: rgba(0, 212, 255, 0.25);
+  color: rgba(252, 209, 22, 0.25);
   font-size: 13px;
 }
 
@@ -319,7 +319,7 @@ body::after {
   background: none;
   border: none;
   cursor: pointer;
-  color: rgba(0, 212, 255, 0.4);
+  color: rgba(252, 209, 22, 0.4);
   font-size: 16px;
   padding: 4px;
   line-height: 1;
@@ -366,7 +366,7 @@ body::after {
 
 .btn-login:hover {
   color: var(--dark);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+  box-shadow: 0 0 20px rgba(252, 209, 22, 0.4);
 }
 
 .btn-login span {
@@ -409,7 +409,7 @@ body::after {
   padding: 14px 40px 18px;
   font-family: 'Orbitron', monospace;
   font-size: 9px;
-  color: rgba(0, 212, 255, 0.25);
+  color: rgba(252, 209, 22, 0.25);
   border-top: 1px solid var(--border);
   letter-spacing: 2px;
 }
@@ -417,4 +417,4 @@ body::after {
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #041428; }
-::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(252, 209, 22, 0.3); border-radius: 2px; }

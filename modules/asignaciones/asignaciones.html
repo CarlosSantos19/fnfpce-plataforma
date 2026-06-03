@@ -25,6 +25,40 @@
         <p class="page-desc">Consulta y selección prioritaria de candidatos pendientes</p>
       </header>
 
+      <!-- ══ PANEL DE SEGUIMIENTO POR CONTADOR ══════════════════════════════ -->
+      <div class="content-card seg-panel">
+        <div class="seg-panel-header" onclick="toggleSegPanel()">
+          <div class="card-section-title">// SEGUIMIENTO DE PROCESO POR CONTADOR</div>
+          <button class="seg-toggle-btn" id="seg-toggle-lbl">▼ Ver</button>
+        </div>
+        <div class="seg-body" id="seg-body">
+          <div class="seg-actions">
+            <button class="btn-seg-cargar" onclick="cargarSeguimiento()">↺ Cargar / Actualizar</button>
+            <span class="seg-loading" id="seg-loading"></span>
+          </div>
+          <div class="seg-wrap">
+            <table class="seg-table">
+              <thead>
+                <tr>
+                  <th class="th-cnt">CONTADOR</th>
+                  <th class="th-asig">ASIGNADO</th>
+                  <th class="th-rev">EN REVISIÓN</th>
+                  <th class="th-obs">CON OBSERV.</th>
+                  <th class="th-sub">SUBSANADO</th>
+                  <th class="th-apr">APROBADO</th>
+                  <th class="th-cer">CERRADO</th>
+                  <th class="th-tot">TOTAL</th>
+                </tr>
+              </thead>
+              <tbody id="seg-tbody">
+                <tr><td colspan="8" style="color:rgba(224,244,255,.25);padding:20px 12px;font-size:12px;">Haz clic en "Cargar / Actualizar" para ver el seguimiento</td></tr>
+              </tbody>
+              <tfoot id="seg-tfoot"></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- ══ PANEL DE SELECCIÓN PRIORITARIA ══════════════════════════════════ -->
       <div class="content-card prioridad-card">
         <div class="card-section-title">// SELECCIÓN PRIORITARIA</div>

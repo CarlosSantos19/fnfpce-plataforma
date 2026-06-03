@@ -49,6 +49,34 @@
         </div>
       </div>
 
+      <!-- Tarjetas seguimiento de proceso -->
+      <div class="seg-cards" id="seg-cards" style="display:none">
+        <div class="seg-card seg-card--asignado">
+          <div class="seg-val" id="sg-asignado">—</div>
+          <div class="seg-lbl">ASIGNADO</div>
+        </div>
+        <div class="seg-card seg-card--revision">
+          <div class="seg-val" id="sg-revision">—</div>
+          <div class="seg-lbl">EN REVISIÓN</div>
+        </div>
+        <div class="seg-card seg-card--observ">
+          <div class="seg-val" id="sg-observ">—</div>
+          <div class="seg-lbl">CON OBSERV.</div>
+        </div>
+        <div class="seg-card seg-card--subsanado">
+          <div class="seg-val" id="sg-subsanado">—</div>
+          <div class="seg-lbl">SUBSANADO</div>
+        </div>
+        <div class="seg-card seg-card--aprobado">
+          <div class="seg-val" id="sg-aprobado">—</div>
+          <div class="seg-lbl">APROBADO</div>
+        </div>
+        <div class="seg-card seg-card--cerrado">
+          <div class="seg-val" id="sg-cerrado">—</div>
+          <div class="seg-lbl">CERRADO</div>
+        </div>
+      </div>
+
       <!-- Tabla de expedientes -->
       <div class="content-card">
         <div class="filtros-row">
@@ -76,6 +104,15 @@
               <option value="NTD">NTD</option>
               <option value="INVESTIGACION">Investigación</option>
               <option value="DEVUELTA CONTADOR">Devuelta Contador</option>
+            </select>
+            <select id="filtro-seguimiento" class="form-input form-input--sm">
+              <option value="">Todo seguimiento</option>
+              <option value="ASIGNADO">Asignado</option>
+              <option value="EN_REVISION">En Revisión</option>
+              <option value="CON_OBSERVACIONES">Con Observaciones</option>
+              <option value="SUBSANADO">Subsanado</option>
+              <option value="APROBADO">Aprobado</option>
+              <option value="CERRADO">Cerrado</option>
             </select>
           </div>
         </div>
@@ -106,6 +143,8 @@
                 <th>AGRUPACIÓN POLÍTICA</th>
                 <th>FECHA ACTA</th>
                 <th>ESTADO</th>
+                <th>SEGUIMIENTO</th>
+                <th>OBSERV.</th>
                 <th>1° N° OFICIO</th>
                 <th>1° FECHA</th>
                 <th>1° RESPUESTA</th>
@@ -136,6 +175,36 @@
       </div>
 
     </main>
+  </div>
+
+  <!-- ══ MODAL OBSERVACIONES ══════════════════════════════════════════════ -->
+  <div id="obs-overlay" class="obs-overlay" style="display:none">
+    <div class="obs-box">
+      <div class="obs-header">
+        <div>
+          <div class="obs-titulo">◉ OBSERVACIONES</div>
+          <div class="obs-subtitulo" id="obs-subtitulo">—</div>
+        </div>
+        <button class="obs-close" onclick="cerrarObservaciones()">✕</button>
+      </div>
+      <div class="obs-body">
+        <div class="obs-lista" id="obs-lista"></div>
+        <div class="obs-form">
+          <div class="obs-form-title">// NUEVA OBSERVACIÓN</div>
+          <textarea id="obs-nueva-texto" class="obs-textarea" placeholder="Describe la observación encontrada en este expediente…"></textarea>
+          <div class="obs-form-row">
+            <select id="obs-nueva-tipo" class="obs-tipo-sel">
+              <option value="CONTABLE">Contable</option>
+              <option value="DOCUMENTAL">Documental</option>
+              <option value="JURIDICA">Jurídica</option>
+              <option value="TECNICA">Técnica</option>
+              <option value="OTRA">Otra</option>
+            </select>
+            <button class="obs-guardar-btn" onclick="guardarObservacion()">◉ Guardar observación</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="/core/auth.js"></script>

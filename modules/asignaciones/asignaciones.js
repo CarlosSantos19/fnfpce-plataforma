@@ -358,6 +358,87 @@ filtroCorp.addEventListener('change', aplicarFiltros);
 filtroDept.addEventListener('change', aplicarFiltros);
 filtroColor.addEventListener('change', aplicarFiltros);
 
+// ══════════════════════════════════════════════════════════════════════════════
+// PANEL SEGUIMIENTO POR CONTADOR
+// ══════════════════════════════════════════════════════════════════════════════
+const SEG_ESTADOS = ['ASIGNADO', 'EN_REVISION', 'CON_OBSERVACIONES', 'SUBSANADO', 'APROBADO', 'CERRADO'];
+
+window.toggleSegPanel = function() {
+  const body = document.getElementById('seg-body');
+  const lbl  = document.getElementById('seg-toggle-lbl');
+  const open = body.classList.toggle('open');
+  lbl.textContent = open ? '▲ Ocultar' : '▼ Ver';
+};
+
+window.cargarSeguimiento = async function() {
+  const tbody  = document.getElementById('seg-tbody');
+  const tfoot  = document.getElementById('seg-tfoot');
+  const loading = document.getElementById('seg-loading');
+  loading.textContent = 'Cargando…';
+  tbody.innerHTML = '';
+  tfoot.innerHTML = '';
+
+  try {
+    const snap = await getDocs(collection(db, 'reparto'));
+    // Agrupar por contador
+    const porContador = {};
+    snap.forEach(d => {
+      const data     = d.data();
+      const cnt      = data.nombreContador || '(sin asignar)';
+      const estado   = data.estadoProceso  || 'ASIGNADO';
+      if (!porContador[cnt]) {
+        porContador[cnt] = { ASIGNADO: 0, EN_REVISION: 0, CON_OBSERVACIONES: 0, SUBSANADO: 0, APROBADO: 0, CERRADO: 0 };
+      }
+      if (porContador[cnt][estado] !== undefined) porContador[cnt][estado]++;
+      else porContador[cnt].ASIGNADO++;
+    });
+
+    const contadores = Object.keys(porContador).sort();
+    if (!contadores.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="color:rgba(224,244,255,.25);padding:16px 12px;font-size:12px;">Sin expedientes en reparto.</td></tr>';
+      loading.textContent = '';
+      return;
+    }
+
+    // Totales globales
+    const totales = { ASIGNADO: 0, EN_REVISION: 0, CON_OBSERVACIONES: 0, SUBSANADO: 0, APROBADO: 0, CERRADO: 0 };
+
+    tbody.innerHTML = contadores.map(cnt => {
+      const c = porContador[cnt];
+      const total = SEG_ESTADOS.reduce((s, k) => s + (c[k] || 0), 0);
+      SEG_ESTADOS.forEach(k => { totales[k] += (c[k] || 0); });
+
+      const cel = (val, cls) => `<td class="${cls}${val === 0 ? ' td-0' : ''}">${val}</td>`;
+      return `<tr>
+        <td class="td-cnt">${cnt}</td>
+        ${cel(c.ASIGNADO,          'td-asig')}
+        ${cel(c.EN_REVISION,       'td-rev')}
+        ${cel(c.CON_OBSERVACIONES, 'td-obs')}
+        ${cel(c.SUBSANADO,         'td-sub')}
+        ${cel(c.APROBADO,          'td-apr')}
+        ${cel(c.CERRADO,           'td-cer')}
+        <td class="td-tot">${total}</td>
+      </tr>`;
+    }).join('');
+
+    const totalGlobal = SEG_ESTADOS.reduce((s, k) => s + totales[k], 0);
+    tfoot.innerHTML = `<tr>
+      <td class="td-cnt">TOTAL</td>
+      <td class="td-asig">${totales.ASIGNADO}</td>
+      <td class="td-rev">${totales.EN_REVISION}</td>
+      <td class="td-obs">${totales.CON_OBSERVACIONES}</td>
+      <td class="td-sub">${totales.SUBSANADO}</td>
+      <td class="td-apr">${totales.APROBADO}</td>
+      <td class="td-cer">${totales.CERRADO}</td>
+      <td class="td-tot">${totalGlobal}</td>
+    </tr>`;
+
+    loading.textContent = `${snap.size} expedientes · actualizado ${new Date().toLocaleTimeString('es-CO')}`;
+  } catch (err) {
+    loading.textContent = 'Error: ' + err.message;
+  }
+};
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 cargarRegistros();
 

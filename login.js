@@ -89,6 +89,8 @@ async function validarLogin(e) {
     // Autenticación exitosa
     sessionStorage.setItem('contador', userData.nombre);
     sessionStorage.setItem('rol',      userData.rol || 'contador');
+    if (userData.cc_usuario)  sessionStorage.setItem('cc_usuario',  userData.cc_usuario);
+    if (userData.cc_password) sessionStorage.setItem('cc_password', userData.cc_password);
     window.location.href = '/dashboard.html';
 
   } catch (err) {

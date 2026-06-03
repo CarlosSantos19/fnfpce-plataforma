@@ -592,6 +592,10 @@ def _construir_indice_bg() -> None:
 
 class Handler(SimpleHTTPRequestHandler):
 
+    def end_headers(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        super().end_headers()
+
     # ── Helpers internos ──────────────────────────────────────────────────────
 
     def _send_json(self, data, status: int = 200):

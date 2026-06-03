@@ -6,46 +6,434 @@
   <title>Carlitos — FNFPCE</title>
   <link rel="stylesheet" href="/core/base.css" />
   <link rel="stylesheet" href="/core/module-template.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
-    .carlitos-wrap {
+    :root {
+      --cyan:      #00f5ff;
+      --cyan-dim:  #00b8c8;
+      --cyan-glow: rgba(0,245,255,0.15);
+      --green:     #00ff88;
+      --yellow:    #ffd700;
+      --red:       #ff2244;
+      --purple:    #cc44ff;
+      --bg0:       #020810;
+      --bg1:       #050e1a;
+      --bg2:       #071525;
+      --bg3:       #0a1e35;
+      --border:    rgba(0,245,255,0.2);
+      --border-hot:rgba(0,245,255,0.6);
+      --text:      #c8e8ff;
+      --text-dim:  #4a7090;
+      --font-hud:  'Orbitron', monospace;
+      --font-mono: 'Share Tech Mono', monospace;
+      --font-body: 'Exo 2', sans-serif;
+    }
+
+    /* ── Contenedor módulo ── */
+    .carlitos-modulo {
+      position: relative;
       display: flex;
       flex-direction: column;
       height: calc(100vh - 130px);
-      margin-top: 16px;
-    }
-    .carlitos-frame {
-      flex: 1;
-      width: 100%;
-      border: 1px solid rgba(0, 212, 255, 0.2);
+      margin-top: 12px;
+      background: var(--bg0);
+      border: 1px solid var(--border-hot);
       border-radius: 8px;
-      background: #020b18;
+      overflow: hidden;
+      font-family: var(--font-body);
     }
-    .carlitos-offline {
-      display: none;
+
+    /* ── Fondo canvas ── */
+    #bg-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.3;
+      pointer-events: none;
+      border-radius: 8px;
+    }
+    .scan-line {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      z-index: 1;
+      opacity: 0.35;
+      animation: scan 7s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes scan { 0%{top:0;opacity:.5} 100%{top:100%;opacity:0} }
+
+    /* ── Layout interior ── */
+    .carl-inner {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Panel izquierdo (robot) ── */
+    .panel-izq {
+      width: 260px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: rgba(5,14,26,0.92);
+      border-right: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+    }
+
+    /* Robot container */
+    .robot-container {
+      padding: 16px 10px 10px;
+      display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100%;
-      gap: 16px;
-      color: rgba(0, 212, 255, 0.5);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
+      background: linear-gradient(180deg,rgba(0,20,40,.8) 0%,transparent 100%);
+      border-bottom: 1px solid var(--border);
+      position: relative;
     }
-    .carlitos-offline .ico { font-size: 48px; }
-    .carlitos-offline .msg { opacity: .7; text-align: center; }
-    .carlitos-offline .retry-btn {
-      margin-top: 8px;
-      padding: 8px 24px;
-      background: transparent;
-      border: 1px solid rgba(0,212,255,.4);
-      color: #00d4ff;
-      border-radius: 6px;
-      cursor: pointer;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 13px;
+    .robot-hud-top {
+      width:100%; display:flex; align-items:center; justify-content:center;
+      gap:6px; margin-bottom:10px; position:relative;
+    }
+    .robot-hud-label {
+      font-family:var(--font-hud); font-size:.48rem;
+      color:var(--cyan-dim); letter-spacing:2px;
+    }
+    .hud-corner {
+      position:absolute; width:10px; height:10px;
+      border-color:var(--cyan); border-style:solid; opacity:.6;
+    }
+    .hud-corner.tl{top:0;left:0;border-width:1px 0 0 1px}
+    .hud-corner.tr{top:0;right:0;border-width:1px 1px 0 0}
+    .hud-corner.bl{bottom:0;left:0;border-width:0 0 1px 1px}
+    .hud-corner.br{bottom:0;right:0;border-width:0 1px 1px 0}
+
+    /* Rostro */
+    .robot-face {
+      width:160px; height:148px;
+      position:relative;
+      transition:filter .4s;
+    }
+    .robot-face.idle      { filter:drop-shadow(0 0 8px rgba(0,180,255,.3)); }
+    .robot-face.hablando  { filter:drop-shadow(0 0 20px rgba(0,245,255,.7)); }
+    .robot-face.pensando  { filter:drop-shadow(0 0 16px rgba(255,200,0,.6)); }
+    .robot-face.error     { filter:drop-shadow(0 0 16px rgba(255,20,60,.7)); }
+
+    .antena { position:absolute; top:-22px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; }
+    .antena-bola {
+      width:12px; height:12px;
+      background:radial-gradient(circle at 35% 35%,#00ffff,#006688);
+      border-radius:50%;
+      box-shadow:0 0 12px var(--cyan),0 0 24px rgba(0,245,255,.4);
+      animation:pulso 2s ease-in-out infinite;
+    }
+    .antena-palo { width:3px; height:18px; background:linear-gradient(180deg,var(--cyan),var(--bg3)); border-radius:2px; }
+    @keyframes pulso { 0%,100%{box-shadow:0 0 8px var(--cyan);transform:scale(1)} 50%{box-shadow:0 0 22px var(--cyan),0 0 44px rgba(0,245,255,.3);transform:scale(1.15)} }
+
+    .cabeza {
+      width:160px; height:145px;
+      background:linear-gradient(145deg,#0d2a45 0%,#071a2e 50%,#040f1c 100%);
+      border-radius:22px; position:relative;
+      border:1px solid rgba(0,180,255,.4);
+      overflow:hidden;
+      box-shadow:inset 0 0 30px rgba(0,20,40,.8),inset 0 1px 0 rgba(0,245,255,.1);
+    }
+    .cabeza::before {
+      content:''; position:absolute; top:0; left:10%; right:10%; height:1px;
+      background:linear-gradient(90deg,transparent,var(--cyan),transparent); opacity:.5;
+    }
+    .oreja {
+      position:absolute; top:42px; width:14px; height:30px;
+      background:linear-gradient(180deg,#0d2a45,#040f1c);
+      border:1px solid rgba(0,180,255,.3); border-radius:4px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .oreja.izq{left:-12px;border-radius:4px 0 0 4px}
+    .oreja.der{right:-12px;border-radius:0 4px 4px 0}
+    .oreja-led { width:5px;height:5px;background:var(--cyan);border-radius:50%;box-shadow:0 0 6px var(--cyan);animation:pulso 3s ease-in-out infinite; }
+
+    .panel-top { display:flex;justify-content:center;gap:6px;padding:7px 0 0; }
+    .panel-led { width:8px;height:4px;border-radius:2px;background:var(--cyan);opacity:.5;animation:blink-led 2s ease-in-out infinite; }
+    .panel-led:nth-child(2){animation-delay:.4s;background:var(--green)}
+    .panel-led:nth-child(3){animation-delay:.8s}
+    @keyframes blink-led{0%,90%,100%{opacity:.4}45%{opacity:1}}
+
+    .ojos { display:flex;justify-content:space-around;padding:8px 16px 0; }
+    .ojo {
+      width:40px; height:37px;
+      background:#020a14; border-radius:8px;
+      border:1px solid rgba(0,180,255,.4);
+      position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden;
+    }
+    .ojo-marco { position:absolute;inset:2px;border-radius:6px;border:1px solid rgba(0,245,255,.12); }
+    .pupila {
+      width:26px; height:26px;
+      background:radial-gradient(circle at 35% 30%,#00ffff 0%,#008899 40%,#001a22 100%);
+      border-radius:50%;
+      box-shadow:0 0 14px var(--cyan),0 0 28px rgba(0,245,255,.3);
+      animation:parpadeo 5s ease-in-out infinite;
+      position:relative; z-index:2;
+    }
+    .pupila-inner { position:absolute;top:25%;left:25%;width:35%;height:35%;background:rgba(0,0,0,.7);border-radius:50%; }
+    .ojo-scan { position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--cyan);opacity:0;animation:ojo-scan 4s ease-in-out infinite; }
+    @keyframes ojo-scan{0%,100%{bottom:0;opacity:0}10%{opacity:.8}90%{opacity:.8}99%{bottom:100%;opacity:0}}
+    @keyframes parpadeo{0%,88%,100%{transform:scaleY(1)}92%{transform:scaleY(.06)}}
+
+    .robot-face.hablando .pupila { animation:parpadeo 5s ease-in-out infinite,pmove .5s ease-in-out infinite alternate; box-shadow:0 0 20px var(--cyan),0 0 40px rgba(0,245,255,.5); }
+    @keyframes pmove{from{transform:translateY(0) scaleY(1)}to{transform:translateY(2px) scaleY(1)}}
+    .robot-face.pensando .pupila { background:radial-gradient(circle at 35% 30%,#ffee00,#886600 40%,#1a1000 100%);box-shadow:0 0 16px #ffd700,0 0 32px rgba(255,215,0,.4);animation:parpadeo 1.5s ease-in-out infinite; }
+    .robot-face.error    .pupila { background:radial-gradient(circle at 35% 30%,#ff4466,#880022 40%,#110005 100%);box-shadow:0 0 16px var(--red),0 0 32px rgba(255,20,60,.4); }
+
+    .nariz { display:flex;justify-content:center;margin-top:6px; }
+    .nariz-led { width:14px;height:5px;background:var(--cyan);border-radius:3px;box-shadow:0 0 10px var(--cyan);opacity:.7; }
+
+    .boca { display:flex;justify-content:center;gap:2px;margin:6px 14px 0;height:18px;align-items:flex-end; }
+    .boca-seg { width:12px;height:5px;background:#001a0a;border-radius:2px;border:1px solid rgba(0,255,136,.2);transition:height .08s,background .2s; }
+    .robot-face.hablando .boca-seg { border-color:rgba(0,255,136,.6);background:rgba(0,40,20,.8);box-shadow:0 0 6px rgba(0,255,136,.4); }
+    .robot-face.hablando .boca-seg:nth-child(1){animation:bs1 .28s ease-in-out infinite alternate}
+    .robot-face.hablando .boca-seg:nth-child(2){animation:bs2 .22s ease-in-out infinite alternate}
+    .robot-face.hablando .boca-seg:nth-child(3){animation:bs3 .35s ease-in-out infinite alternate}
+    .robot-face.hablando .boca-seg:nth-child(4){animation:bs4 .18s ease-in-out infinite alternate}
+    .robot-face.hablando .boca-seg:nth-child(5){animation:bs3 .30s ease-in-out infinite alternate}
+    .robot-face.hablando .boca-seg:nth-child(6){animation:bs1 .25s ease-in-out infinite alternate}
+    .robot-face.hablando .boca-seg:nth-child(7){animation:bs2 .33s ease-in-out infinite alternate}
+    .robot-face.hablando .boca-seg:nth-child(8){animation:bs4 .20s ease-in-out infinite alternate}
+    .robot-face.pensando .boca-seg{animation:boca-think 1.8s ease-in-out infinite;background:rgba(40,30,0,.8);border-color:rgba(255,200,0,.4)}
+    @keyframes bs1{from{height:4px}to{height:18px}}
+    @keyframes bs2{from{height:7px}to{height:14px}}
+    @keyframes bs3{from{height:5px}to{height:16px}}
+    @keyframes bs4{from{height:9px}to{height:13px}}
+    @keyframes boca-think{0%,100%{height:4px}50%{height:10px}}
+
+    .panel-bottom { display:flex;justify-content:center;gap:4px;margin:6px 18px 6px; }
+    .pb-bar { flex:1;height:3px;background:rgba(0,180,255,.2);border-radius:2px;position:relative;overflow:hidden; }
+    .pb-bar::after { content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:var(--cyan);animation:pb-anim 2s ease-in-out infinite; }
+    .pb-bar:nth-child(2)::after{animation-delay:.3s}
+    .pb-bar:nth-child(3)::after{animation-delay:.6s}
+    .pb-bar:nth-child(4)::after{animation-delay:.9s}
+    @keyframes pb-anim{0%{left:-100%}50%{left:0%}100%{left:100%}}
+
+    .estado-container { display:flex;align-items:center;gap:6px;margin-top:8px;width:100%; }
+    .estado-line { flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border)); }
+    .estado-line:last-child{background:linear-gradient(270deg,transparent,var(--border))}
+    #estado-label { font-family:var(--font-hud);font-size:.55rem;color:var(--cyan);letter-spacing:2px;text-shadow:0 0 8px var(--cyan);white-space:nowrap;transition:color .3s; }
+    #estado-label.pensando{color:var(--yellow);text-shadow:0 0 8px var(--yellow)}
+    #estado-label.hablando{color:var(--green);text-shadow:0 0 8px var(--green)}
+    #estado-label.error{color:var(--red);text-shadow:0 0 8px var(--red)}
+
+    /* Ondas de voz */
+    .voice-waves { display:flex;gap:3px;align-items:center;height:24px;margin-top:6px;opacity:.3;transition:opacity .3s; }
+    .voice-waves.activo{opacity:1}
+    .wave-bar{width:3px;background:var(--green);border-radius:2px;height:4px;transition:height .1s}
+    .voice-waves.activo .wave-bar:nth-child(1){animation:wave1 .4s ease-in-out infinite alternate}
+    .voice-waves.activo .wave-bar:nth-child(2){animation:wave2 .35s ease-in-out infinite alternate}
+    .voice-waves.activo .wave-bar:nth-child(3){animation:wave3 .45s ease-in-out infinite alternate}
+    .voice-waves.activo .wave-bar:nth-child(4){animation:wave1 .3s ease-in-out infinite alternate}
+    .voice-waves.activo .wave-bar:nth-child(5){animation:wave3 .38s ease-in-out infinite alternate}
+    .voice-waves.activo .wave-bar:nth-child(6){animation:wave2 .42s ease-in-out infinite alternate}
+    .voice-waves.activo .wave-bar:nth-child(7){animation:wave1 .36s ease-in-out infinite alternate}
+    .voice-waves.activo .wave-bar:nth-child(8){animation:wave3 .28s ease-in-out infinite alternate}
+    .voice-waves.activo .wave-bar:nth-child(9){animation:wave2 .44s ease-in-out infinite alternate}
+    @keyframes wave1{from{height:4px}to{height:20px}}
+    @keyframes wave2{from{height:7px}to{height:16px}}
+    @keyframes wave3{from{height:5px}to{height:24px}}
+
+    /* Info HUD inferior */
+    .carl-info {
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .carl-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+      border-bottom: 1px solid rgba(0,180,255,.07);
+      padding-bottom: 5px;
+    }
+    .carl-info-row span:last-child { color: var(--cyan); }
+    .carl-badge {
+      display: inline-block;
+      font-family: var(--font-hud);
+      font-size: .5rem;
       letter-spacing: 1px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--yellow);
+      color: var(--yellow);
+      box-shadow: 0 0 6px rgba(255,215,0,.2);
     }
-    .carlitos-offline .retry-btn:hover { background: rgba(0,212,255,.08); }
+
+    /* ── Panel chat ── */
+    .panel-chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: rgba(2,8,16,.7);
+      backdrop-filter: blur(8px);
+    }
+    .chat-topbar {
+      background: rgba(5,14,26,.9);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .chat-topbar-title { font-family:var(--font-hud);font-size:.52rem;color:var(--cyan-dim);letter-spacing:2px; }
+    .chat-topbar-right { display:flex;gap:6px;align-items:center; }
+    .topbar-dot { width:8px;height:8px;border-radius:50%;background:var(--text-dim);opacity:.4; }
+    .topbar-dot.activo { background:var(--green);opacity:1;box-shadow:0 0 6px var(--green);animation:pulso 2s infinite; }
+    .btn-limpiar-top {
+      font-family:var(--font-hud); font-size:.5rem; letter-spacing:1px;
+      background:transparent; border:1px solid rgba(255,34,68,.3); color:rgba(255,34,68,.6);
+      padding:2px 8px; border-radius:3px; cursor:pointer; transition:all .2s;
+    }
+    .btn-limpiar-top:hover{border-color:var(--red);color:var(--red);box-shadow:0 0 8px rgba(255,20,60,.2)}
+
+    /* Mensajes */
+    #chat-mensajes {
+      flex:1; overflow-y:auto; padding:16px 18px;
+      display:flex; flex-direction:column; gap:12px;
+      scroll-behavior: smooth;
+    }
+    #chat-mensajes::-webkit-scrollbar{width:4px}
+    #chat-mensajes::-webkit-scrollbar-thumb{background:rgba(0,180,255,.2);border-radius:2px}
+
+    .mensaje {
+      max-width: 84%;
+      padding: 11px 15px;
+      border-radius: 6px;
+      font-size: .84rem;
+      line-height: 1.65;
+      word-break: break-word;
+      white-space: pre-wrap;
+      position: relative;
+      font-family: var(--font-body);
+    }
+    .mensaje.usuario {
+      background: linear-gradient(135deg,rgba(0,100,180,.3),rgba(0,60,120,.2));
+      border: 1px solid rgba(0,150,255,.4);
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+      color: #b8d8ff;
+    }
+    .mensaje.usuario::after {
+      content:''; position:absolute; bottom:-1px; right:-1px;
+      width:8px; height:8px;
+      border-right:1px solid rgba(0,150,255,.4);
+      border-bottom:1px solid rgba(0,150,255,.4);
+    }
+    .mensaje.usuario .rol { color:rgba(100,180,255,.6); justify-content:flex-end; }
+    .mensaje.asistente {
+      background: linear-gradient(135deg,rgba(0,30,50,.8),rgba(0,15,30,.6));
+      border: 1px solid var(--border);
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+      color: var(--text);
+    }
+    .mensaje.asistente::before {
+      content:''; position:absolute; bottom:-1px; left:-1px;
+      width:8px; height:8px;
+      border-left:1px solid var(--border);
+      border-bottom:1px solid var(--border);
+    }
+    .mensaje .rol {
+      font-family:var(--font-hud); font-size:.5rem; letter-spacing:2px;
+      margin-bottom:6px; display:flex; align-items:center; gap:6px; color:var(--cyan);
+    }
+
+    /* Cursor streaming */
+    .cursor-stream {
+      display:inline-block; width:2px; height:13px;
+      background:var(--cyan); margin-left:2px;
+      vertical-align:middle; animation:cblink .6s infinite;
+    }
+    @keyframes cblink{0%,100%{opacity:1}50%{opacity:0}}
+
+    /* Typing */
+    #typing-indicator {
+      display:none; align-self:flex-start; margin:0 18px 8px;
+      background:rgba(0,30,50,.8); border:1px solid var(--border);
+      border-radius:6px; padding:9px 15px;
+      gap:8px; align-items:center;
+      font-family:var(--font-mono); font-size:.73rem; color:var(--text-dim);
+    }
+    #typing-indicator.visible{display:flex}
+    .typing-icon{color:var(--cyan);animation:spin 2s linear infinite}
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    .typing-dot{width:5px;height:5px;background:var(--cyan);border-radius:50%;animation:typing 1.2s ease-in-out infinite}
+    .typing-dot:nth-child(3){animation-delay:.2s}
+    .typing-dot:nth-child(4){animation-delay:.4s}
+    @keyframes typing{0%,80%,100%{opacity:.2;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
+
+    /* Input */
+    .input-area {
+      border-top: 1px solid var(--border);
+      padding: 10px 18px 12px;
+      background: rgba(5,14,26,.95);
+      flex-shrink: 0;
+    }
+    .input-border-top {
+      width:100%; height:1px;
+      background:linear-gradient(90deg,transparent,var(--cyan),var(--green),var(--cyan),transparent);
+      opacity:.3; margin-bottom:10px;
+    }
+    .input-row { display:flex; gap:8px; align-items:center; }
+    .input-wrapper {
+      flex:1; position:relative; display:flex; align-items:center;
+      background:rgba(0,20,40,.8); border:1px solid var(--border);
+      border-radius:6px; transition:border-color .2s,box-shadow .2s;
+    }
+    .input-wrapper:focus-within{border-color:var(--cyan);box-shadow:0 0 15px var(--cyan-glow)}
+    .input-prefix{font-family:var(--font-mono);font-size:.85rem;color:var(--green);padding:0 8px 0 12px;opacity:.8}
+    #input-texto {
+      flex:1; background:transparent; border:none;
+      padding:9px 12px 9px 0; color:var(--text);
+      font-family:var(--font-mono); font-size:.84rem;
+      outline:none; resize:none;
+      min-height:40px; max-height:110px;
+    }
+    #input-texto::placeholder{color:var(--text-dim)}
+    .btn-enviar {
+      height:42px; min-width:100px;
+      background:linear-gradient(135deg,rgba(0,80,160,.6),rgba(0,40,100,.6));
+      border:1px solid rgba(0,150,255,.5); border-radius:6px;
+      color:var(--cyan); font-family:var(--font-hud);
+      font-size:.58rem; letter-spacing:2px;
+      cursor:pointer; display:flex; align-items:center;
+      justify-content:center; gap:8px; transition:all .2s;
+    }
+    .btn-enviar:hover{background:linear-gradient(135deg,rgba(0,150,255,.4),rgba(0,80,180,.4));border-color:var(--cyan);box-shadow:0 0 15px var(--cyan-glow);color:#fff}
+    .btn-enviar:disabled{opacity:.4;cursor:not-allowed}
+    .info-row{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
+    .info-hint{font-family:var(--font-mono);font-size:.62rem;color:var(--text-dim)}
+    .btn-limpiar {
+      font-family:var(--font-hud); font-size:.5rem; letter-spacing:1px;
+      background:transparent; border:1px solid rgba(255,34,68,.25); color:rgba(255,34,68,.5);
+      padding:3px 10px; border-radius:3px; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;
+      transition:all .2s;
+    }
+    .btn-limpiar:hover{border-color:var(--red);color:var(--red);box-shadow:0 0 8px rgba(255,20,60,.2)}
+
+    /* Bienvenida */
+    .bienvenida {
+      text-align:center; color:var(--text-dim);
+      font-family:var(--font-mono); font-size:.75rem;
+      letter-spacing:1px; padding:20px 0 10px;
+    }
+    .bienvenida .icon{font-size:2rem;display:block;margin-bottom:8px}
   </style>
 </head>
 <body>
@@ -64,21 +452,168 @@
         <p class="page-desc">Asistente IA para análisis de informes financieros CNE</p>
       </header>
 
-      <div class="carlitos-wrap">
-        <iframe
-          id="carlitos-frame"
-          class="carlitos-frame"
-          src="https://carlitos-cne.onrender.com"
-          allow="microphone"
-          title="Carlitos - Asistente CNE">
-        </iframe>
-        <div class="carlitos-offline" id="carlitos-offline">
-          <span class="ico">🤖</span>
-          <span class="msg">
-            El servidor de Carlitos está iniciando…<br>
-            Puede tardar hasta 60 segundos la primera vez.
-          </span>
-          <button class="retry-btn" onclick="reintentarCarga()">↺ Reintentar</button>
+      <div class="carlitos-modulo">
+        <canvas id="bg-canvas"></canvas>
+        <div class="scan-line"></div>
+
+        <div class="carl-inner">
+
+          <!-- Panel izquierdo: Robot -->
+          <aside class="panel-izq">
+            <div class="robot-container">
+              <div class="robot-hud-top">
+                <span class="hud-corner tl"></span>
+                <span class="hud-corner tr"></span>
+                <span class="robot-hud-label">UNIDAD · CARLITOS-01</span>
+              </div>
+
+              <div id="robot-face" class="robot-face idle">
+                <div class="antena">
+                  <div class="antena-bola"></div>
+                  <div class="antena-palo"></div>
+                </div>
+                <div class="cabeza">
+                  <div class="oreja izq"><div class="oreja-led"></div></div>
+                  <div class="oreja der"><div class="oreja-led"></div></div>
+                  <div class="panel-top">
+                    <div class="panel-led"></div>
+                    <div class="panel-led"></div>
+                    <div class="panel-led"></div>
+                  </div>
+                  <div class="ojos">
+                    <div class="ojo">
+                      <div class="ojo-marco"></div>
+                      <div class="pupila"><div class="pupila-inner"></div></div>
+                      <div class="ojo-scan"></div>
+                    </div>
+                    <div class="ojo">
+                      <div class="ojo-marco"></div>
+                      <div class="pupila"><div class="pupila-inner"></div></div>
+                      <div class="ojo-scan"></div>
+                    </div>
+                  </div>
+                  <div class="nariz"><div class="nariz-led"></div></div>
+                  <div class="boca">
+                    <div class="boca-seg"></div><div class="boca-seg"></div>
+                    <div class="boca-seg"></div><div class="boca-seg"></div>
+                    <div class="boca-seg"></div><div class="boca-seg"></div>
+                    <div class="boca-seg"></div><div class="boca-seg"></div>
+                  </div>
+                  <div class="panel-bottom">
+                    <div class="pb-bar"></div><div class="pb-bar"></div>
+                    <div class="pb-bar"></div><div class="pb-bar"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="estado-container">
+                <div class="estado-line"></div>
+                <div id="estado-label">■ EN ESPERA</div>
+                <div class="estado-line"></div>
+              </div>
+
+              <div class="voice-waves" id="voice-waves">
+                <div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+
+              <div class="hud-corner bl"></div>
+              <div class="hud-corner br"></div>
+            </div>
+
+            <!-- Info HUD -->
+            <div class="carl-info">
+              <div class="carl-info-row">
+                <span>MODELO</span>
+                <span>Gemini 2.5 Flash</span>
+              </div>
+              <div class="carl-info-row">
+                <span>ESTADO</span>
+                <span id="info-estado" style="color:var(--green)">● ACTIVO</span>
+              </div>
+              <div class="carl-info-row">
+                <span>PROCESO</span>
+                <span>ET2023</span>
+              </div>
+              <div class="carl-info-row">
+                <span>MSGS</span>
+                <span id="info-msgs">0</span>
+              </div>
+              <div class="carl-info-row">
+                <span>HORA</span>
+                <span id="reloj">--:--:--</span>
+              </div>
+              <div style="margin-top:8px;text-align:center">
+                <span class="carl-badge">CNE · FNFPCE</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Panel chat -->
+          <section class="panel-chat">
+            <div class="chat-topbar">
+              <span class="chat-topbar-title">◉ TERMINAL DE COMUNICACIÓN</span>
+              <div class="chat-topbar-right">
+                <span class="topbar-dot activo"></span>
+                <span class="topbar-dot"></span>
+                <span class="topbar-dot"></span>
+                <button class="btn-limpiar-top" onclick="reiniciar()">↺ RESET</button>
+              </div>
+            </div>
+
+            <div id="chat-mensajes">
+              <div class="bienvenida" id="bienvenida">
+                <span class="icon">🤖</span>
+                Hola, soy <strong style="color:var(--cyan)">CARLITOS</strong>.<br>
+                Asistente para análisis de informes financieros CNE · ET2023.<br><br>
+                Cuéntame en qué puedo ayudarte.
+              </div>
+            </div>
+
+            <div id="typing-indicator">
+              <span class="typing-icon">◈</span>
+              <span>Procesando</span>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+
+            <div class="input-area">
+              <div class="input-border-top"></div>
+              <div class="input-row">
+                <div class="input-wrapper">
+                  <span class="input-prefix">&gt;_</span>
+                  <textarea
+                    id="input-texto"
+                    placeholder="Ingresa tu consulta… (Enter para enviar, Shift+Enter nueva línea)"
+                    rows="1"
+                    oninput="ajustarAltura(this)"
+                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviar()}"
+                  ></textarea>
+                </div>
+                <button class="btn-enviar" id="btn-enviar" onclick="enviar()">
+                  ENVIAR
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="info-row">
+                <span class="info-hint">[ ENTER ] enviar &nbsp;·&nbsp; [ SHIFT+ENTER ] nueva línea</span>
+                <button class="btn-limpiar" onclick="reiniciar()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                  </svg>
+                  RESET
+                </button>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </main>
@@ -90,31 +625,222 @@
     Auth.requireAuth();
     renderSidebar('carlitos');
 
-    const frame  = document.getElementById('carlitos-frame');
-    const ofline = document.getElementById('carlitos-offline');
+    // ── Gemini ────────────────────────────────────────────────────────────────
+    const GEMINI_KEY = 'AIzaSyBmw_QZ51eIJsKr11mv7q4fcX7PvX0tbes';
+    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
 
-    frame.addEventListener('error', () => {
-      frame.style.display = 'none';
-      ofline.style.display = 'flex';
-    });
+    const SYSTEM_PROMPT = `Eres Carlitos, un asistente experto en financiacion de campanas politicas en Colombia, especializado en el sistema de Cuentas Claras del CNE (Consejo Nacional Electoral).
 
-    // Si después de 90s el iframe no cargó, mostrar mensaje
-    const timer = setTimeout(() => {
+Tu rol es ayudar a los funcionarios de la Seccion de Financiacion del CNE a analizar informes de ingresos y gastos presentados por partidos politicos, verificar el cumplimiento de la normatividad vigente, calcular liquidaciones de reposicion de gastos por campana e identificar irregularidades.
+
+Normatividad aplicable 2023: Ley 1475 de 2011 Art.27 reposicion de gastos es el menor entre gastos netos y votos validos por valor por voto. Resolucion 0672 de 2023 valor de reposicion por voto valido $5.583. Resolucion 4737 de 2023 Formulario 9B Informe Consolidado de Ingresos y Gastos. Codigo 101 Anticipo estatal, 102 Aporte propio, 103 Aportes personas naturales, 104 Creditos candidato, 105 Creditos entidades financieras, 106 Aportes en especie, 107 Otros ingresos, 212 Devolucion de anticipo, 200 Total gastos.
+
+Calculo de liquidacion: Votos netos son votos validos menos votos de candidatos que no rindieron. Gastos netos son total gastos menos codigo 212. Valor a reponer es el menor entre votos netos por $5.583 y gastos netos. Descuento auditoria 1 por ciento. Total neto es valor a reponer menos descuento.
+
+Causales para Requerimiento: total gastos mayor a total ingresos, total gastos mayor al tope, candidatos que no rindieron informe, inconsistencias entre formularios, gastos en ceros con ingresos, codigo 212 mayor a codigo 101.
+
+Regla de formato: Escribe siempre en texto corrido natural. Nunca uses guiones, viñetas, asteriscos, almohadillas ni markdown. Escribe en español colombiano claro y profesional. Responde de forma concisa pero completa.`;
+
+    // ── Estado ────────────────────────────────────────────────────────────────
+    let historial  = [];
+    let pensando   = false;
+    let numMensajes = 0;
+
+    const rostro   = document.getElementById('robot-face');
+    const estadoLbl= document.getElementById('estado-label');
+    const voiceW   = document.getElementById('voice-waves');
+    const mensajes = document.getElementById('chat-mensajes');
+    const typing   = document.getElementById('typing-indicator');
+    const inputEl  = document.getElementById('input-texto');
+    const btnEl    = document.getElementById('btn-enviar');
+    const infoMsgs = document.getElementById('info-msgs');
+    const relojEl  = document.getElementById('reloj');
+
+    // ── Reloj ─────────────────────────────────────────────────────────────────
+    setInterval(() => {
+      const n = new Date();
+      relojEl.textContent = [n.getHours(),n.getMinutes(),n.getSeconds()]
+        .map(x=>String(x).padStart(2,'0')).join(':');
+    }, 1000);
+
+    // ── Canvas fondo ──────────────────────────────────────────────────────────
+    (function() {
+      const canvas = document.getElementById('bg-canvas');
+      const ctx    = canvas.getContext('2d');
+      const GRID   = 50;
+      const particles = Array.from({length:30}, () => ({
+        x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight,
+        vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4,
+        r: Math.random()*1.5+.5, a: Math.random(),
+      }));
+
+      function resize() {
+        canvas.width  = canvas.parentElement.offsetWidth;
+        canvas.height = canvas.parentElement.offsetHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      (function draw() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.strokeStyle='rgba(0,180,255,0.06)'; ctx.lineWidth=.5;
+        for(let x=0;x<canvas.width;x+=GRID){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+        for(let y=0;y<canvas.height;y+=GRID){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+        ctx.fillStyle='rgba(0,245,255,0.12)';
+        for(let x=0;x<canvas.width;x+=GRID)
+          for(let y=0;y<canvas.height;y+=GRID){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill();}
+        particles.forEach(p => {
+          p.x+=p.vx; p.y+=p.vy;
+          if(p.x<0)p.x=canvas.width; if(p.x>canvas.width)p.x=0;
+          if(p.y<0)p.y=canvas.height; if(p.y>canvas.height)p.y=0;
+          ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+          ctx.fillStyle=`rgba(0,245,255,${p.a*.4})`; ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      })();
+    })();
+
+    // ── Estado robot ──────────────────────────────────────────────────────────
+    function setEstado(estado) {
+      rostro.className = 'robot-face ' + estado;
+      estadoLbl.className = estado === 'idle' ? '' : estado;
+      voiceW.className = 'voice-waves' + (estado==='hablando'?' activo':'');
+      const labels = {idle:'■ EN ESPERA', pensando:'◆ PROCESANDO', hablando:'▶ RESPONDIENDO', error:'✕ ERROR'};
+      estadoLbl.textContent = labels[estado] || '■ EN ESPERA';
+    }
+
+    // ── UI helpers ────────────────────────────────────────────────────────────
+    function ajustarAltura(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+    }
+
+    function scrollAbajo() { mensajes.scrollTop = mensajes.scrollHeight; }
+
+    function crearMensaje(rol, texto) {
+      const bienvenida = document.getElementById('bienvenida');
+      if (bienvenida) bienvenida.remove();
+
+      const div = document.createElement('div');
+      div.className = 'mensaje ' + (rol === 'usuario' ? 'usuario' : 'asistente');
+
+      const rolDiv = document.createElement('div');
+      rolDiv.className = 'rol';
+      rolDiv.textContent = rol === 'usuario' ? '[ TÚ ]' : '[ CARLITOS ]';
+      div.appendChild(rolDiv);
+
+      const cuerpo = document.createElement('span');
+      cuerpo.textContent = texto;
+      div.appendChild(cuerpo);
+
+      mensajes.appendChild(div);
+      scrollAbajo();
+      return cuerpo;
+    }
+
+    // ── Enviar ────────────────────────────────────────────────────────────────
+    async function enviar() {
+      const texto = inputEl.value.trim();
+      if (!texto || pensando) return;
+
+      pensando       = true;
+      btnEl.disabled = true;
+      inputEl.value  = '';
+      inputEl.style.height = 'auto';
+
+      crearMensaje('usuario', texto);
+      historial.push({ role: 'user', parts: [{ text: texto }] });
+
+      numMensajes++;
+      infoMsgs.textContent = numMensajes;
+
+      typing.classList.add('visible');
+      setEstado('pensando');
+
       try {
-        if (!frame.contentDocument || frame.contentDocument.body.innerHTML === '') {
-          frame.style.display = 'none';
-          ofline.style.display = 'flex';
+        const resp = await fetch(GEMINI_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents: historial,
+            generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+          }),
+        });
+
+        if (!resp.ok) throw new Error('Error ' + resp.status + ': ' + await resp.text());
+
+        typing.classList.remove('visible');
+        setEstado('hablando');
+
+        const cuerpo = crearMensaje('asistente', '');
+        const cursor = document.createElement('span');
+        cursor.className = 'cursor-stream';
+        cuerpo.parentElement.appendChild(cursor);
+
+        const reader  = resp.body.getReader();
+        const decoder = new TextDecoder();
+        let textoCompleto = '';
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lineas = buffer.split('\n');
+          buffer = lineas.pop();
+          for (const linea of lineas) {
+            if (!linea.startsWith('data: ')) continue;
+            const json = linea.slice(6).trim();
+            if (!json || json === '[DONE]') continue;
+            try {
+              const chunk = JSON.parse(json).candidates?.[0]?.content?.parts?.[0]?.text || '';
+              if (chunk) {
+                textoCompleto += chunk;
+                cuerpo.textContent = textoCompleto;
+                cuerpo.parentElement.appendChild(cursor);
+                scrollAbajo();
+              }
+            } catch (_) {}
+          }
         }
-      } catch (_) {}
-    }, 90000);
 
-    frame.addEventListener('load', () => clearTimeout(timer));
+        cursor.remove();
+        cuerpo.textContent = textoCompleto;
 
-    window.reintentarCarga = function() {
-      frame.style.display = '';
-      ofline.style.display = 'none';
-      frame.src = frame.src;
-    };
+        if (textoCompleto) historial.push({ role: 'model', parts: [{ text: textoCompleto }] });
+        if (historial.length > 20) historial = historial.slice(-20);
+
+        numMensajes++;
+        infoMsgs.textContent = numMensajes;
+        setEstado('idle');
+
+      } catch (err) {
+        typing.classList.remove('visible');
+        setEstado('error');
+        crearMensaje('asistente', 'Error al conectar con Gemini: ' + err.message);
+        setTimeout(() => setEstado('idle'), 3000);
+      }
+
+      pensando       = false;
+      btnEl.disabled = false;
+      inputEl.focus();
+    }
+
+    function reiniciar() {
+      historial   = [];
+      numMensajes = 0;
+      infoMsgs.textContent = '0';
+      mensajes.innerHTML = `
+        <div class="bienvenida" id="bienvenida">
+          <span class="icon">🤖</span>
+          Hola, soy <strong style="color:var(--cyan)">CARLITOS</strong>.<br>
+          Asistente para análisis de informes financieros CNE · ET2023.<br><br>
+          Cuéntame en qué puedo ayudarte.
+        </div>`;
+      setEstado('idle');
+      inputEl.focus();
+    }
   </script>
 </body>
 </html>

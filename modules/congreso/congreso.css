@@ -1,0 +1,277 @@
+.filtros-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: flex-end;
+}
+.filtros-bar select,
+.filtros-bar input {
+  background: rgba(4, 20, 40, 0.9);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  min-width: 180px;
+}
+.filtros-bar select:focus,
+.filtros-bar input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.filtros-bar label {
+  font-size: 0.72rem;
+  color: rgba(224,244,255,0.5);
+  display: block;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cong-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.cong-stat {
+  background: rgba(4,20,40,0.7);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 8px;
+  padding: 12px 20px;
+  text-align: center;
+  min-width: 130px;
+}
+.cong-stat-val {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.3rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+.cong-stat-lbl {
+  font-size: 0.68rem;
+  color: rgba(224,244,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+.cong-table-wrap {
+  overflow-x: auto;
+}
+.cong-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.cong-table th {
+  background: rgba(0,212,255,0.08);
+  color: rgba(224,244,255,0.6);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0,212,255,0.15);
+  cursor: pointer;
+  user-select: none;
+}
+.cong-table th:hover { color: var(--accent); }
+.cong-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(0,212,255,0.07);
+  color: var(--text);
+  vertical-align: middle;
+}
+.cong-table tr:hover td { background: rgba(252,209,22,0.03); cursor: pointer; }
+.badge-corp {
+  font-size: 0.62rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.25);
+  color: rgba(0,212,255,0.8);
+  white-space: nowrap;
+}
+.monto-pos { color: #4caf50; }
+.monto-neg { color: #ef5350; }
+
+/* Modal detalle */
+.cong-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.cong-modal-overlay.open { display: flex; }
+.cong-modal {
+  background: #060f1e;
+  border: 1px solid rgba(0,212,255,0.25);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 28px;
+  position: relative;
+}
+.cong-modal-close {
+  position: absolute;
+  top: 14px; right: 18px;
+  background: none; border: none;
+  color: rgba(224,244,255,0.4);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+.cong-modal-close:hover { color: var(--accent); }
+.cong-modal-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem;
+  color: var(--accent);
+  margin-bottom: 20px;
+  padding-right: 30px;
+}
+.cong-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.cong-detail-box {
+  background: rgba(4,20,40,0.7);
+  border: 1px solid rgba(0,212,255,0.12);
+  border-radius: 8px;
+  padding: 14px;
+}
+.cong-detail-box h4 {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(0,212,255,0.6);
+  margin: 0 0 10px 0;
+}
+.cong-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  margin-bottom: 5px;
+}
+.cong-detail-row span:first-child { color: rgba(224,244,255,0.45); }
+.cong-detail-row span:last-child { color: var(--text); font-weight: 500; }
+.cong-fin-total {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+}
+.cong-fin-box {
+  flex: 1;
+  background: rgba(4,20,40,0.8);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+.cong-fin-box .val { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:700; }
+.cong-fin-box .lbl { font-size:0.65rem; text-transform:uppercase; color:rgba(224,244,255,0.4); margin-top:4px; }
+
+/* Modal ancho para tablas */
+.cong-modal-wide { max-width: 960px !important; }
+
+/* Tabs */
+.cong-tabs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(0,212,255,0.15);
+  padding-bottom: 0;
+  flex-wrap: wrap;
+}
+.cong-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(224,244,255,0.45);
+  font-size: 0.78rem;
+  padding: 7px 14px;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.cong-tab:hover { color: var(--text); }
+.cong-tab.cong-tab-active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.cong-tab-ext {
+  margin-left: auto;
+  font-size: 0.72rem;
+  padding: 5px 12px;
+  border: 1px solid rgba(0,212,255,0.25);
+  border-radius: 5px;
+  color: rgba(0,212,255,0.7);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cong-tab-ext:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Tab panels */
+.cong-tab-panel { min-height: 120px; }
+.cong-tab-loading, .cong-tab-empty, .cong-tab-err {
+  text-align: center;
+  padding: 32px;
+  color: rgba(224,244,255,0.3);
+  font-size: 0.82rem;
+}
+.cong-tab-err { color: #ef5350; }
+
+/* Tablas de detalle ingresos/gastos */
+.cong-det-table-wrap { overflow-x: auto; max-height: 380px; overflow-y: auto; }
+.cong-det-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+.cong-det-table th {
+  position: sticky;
+  top: 0;
+  background: #060f1e;
+  color: rgba(224,244,255,0.5);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 7px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(0,212,255,0.2);
+}
+.cong-det-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(0,212,255,0.06);
+  color: var(--text);
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cong-det-table tr:hover td { background: rgba(252,209,22,0.03); }
+
+/* ANI badge */
+.cong-ani-badge {
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid;
+  display: inline-block;
+  font-weight: 600;
+}
+.cong-ani-nota {
+  margin-top: 10px;
+  font-size: 0.74rem;
+  color: rgba(224,244,255,0.55);
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  padding: 8px 10px;
+}

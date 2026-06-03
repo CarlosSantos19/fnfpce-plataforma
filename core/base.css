@@ -12,15 +12,16 @@
 }
 
 :root {
-  --cyan:       #00d4ff;
-  --blue:       #0057ff;
-  --dark:       #020b18;
-  --panel:      rgba(4, 20, 40, 0.88);
-  --border:     rgba(0, 212, 255, 0.22);
-  --glow:       rgba(0, 212, 255, 0.55);
-  --text-main:  #e0f4ff;
-  --text-muted: rgba(0, 212, 255, 0.5);
+  --cyan:       #FCD116;              /* CNE amarillo */
+  --blue:       #003893;              /* CNE azul */
+  --dark:       #04101e;              /* fondo oscuro navy */
+  --panel:      rgba(3, 12, 35, 0.92);
+  --border:     rgba(252, 209, 22, 0.22);
+  --glow:       rgba(252, 209, 22, 0.45);
+  --text-main:  #edf0f7;
+  --text-muted: rgba(252, 209, 22, 0.5);
   --sidebar-w:  260px;
+  --cne-red:    #CE1126;              /* CNE rojo (alertas) */
 }
 
 body {
@@ -38,8 +39,8 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(0, 56, 147, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 56, 147, 0.07) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
@@ -50,7 +51,7 @@ body::after {
   content: '';
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 60% 40%, rgba(0, 87, 255, 0.1) 0%, transparent 70%);
+  background: radial-gradient(ellipse 80% 60% at 60% 40%, rgba(0, 56, 147, 0.12) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -94,9 +95,9 @@ body::after {
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: #041428; }
-::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 255, 0.55); }
+::-webkit-scrollbar-track { background: #030e1e; }
+::-webkit-scrollbar-thumb { background: rgba(252, 209, 22, 0.25); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(252, 209, 22, 0.5); }
 
 /* Animaciones comunes */
 @keyframes blink {

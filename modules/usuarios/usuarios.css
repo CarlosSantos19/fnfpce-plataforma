@@ -23,7 +23,7 @@
 }
 
 .form-input {
-  background: rgba(0,212,255,.05);
+  background: rgba(252,209,22,.05);
   border: 1px solid var(--border);
   color: var(--text);
   font-family: 'Rajdhani', monospace;
@@ -35,7 +35,7 @@
 
 .form-input:focus {
   border-color: var(--cyan);
-  background: rgba(0,212,255,.08);
+  background: rgba(252,209,22,.08);
 }
 
 .form-input--sm {
@@ -126,20 +126,20 @@ option { background: #0a1628; }
 
 .usuarios-table td {
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(0,212,255,.07);
+  border-bottom: 1px solid rgba(252,209,22,.07);
   color: var(--text);
   vertical-align: middle;
 }
 
 .usuarios-table tbody tr:hover td {
-  background: rgba(0,212,255,.04);
+  background: rgba(252,209,22,.04);
 }
 
 .table-loading,
 .table-empty {
   text-align: center;
   padding: 32px !important;
-  color: rgba(0,212,255,.4);
+  color: rgba(252,209,22,.4);
   font-size: 13px;
   letter-spacing: .05em;
 }
@@ -164,6 +164,8 @@ option { background: #0a1628; }
 .badge-admin   { border: 1px solid #f0a500; color: #f0a500; }
 .badge-adm     { border: 1px solid var(--cyan); color: var(--cyan); }
 .badge-cont    { border: 1px solid #8888ff; color: #8888ff; }
+.badge-abog    { border: 1px solid #00d47a; color: #00d47a; }
+.badge-asis    { border: 1px solid #c084fc; color: #c084fc; }
 
 .badge-activo   { border: 1px solid #00ff88; color: #00ff88; }
 .badge-inactivo { border: 1px solid #ff6080; color: #ff6080; }
@@ -192,6 +194,9 @@ option { background: #0a1628; }
 
 .btn-toggle-off { border: 1px solid #00ff88; color: #00ff88; }
 .btn-toggle-off:hover { background: #00ff88; color: var(--dark); }
+
+.btn-editar { border: 1px solid rgba(252,209,22,.4); color: rgba(252,209,22,.7); }
+.btn-editar:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(252,209,22,.08); }
 
 .btn-eliminar { border: 1px solid rgba(255,96,128,.4); color: rgba(255,96,128,.6); }
 .btn-eliminar:hover { border-color: #ff6080; color: #ff6080; background: rgba(255,96,128,.08); }

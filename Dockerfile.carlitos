@@ -13,7 +13,7 @@ COPY ["PT NUEVO/datos_soporte.py",  "datos_soporte.py"]
 RUN pip install --no-cache-dir \
     fastapi \
     "uvicorn[standard]" \
-    anthropic \
+    google-generativeai \
     pdfplumber \
     python-docx \
     openpyxl \

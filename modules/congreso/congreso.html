@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Congreso 2026 — FNFPCE</title>
+  <link rel="stylesheet" href="/core/base.css" />
+  <link rel="stylesheet" href="/core/module-template.css" />
+  <link rel="stylesheet" href="congreso.css" />
+</head>
+<body>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div class="breadcrumb">
+          <a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp;
+          <a href="/modules/revision/revision.html">REVISIÓN</a> &nbsp;/&nbsp;
+          CONGRESO 2026
+        </div>
+        <h1 class="page-title"><span class="title-icon">◫</span> Congreso 2026</h1>
+        <p class="page-desc">Análisis de cuentas de campaña — Elecciones Congreso 2026</p>
+      </header>
+
+      <!-- Estadísticas -->
+      <div class="cong-stats">
+        <div class="cong-stat">
+          <div class="cong-stat-val" id="statTotal">—</div>
+          <div class="cong-stat-lbl">Candidatos</div>
+        </div>
+        <div class="cong-stat">
+          <div class="cong-stat-val" id="statConIng">—</div>
+          <div class="cong-stat-lbl">Con ingresos</div>
+        </div>
+        <div class="cong-stat">
+          <div class="cong-stat-val" id="statTotIng" style="font-size:.9rem">—</div>
+          <div class="cong-stat-lbl">Total ingresos</div>
+        </div>
+        <div class="cong-stat">
+          <div class="cong-stat-val" id="statTotGas" style="font-size:.9rem">—</div>
+          <div class="cong-stat-lbl">Total gastos</div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros-bar">
+        <div>
+          <label>Corporación</label>
+          <select id="selCorp" onchange="onCorpChange()">
+            <option value="">Todas las corporaciones</option>
+          </select>
+        </div>
+        <div>
+          <label>Circunscripción</label>
+          <select id="selCirc" onchange="onCircChange()">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div>
+          <label>Partido / Organización</label>
+          <select id="selPartido" onchange="filtrar()">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div>
+          <label>Buscar candidato</label>
+          <input type="text" id="txtBuscar" placeholder="Nombre..." oninput="filtrar()" />
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="card">
+        <div class="card-body" style="padding:0">
+          <div class="cong-table-wrap">
+            <table class="cong-table">
+              <thead>
+                <tr>
+                  <th onclick="sortBy('nombre')">Candidato ↕</th>
+                  <th onclick="sortBy('org')">Partido ↕</th>
+                  <th>Corporación</th>
+                  <th>Circunscripción</th>
+                  <th onclick="sortBy('total_ingresos')">Ingresos ↕</th>
+                  <th onclick="sortBy('total_gastos')">Gastos ↕</th>
+                  <th>Contador</th>
+                </tr>
+              </thead>
+              <tbody id="tablaBody">
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:rgba(224,244,255,0.3)">Cargando datos…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal detalle candidato -->
+  <div class="cong-modal-overlay" id="modalOverlay">
+    <div class="cong-modal cong-modal-wide">
+      <button class="cong-modal-close" onclick="cerrarDetalle()">✕</button>
+      <div class="cong-modal-title" id="modalTitulo"></div>
+
+      <!-- Tabs -->
+      <div class="cong-tabs">
+        <button class="cong-tab cong-tab-active" id="tabBtnConsolidado" onclick="activarTab('consolidado')">Consolidado</button>
+        <button class="cong-tab" id="tabBtnIngresos" onclick="activarTab('ingresos')">Ingresos</button>
+        <button class="cong-tab" id="tabBtnGastos" onclick="activarTab('gastos')">Gastos</button>
+        <button class="cong-tab" id="tabBtnANI" onclick="activarTab('ani')">ANI</button>
+        <a id="btn9B" href="https://adrianados-cne.onrender.com" target="_blank" class="cong-tab-ext">Ver portal ↗</a>
+      </div>
+
+      <!-- Panel: Consolidado -->
+      <div class="cong-tab-panel" id="panelConsolidado">
+        <div class="cong-detail-grid">
+          <div class="cong-detail-box">
+            <h4>Datos del candidato</h4>
+            <div class="cong-detail-row"><span>Partido</span><span id="modalOrg"></span></div>
+            <div class="cong-detail-row"><span>Corporación</span><span id="modalCorp"></span></div>
+            <div class="cong-detail-row"><span>Circunscripción</span><span id="modalCirc"></span></div>
+          </div>
+          <div class="cong-detail-box">
+            <h4>Financiero</h4>
+            <div class="cong-detail-row">
+              <span>Total ingresos</span>
+              <span class="monto-pos" id="modalTotIng"></span>
+            </div>
+            <div class="cong-detail-row">
+              <span>Registros</span>
+              <span id="modalNumIng"></span>
+            </div>
+            <div class="cong-detail-row" style="margin-top:8px">
+              <span>Total gastos</span>
+              <span class="monto-neg" id="modalTotGas"></span>
+            </div>
+            <div class="cong-detail-row">
+              <span>Registros</span>
+              <span id="modalNumGas"></span>
+            </div>
+          </div>
+          <div class="cong-detail-box">
+            <h4>Contador electoral</h4>
+            <div class="cong-detail-row"><span>Nombre</span><span id="modalContNombre"></span></div>
+            <div class="cong-detail-row"><span>Documento</span><span id="modalContDoc"></span></div>
+            <div class="cong-detail-row"><span>Tarjeta prof.</span><span id="modalContTarjeta"></span></div>
+            <div class="cong-detail-row"><span>Email</span><span id="modalContEmail"></span></div>
+            <div class="cong-detail-row"><span>Teléfono</span><span id="modalContTel"></span></div>
+          </div>
+          <div class="cong-detail-box">
+            <h4>Gerente de campaña</h4>
+            <div class="cong-detail-row"><span>Nombre</span><span id="modalGerNombre"></span></div>
+            <div class="cong-detail-row"><span>Documento</span><span id="modalGerDoc"></span></div>
+            <div class="cong-detail-row"><span>Banco</span><span id="modalGerBanco"></span></div>
+            <div class="cong-detail-row"><span>Cuenta</span><span id="modalGerCuenta"></span></div>
+            <div class="cong-detail-row"><span>Email</span><span id="modalGerEmail"></span></div>
+            <div class="cong-detail-row"><span>Teléfono</span><span id="modalGerTel"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Ingresos -->
+      <div class="cong-tab-panel" id="panelIngresos" style="display:none">
+        <div id="ingresosContent"><p class="cong-tab-loading">Cargando…</p></div>
+      </div>
+
+      <!-- Panel: Gastos -->
+      <div class="cong-tab-panel" id="panelGastos" style="display:none">
+        <div id="gastosContent"><p class="cong-tab-loading">Cargando…</p></div>
+      </div>
+
+      <!-- Panel: ANI -->
+      <div class="cong-tab-panel" id="panelANI" style="display:none">
+        <div id="aniContent"><p class="cong-tab-loading">Cargando…</p></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/core/auth.js"></script>
+  <script src="/components/sidebar.js"></script>
+  <script src="congreso.js"></script>
+</body>
+</html>
