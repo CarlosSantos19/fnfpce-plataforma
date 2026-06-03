@@ -673,6 +673,7 @@ class Handler(SimpleHTTPRequestHandler):
             elif path == "/api/presupuesto_full":
                 self._handle_presupuesto_full()
             else:
+                self.directory = getattr(self.server, 'portal_dir', os.getcwd())
                 super().do_GET()
         except Exception as e:
             self._send_error_json(str(e))
