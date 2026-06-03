@@ -11,7 +11,6 @@ const CARDS_CONFIG = {
   actas:        { icon: '◉', titulo: 'Actas',             desc: 'Gestión de actas de entrega, control y seguimiento',  path: '/modules/actas/actas.html' },
   cuentas:      { icon: '◆', titulo: 'Cuentas',           desc: 'Control y revisión de cuentas claras por entidad',    path: '/modules/cuentas/cuentas.html' },
   revision:           { icon: '◌', titulo: 'Revisión',    desc: 'Auditoría y revisión — Territoriales 2023, Consultas 2025, Congreso 2026', path: '/modules/revision/revision.html' },
-  congreso:           { icon: '◫', titulo: 'Congreso 2026', desc: 'Cuentas de campaña — candidatos, ingresos, gastos, contador y gerente', path: '/modules/congreso/congreso.html' },
   resumen:      { icon: '◑', titulo: 'Resumen',           desc: 'Indicadores generales del reparto ET2023',            path: '/modules/resumen/resumen.html' },
   sorteo:       { icon: '⬡', titulo: 'Sorteo',            desc: 'Distribución y sorteo de cuentas entre contadores',   path: '/modules/sorteo/sorteo.html' },
   carpetas:             { icon: '▣', titulo: 'Carpetas',          desc: 'Expedientes organizados por número de acta',                  path: '/modules/carpetas/carpetas.html' },

@@ -19,7 +19,6 @@
       "**/*.zip",
       "**/*.pdf",
       "ADRIANADOS/**",
-      "modules/congreso/data/candidatos/**",
       "ADRIANA/**",
       "BOOTRESPUESTA/**",
       "cuentas claras/**",
