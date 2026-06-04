@@ -131,6 +131,26 @@
     .cng-det-tbl td { padding:5px 9px;border-bottom:1px solid rgba(0,212,255,.06);color:var(--text);max-width:250px;overflow:hidden;text-overflow:ellipsis; }
     .cng-det-tbl tr:hover td { background:rgba(252,209,22,.03); }
     .cng-tab-msg { text-align:center;padding:28px;color:rgba(224,244,255,.3);font-size:.8rem; }
+
+    /* TRANSACCIONES header */
+    .cng-tx-header { display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(4,20,40,.9);border:1px solid rgba(0,212,255,.15);border-radius:8px 8px 0 0;padding:10px 14px;margin-bottom:0; }
+    .cng-tx-title { font-family:'Orbitron',monospace;font-size:.72rem;color:var(--text);letter-spacing:.08em; }
+    .cng-tx-badge { font-size:.6rem;padding:2px 8px;border-radius:10px;background:rgba(252,209,22,.1);border:1px solid rgba(252,209,22,.3);color:rgba(252,209,22,.7); }
+    .cng-tx-btns { display:flex;gap:6px;margin-left:auto; }
+    .cng-tx-btn { border:none;border-radius:20px;padding:4px 14px;font-size:.75rem;font-weight:600;cursor:pointer;opacity:.6;transition:opacity .15s; }
+    .cng-tx-btn.cng-tx-active { opacity:1; }
+    .cng-tx-ing { background:rgba(76,175,80,.2);color:#4caf50;border:1px solid rgba(76,175,80,.4); }
+    .cng-tx-gas { background:rgba(239,83,80,.2);color:#ef5350;border:1px solid rgba(239,83,80,.4); }
+
+    /* Filas de transacciones estilo ET2023 */
+    .cng-tx-list { border:1px solid rgba(0,212,255,.12);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;max-height:340px;overflow-y:auto; }
+    .cng-tx-row { display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(0,212,255,.07);transition:background .12s; }
+    .cng-tx-row:last-child { border-bottom:none; }
+    .cng-tx-row:hover { background:rgba(252,209,22,.04); }
+    .cng-tx-code { min-width:32px;font-family:'Orbitron',monospace;font-size:.62rem;color:rgba(0,212,255,.7);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:2px 5px;text-align:center; }
+    .cng-tx-desc { flex:1;font-size:.76rem;color:var(--text);line-height:1.35; }
+    .cng-tx-desc small { display:block;font-size:.67rem;color:rgba(224,244,255,.4);margin-top:1px; }
+    .cng-tx-monto { font-size:.75rem;font-weight:600;white-space:nowrap; }
   </style>
 </head>
 <body>
@@ -244,9 +264,17 @@
 
       <div class="cng-tabs">
         <button class="cng-tab cng-tab-active" id="cngTabBtnConsolidado" onclick="cngActivarTab('consolidado')">Consolidado</button>
-        <button class="cng-tab" id="cngTabBtnIngresos" onclick="cngActivarTab('ingresos')">Ingresos</button>
-        <button class="cng-tab" id="cng-tabBtnGastos" onclick="cngActivarTab('gastos')">Gastos</button>
         <button class="cng-tab" id="cngTabBtnAni" onclick="cngActivarTab('ani')">ANI</button>
+      </div>
+
+      <!-- Header transacciones -->
+      <div class="cng-tx-header" id="cngTxHeader" style="display:none">
+        <span class="cng-tx-title">TRANSACCIONES</span>
+        <span class="cng-tx-badge">REQUIERE SESIÓN CNE</span>
+        <div class="cng-tx-btns">
+          <button class="cng-tx-btn cng-tx-ing cng-tx-active" id="cngTabBtnIngresos" onclick="cngActivarTab('ingresos')">↓ Ingresos</button>
+          <button class="cng-tx-btn cng-tx-gas" id="cng-tabBtnGastos" onclick="cngActivarTab('gastos')">↑ Gastos</button>
+        </div>
       </div>
 
       <!-- Consolidado -->

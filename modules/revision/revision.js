@@ -35,8 +35,21 @@ async function abrirCongreso() {
   document.getElementById('seccionCongreso').style.display = 'block';
   if (_cngIndex) return;
   try {
-    const r = await fetch('/modules/revision/data/cc_index_1.json');
-    _cngIndex = await r.json();
+    const [rIdx, rAni] = await Promise.all([
+      fetch('/modules/revision/data/cc_index_1.json'),
+      fetch('/modules/revision/data/ani_summary.json')
+    ]);
+    _cngIndex = await rIdx.json();
+    const aniMap = await rAni.json();
+    // Mezclar ANI en cada candidato
+    for (const ddata of Object.values(_cngIndex)) {
+      for (const mun of Object.values(ddata.municipios)) {
+        for (const c of mun.candidatos) {
+          const a = aniMap[String(c.cand_id)];
+          c.ani = a ? { v: a.v, cedula: a.c } : {};
+        }
+      }
+    }
     _cngPoblarCorps();
     cngFiltrar();
   } catch(e) {
@@ -151,17 +164,29 @@ function cngSort(col) {
 
 // ── Tabs modal ────────────────────────────────────────────────────────────────
 function cngActivarTab(nombre) {
-  const tabs = ['consolidado','ingresos','gastos','ani'];
-  tabs.forEach(t => {
-    const pid = 'cngPanel' + t.charAt(0).toUpperCase() + t.slice(1);
-    const bid = t === 'gastos' ? 'cng-tabBtnGastos' : 'cngTabBtn' + t.charAt(0).toUpperCase() + t.slice(1);
-    document.getElementById(pid).style.display = 'none';
-    document.getElementById(bid).classList.remove('cng-tab-active');
+  // Paneles principales
+  ['consolidado','ingresos','gastos','ani'].forEach(t => {
+    document.getElementById('cngPanel' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = 'none';
   });
-  const selPid = 'cngPanel' + nombre.charAt(0).toUpperCase() + nombre.slice(1);
-  const selBid = nombre === 'gastos' ? 'cng-tabBtnGastos' : 'cngTabBtn' + nombre.charAt(0).toUpperCase() + nombre.slice(1);
-  document.getElementById(selPid).style.display = 'block';
-  document.getElementById(selBid).classList.add('cng-tab-active');
+  // Tabs superiores
+  ['cngTabBtnConsolidado','cngTabBtnAni'].forEach(id => {
+    document.getElementById(id).classList.remove('cng-tab-active');
+  });
+  // Botones transacciones
+  document.getElementById('cngTabBtnIngresos').classList.remove('cng-tx-active');
+  document.getElementById('cng-tabBtnGastos').classList.remove('cng-tx-active');
+
+  document.getElementById('cngPanel' + nombre.charAt(0).toUpperCase() + nombre.slice(1)).style.display = 'block';
+
+  const txHeader = document.getElementById('cngTxHeader');
+  if (nombre === 'ingresos' || nombre === 'gastos') {
+    txHeader.style.display = 'flex';
+    document.getElementById(nombre === 'ingresos' ? 'cngTabBtnIngresos' : 'cng-tabBtnGastos').classList.add('cng-tx-active');
+  } else {
+    txHeader.style.display = 'none';
+    const btnId = nombre === 'consolidado' ? 'cngTabBtnConsolidado' : 'cngTabBtnAni';
+    document.getElementById(btnId).classList.add('cng-tab-active');
+  }
 }
 
 // ── Detalle ───────────────────────────────────────────────────────────────────
@@ -193,8 +218,8 @@ async function cngAbrirDetalle(candId) {
   document.getElementById('cngMGerEmail').textContent  = ger.email     || '—';
   document.getElementById('cngMGerTel').textContent    = ger.telefono  || '—';
 
-  document.getElementById('cngTabBtnIngresos').textContent = `Ingresos (${c.num_ingresos||0})`;
-  document.getElementById('cng-tabBtnGastos').textContent  = `Gastos (${c.num_gastos||0})`;
+  document.getElementById('cngTabBtnIngresos').textContent = `↓ Ingresos (${c.num_ingresos||0})`;
+  document.getElementById('cng-tabBtnGastos').textContent  = `↑ Gastos (${c.num_gastos||0})`;
 
   cngActivarTab('consolidado');
   document.getElementById('cngIngContent').innerHTML = '<p class="cng-tab-msg">Cargando…</p>';
@@ -207,7 +232,7 @@ async function cngAbrirDetalle(candId) {
     const det = await r.json();
     _cngRenderIngresos(det.ingresos || []);
     _cngRenderGastos(det.gastos    || []);
-    _cngRenderANI(det.ani || c.ani || {}, det.cedula || '');
+    _cngRenderANI(det.ani || c.ani || {}, det.cedula || c.ani?.cedula || '');
   } catch(e) {
     const msg = '<p class="cng-tab-msg" style="color:#ef9a50">Portal de datos no disponible en este momento</p>';
     document.getElementById('cngIngContent').innerHTML = msg;
@@ -216,34 +241,28 @@ async function cngAbrirDetalle(candId) {
   }
 }
 
+function _cngTxRows(rows, esGasto) {
+  return rows.map(r => `
+    <div class="cng-tx-row">
+      <span class="cng-tx-code">${r.codigo||'—'}</span>
+      <div class="cng-tx-desc">
+        ${r.nom_formato || r.nom_ingreso || '—'}
+        <small>${r.nombre_persona ? r.nombre_persona + (r.nit_cedula ? ' · ' + r.nit_cedula : '') : ''}${r.fecha_registro_movimiento ? ' · ' + _fmtDate(r.fecha_registro_movimiento) : ''}</small>
+      </div>
+      <span class="cng-tx-monto ${esGasto ? 'monto-neg' : 'monto-pos'}">${_fmtTot(r.total)}</span>
+    </div>`).join('');
+}
+
 function _cngRenderIngresos(rows) {
-  if (!rows.length) { document.getElementById('cngIngContent').innerHTML = '<p class="cng-tab-msg">Sin registros</p>'; return; }
-  const tbody = rows.map(r => `<tr>
-    <td>${_fmtDate(r.fecha_registro_movimiento)}</td>
-    <td title="${r.nom_formato||''}">${_trunc(r.nom_formato,38)}</td>
-    <td title="${r.nom_ingreso||''}">${_trunc(r.nom_ingreso,42)}</td>
-    <td title="${r.nombre_persona||''}">${_trunc(r.nombre_persona,28)}</td>
-    <td>${r.nit_cedula||'—'}</td>
-    <td class="monto-pos">${_fmtTot(r.total)}</td>
-  </tr>`).join('');
-  document.getElementById('cngIngContent').innerHTML = `<div class="cng-det-wrap"><table class="cng-det-tbl">
-    <thead><tr><th>Fecha</th><th>Formato</th><th>Descripción</th><th>Tercero</th><th>NIT/Cédula</th><th>Total</th></tr></thead>
-    <tbody>${tbody}</tbody></table></div>`;
+  document.getElementById('cngIngContent').innerHTML = rows.length
+    ? `<div class="cng-tx-list">${_cngTxRows(rows, false)}</div>`
+    : '<p class="cng-tab-msg">Sin registros de ingresos</p>';
 }
 
 function _cngRenderGastos(rows) {
-  if (!rows.length) { document.getElementById('cngGasContent').innerHTML = '<p class="cng-tab-msg">Sin registros</p>'; return; }
-  const tbody = rows.map(r => `<tr>
-    <td>${_fmtDate(r.fecha_registro_movimiento)}</td>
-    <td title="${r.nom_formato||''}">${_trunc(r.nom_formato,38)}</td>
-    <td title="${r.nom_ingreso||''}">${_trunc(r.nom_ingreso,42)}</td>
-    <td title="${r.nombre_persona||''}">${_trunc(r.nombre_persona,28)}</td>
-    <td>${r.nit_cedula||'—'}</td>
-    <td class="monto-neg">${_fmtTot(r.total)}</td>
-  </tr>`).join('');
-  document.getElementById('cngGasContent').innerHTML = `<div class="cng-det-wrap"><table class="cng-det-tbl">
-    <thead><tr><th>Fecha</th><th>Formato</th><th>Descripción</th><th>Tercero</th><th>NIT/Cédula</th><th>Total</th></tr></thead>
-    <tbody>${tbody}</tbody></table></div>`;
+  document.getElementById('cngGasContent').innerHTML = rows.length
+    ? `<div class="cng-tx-list">${_cngTxRows(rows, true)}</div>`
+    : '<p class="cng-tab-msg">Sin registros de gastos</p>';
 }
 
 function _cngRenderANI(ani, cedula) {
