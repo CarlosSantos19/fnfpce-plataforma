@@ -544,6 +544,12 @@ def _indexar_congreso_2026_bg(usuario: str, password: str) -> None:
 
 class Handler(SimpleHTTPRequestHandler):
 
+    def end_headers(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        super().end_headers()
+
     # ── Helpers internos ──────────────────────────────────────────────────────
 
     def _send_json(self, data, status: int = 200):
@@ -604,6 +610,7 @@ class Handler(SimpleHTTPRequestHandler):
             elif path == "/api/cc_candidatos":
                 self._handle_cc_candidatos()
             else:
+                self.directory = getattr(self.server, 'portal_dir', os.getcwd())
                 super().do_GET()
         except Exception as e:
             self._send_error_json(str(e))
@@ -665,26 +672,6 @@ class Handler(SimpleHTTPRequestHandler):
     def _handle_fin_status(self):
         with _fin_lock_est:
             self._send_json(dict(_fin_estado))
-
-    def _handle_indexar_congreso_2026(self):
-        length = int(self.headers.get("Content-Length", 0))
-        raw    = self.rfile.read(length).decode("utf-8", errors="replace") if length else ""
-        try:
-            import json as _j2
-            body = _j2.loads(raw) if raw else {}
-        except Exception:
-            body = {}
-        usuario  = (body.get("usuario")  or "").strip()
-        password = (body.get("password") or "").strip()
-        if not usuario or not password:
-            return self._send_error_json("Falta usuario o contraseña.", 400)
-        with _idx26_lock:
-            if _idx26_estado["fase"] == "trabajando":
-                return self._send_json({"ok": False, "msg": "Ya hay una indexación en curso."})
-        t = threading.Thread(target=_indexar_congreso_2026_bg,
-                             args=(usuario, password), daemon=True)
-        t.start()
-        self._send_json({"ok": True, "msg": "Indexación Congreso 2026 iniciada."})
 
     def _handle_indexar_financiero(self):
         if _cne_session is None:
