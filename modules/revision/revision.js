@@ -17,8 +17,8 @@ const _trunc   = (s,n) => s && s.length > n ? s.substring(0,n)+'…' : (s||'');
 
 const _CAND_BASE = '/modules/revision/data/candidatos';
 const _PROXY2026 = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost:8080'
-  : 'https://portal-cc-cne.onrender.com';
+  ? 'http://localhost:8081'
+  : 'https://carlos-cne.onrender.com';
 
 let _cne2026Logueado = false;
 
@@ -219,29 +219,19 @@ function cngSort(col) {
 
 // ── Tabs modal ────────────────────────────────────────────────────────────────
 function cngActivarTab(nombre) {
-  // Paneles principales
   ['consolidado','ingresos','gastos','ani'].forEach(t => {
     document.getElementById('cngPanel' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = 'none';
   });
-  // Tabs superiores
-  ['cngTabBtnConsolidado','cngTabBtnAni'].forEach(id => {
+  ['cngTabBtnConsolidado','cngTabBtnIngresos','cng-tabBtnGastos','cngTabBtnAni'].forEach(id => {
     document.getElementById(id).classList.remove('cng-tab-active');
   });
-  // Botones transacciones
-  document.getElementById('cngTabBtnIngresos').classList.remove('cng-tx-active');
-  document.getElementById('cng-tabBtnGastos').classList.remove('cng-tx-active');
 
   document.getElementById('cngPanel' + nombre.charAt(0).toUpperCase() + nombre.slice(1)).style.display = 'block';
 
-  const txHeader = document.getElementById('cngTxHeader');
-  if (nombre === 'ingresos' || nombre === 'gastos') {
-    txHeader.style.display = 'flex';
-    document.getElementById(nombre === 'ingresos' ? 'cngTabBtnIngresos' : 'cng-tabBtnGastos').classList.add('cng-tx-active');
-  } else {
-    txHeader.style.display = 'none';
-    const btnId = nombre === 'consolidado' ? 'cngTabBtnConsolidado' : 'cngTabBtnAni';
-    document.getElementById(btnId).classList.add('cng-tab-active');
-  }
+  const btnMap = { consolidado:'cngTabBtnConsolidado', ingresos:'cngTabBtnIngresos', gastos:'cng-tabBtnGastos', ani:'cngTabBtnAni' };
+  document.getElementById(btnMap[nombre]).classList.add('cng-tab-active');
+
+  document.getElementById('cngTxHeader').style.display = (nombre === 'ingresos' || nombre === 'gastos') ? 'flex' : 'none';
 }
 
 // ── Detalle ───────────────────────────────────────────────────────────────────
