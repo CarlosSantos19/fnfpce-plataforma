@@ -2,6 +2,7 @@ services:
   - type: web
     name: carlos-cne
     runtime: python
+    rootDir: ADRIANA
     buildCommand: pip install -r requirements.txt
     startCommand: python servidor.py $PORT
     plan: free
