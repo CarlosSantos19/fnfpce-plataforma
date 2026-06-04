@@ -59,16 +59,16 @@ candidatos   = completo.get("candidatos", [])
 print(f"  Con ingresos: {len(ingresos_raw)}")
 print(f"  Con gastos:   {len(gastos_raw)}")
 
-CAMPOS_ING = ["nom_ingreso", "des_ingreso", "nom_formato", "codigo",
+CAMPOS_ING = ["id_ingreso", "nom_ingreso", "des_ingreso", "nom_formato", "codigo",
               "total", "nombre_persona", "nit_cedula", "tipo_contribucion",
               "especie", "donacion", "credito", "aporte",
               "fecha_registro_movimiento", "no_comprobante_interno",
-              "partido_movimiento", "acta_no"]
+              "partido_movimiento", "acta_no", "archivo"]
 
-CAMPOS_GAS = ["nom_ingreso", "des_ingreso", "nom_formato", "codigo",
+CAMPOS_GAS = ["id_gasto", "nom_ingreso", "des_ingreso", "nom_formato", "codigo",
               "total", "nombre_persona", "nit_cedula",
               "fecha_registro_movimiento", "no_comprobante_interno",
-              "acta_no", "clasificacion", "lugar_evento"]
+              "acta_no", "clasificacion", "lugar_evento", "archivo"]
 
 def slim(record, campos):
     return {k: record.get(k) for k in campos if record.get(k) is not None}

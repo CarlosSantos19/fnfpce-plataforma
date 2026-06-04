@@ -15,9 +15,64 @@ const _fmtDate = s => s ? s.substring(0,10) : '—';
 const _fmtTot  = v => { const n = parseFloat(String(v||0).replace(/,/g,'')); return isNaN(n) ? (v||'—') : '$'+n.toLocaleString('es-CO',{maximumFractionDigits:0}); };
 const _trunc   = (s,n) => s && s.length > n ? s.substring(0,n)+'…' : (s||'');
 
-const _CAND_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost:8081/data/candidatos_cong'
-  : 'https://adrianados-cne.onrender.com/data/candidatos_cong';
+const _CAND_BASE = '/modules/revision/data/candidatos';
+const _PROXY2026 = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:8081'
+  : 'https://adrianados-cne.onrender.com';
+
+let _cne2026Logueado = false;
+
+async function _cne2026CheckLogin() {
+  try {
+    const r = await fetch(_PROXY2026 + '/api/cne2026_status');
+    const d = await r.json();
+    _cne2026Logueado = d.logueado || false;
+  } catch(e) { _cne2026Logueado = false; }
+}
+
+function cne2026AbrirLogin() {
+  document.getElementById('cne2026LoginOverlay').style.display = 'flex';
+}
+
+async function cne2026Login() {
+  const u = document.getElementById('cne2026User').value.trim();
+  const p = document.getElementById('cne2026Pass').value.trim();
+  const msg = document.getElementById('cne2026Msg');
+  const btn = document.getElementById('cne2026Btn');
+  if (!u || !p) { msg.textContent = 'Ingrese usuario y contraseña'; return; }
+  btn.disabled = true; msg.textContent = 'Conectando…';
+  try {
+    const r = await fetch(_PROXY2026 + '/api/cne2026_login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({usuario: u, password: p})
+    });
+    const d = await r.json();
+    if (d.ok) {
+      _cne2026Logueado = true;
+      document.getElementById('cne2026LoginOverlay').style.display = 'none';
+      document.getElementById('cne2026ConectarBtn').textContent = '● CNE Conectado';
+      document.getElementById('cne2026ConectarBtn').style.color = '#4caf50';
+    } else {
+      msg.textContent = d.msg || 'Error de autenticación';
+    }
+  } catch(e) {
+    msg.textContent = 'No se pudo conectar al proxy ADRIANADOS';
+  }
+  btn.disabled = false;
+}
+
+function cne2026PdfUrl(tipo, id, candId) {
+  const ep = tipo === 'ing'
+    ? `descargar-archivo-ingreso?id=${id}&id_candi=${candId}&id_proceso=1`
+    : `descargar-archivo-gasto?id=${id}&id_candi=${candId}&id_proceso=1`;
+  return `${_PROXY2026}/api/cne2026/${ep}`;
+}
+
+function cne2026AbrirPdf(tipo, id, candId) {
+  if (!_cne2026Logueado) { cne2026AbrirLogin(); return; }
+  window.open(cne2026PdfUrl(tipo, id, candId), '_blank');
+}
 
 let _cngIndex = null;
 let _cngLista = [];
@@ -221,11 +276,13 @@ async function cngAbrirDetalle(candId) {
   document.getElementById('cngTabBtnIngresos').textContent = `↓ Ingresos (${c.num_ingresos||0})`;
   document.getElementById('cng-tabBtnGastos').textContent  = `↑ Gastos (${c.num_gastos||0})`;
 
+  _cngCurrentCandId = candId;
   cngActivarTab('consolidado');
   document.getElementById('cngIngContent').innerHTML = '<p class="cng-tab-msg">Cargando…</p>';
   document.getElementById('cngGasContent').innerHTML = '<p class="cng-tab-msg">Cargando…</p>';
   document.getElementById('cngAniContent').innerHTML = '<p class="cng-tab-msg">Cargando…</p>';
   document.getElementById('cngModalOverlay').classList.add('open');
+  _cne2026CheckLogin();
 
   try {
     const r   = await fetch(`${_CAND_BASE}/${candId}.json`);
@@ -241,8 +298,17 @@ async function cngAbrirDetalle(candId) {
   }
 }
 
+let _cngCurrentCandId = null;
+
 function _cngTxRows(rows, esGasto) {
-  return rows.map(r => `
+  const tipo = esGasto ? 'gas' : 'ing';
+  const idField = esGasto ? 'id_gasto' : 'id_ingreso';
+  return rows.map(r => {
+    const docId = r[idField];
+    const pdfBtn = docId
+      ? `<button class="cng-tx-pdf" onclick="cne2026AbrirPdf('${tipo}',${docId},${_cngCurrentCandId})" title="Ver PDF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`
+      : '';
+    return `
     <div class="cng-tx-row">
       <span class="cng-tx-code">${r.codigo||'—'}</span>
       <div class="cng-tx-desc">
@@ -250,7 +316,9 @@ function _cngTxRows(rows, esGasto) {
         <small>${r.nombre_persona ? r.nombre_persona + (r.nit_cedula ? ' · ' + r.nit_cedula : '') : ''}${r.fecha_registro_movimiento ? ' · ' + _fmtDate(r.fecha_registro_movimiento) : ''}</small>
       </div>
       <span class="cng-tx-monto ${esGasto ? 'monto-neg' : 'monto-pos'}">${_fmtTot(r.total)}</span>
-    </div>`).join('');
+      ${pdfBtn}
+    </div>`;
+  }).join('');
 }
 
 function _cngRenderIngresos(rows) {

@@ -28,6 +28,13 @@ CNE_API        = "https://app.cne.gov.co/fondo/public"
 CNE_LOGIN_URL  = "https://app.cne.gov.co/usuarios/public/login"
 CNE_LOGIN_HOME = "https://app.cne.gov.co/usuarios/public/"   # GET aquí para CSRF
 CNE_AUTOLOGIN  = "https://app.cne.gov.co/usuarios/public/autoLoginRedirect/1"
+
+# ── Constantes CNE Congreso 2026 ──────────────────────────────────────────────
+CNE2026_API        = "https://app_cng_2026.cne.gov.co/fondo_cng_2026/public"
+CNE2026_LOGIN_HOME = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/"
+CNE2026_LOGIN_URL  = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/login"
+_cne2026_session: "requests.Session | None" = None
+_cne2026_session_ts: float = 0.0
 DRIVE     = "P:"
 _cne_session: requests.Session | None = None
 _cne_session_ts: float = 0.0
@@ -672,6 +679,10 @@ class Handler(SimpleHTTPRequestHandler):
                 self._handle_pagos_partido()
             elif path == "/api/presupuesto_full":
                 self._handle_presupuesto_full()
+            elif path == "/api/cne2026_status":
+                self._handle_cne2026_status()
+            elif path.startswith("/api/cne2026/"):
+                self._handle_cne2026_proxy()
             else:
                 self.directory = getattr(self.server, 'portal_dir', os.getcwd())
                 super().do_GET()
@@ -681,7 +692,9 @@ class Handler(SimpleHTTPRequestHandler):
     def do_POST(self):
         path = urlparse(self.path).path
         try:
-            if path in ("/api/cne_login", "/api/cne_login_manual"):
+            if path == "/api/cne2026_login":
+                self._handle_cne2026_login()
+            elif path in ("/api/cne_login", "/api/cne_login_manual"):
                 self._handle_cne_login()
             elif path == "/api/construir_indice":
                 self._handle_construir_indice()
@@ -2263,6 +2276,73 @@ class Handler(SimpleHTTPRequestHandler):
             self.wfile.write(body)
         except Exception as e:
             self._send_error_json(str(e))
+
+
+    # ── CNE Congreso 2026 ─────────────────────────────────────────────────────
+
+    def _handle_cne2026_status(self):
+        global _cne2026_session
+        ok = _cne2026_session is not None
+        self._send_json({"logueado": ok})
+
+    def _handle_cne2026_login(self):
+        global _cne2026_session, _cne2026_session_ts
+        length = int(self.headers.get("Content-Length", 0))
+        body   = json.loads(self.rfile.read(length) or b"{}") if length else {}
+        usuario = body.get("usuario", "").strip()
+        password = body.get("password", "").strip()
+        if not usuario or not password:
+            return self._send_json({"ok": False, "msg": "Falta usuario o contraseña"}, 400)
+        try:
+            sess = requests.Session()
+            sess.headers.update({"User-Agent": "Mozilla/5.0"})
+            r0 = sess.get(CNE2026_LOGIN_HOME, timeout=15, allow_redirects=True)
+            token = ""
+            for line in r0.text.splitlines():
+                if "_token" in line and "value=" in line:
+                    import re as _re
+                    m = _re.search(r'value="([^"]+)"', line)
+                    if m: token = m.group(1); break
+            r1 = sess.post(CNE2026_LOGIN_URL, data={
+                "_token": token, "login": usuario, "password": password
+            }, timeout=20, allow_redirects=True)
+            if "login" in r1.url.lower() and "redirect" not in r1.url.lower():
+                return self._send_json({"ok": False, "msg": "Credenciales incorrectas"}, 401)
+            _cne2026_session = sess
+            _cne2026_session_ts = __import__("time").time()
+            self._send_json({"ok": True, "msg": "Sesión CNE 2026 iniciada"})
+        except Exception as e:
+            self._send_json({"ok": False, "msg": str(e)}, 500)
+
+    def _handle_cne2026_proxy(self):
+        global _cne2026_session
+        if not _cne2026_session:
+            return self._send_json({"error": "Sin sesión CNE 2026"}, 401)
+        parsed  = urlparse(self.path)
+        endpoint = parsed.path.replace("/api/cne2026/", "", 1)
+        params   = dict(p.split("=", 1) for p in parsed.query.split("&") if "=" in p)
+        url = CNE2026_API + "/" + endpoint.lstrip("/")
+        try:
+            xsrf = requests.utils.unquote(_cne2026_session.cookies.get("XSRF-TOKEN", ""))
+            headers = {
+                "Accept": "application/pdf,application/octet-stream,*/*",
+                "X-Requested-With": "XMLHttpRequest",
+                "X-XSRF-TOKEN": xsrf,
+                "Referer": CNE2026_API + "/",
+            }
+            r = _cne2026_session.get(url, params=params, headers=headers, timeout=30)
+            ct = r.headers.get("Content-Type", "application/octet-stream")
+            content = r.content
+            self.send_response(200)
+            self.send_header("Content-Type", ct)
+            self.send_header("Content-Length", str(len(content)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            if "pdf" in ct or "octet" in ct:
+                self.send_header("Content-Disposition", "inline")
+            self.end_headers()
+            self.wfile.write(content)
+        except Exception as e:
+            self._send_json({"error": str(e)}, 500)
 
 
 # ── Servidor multi-hilo ───────────────────────────────────────────────────────

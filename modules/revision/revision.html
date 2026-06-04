@@ -151,6 +151,10 @@
     .cng-tx-desc { flex:1;font-size:.76rem;color:var(--text);line-height:1.35; }
     .cng-tx-desc small { display:block;font-size:.67rem;color:rgba(224,244,255,.4);margin-top:1px; }
     .cng-tx-monto { font-size:.75rem;font-weight:600;white-space:nowrap; }
+    .cng-tx-conectar { margin-left:auto;font-size:.68rem;padding:3px 10px;border-radius:10px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);color:rgba(0,212,255,.7);cursor:pointer; }
+    .cng-tx-conectar:hover { color:var(--accent);border-color:var(--accent); }
+    .cng-tx-pdf { background:none;border:none;color:#ef5350;cursor:pointer;padding:2px 4px;opacity:.7;transition:opacity .15s; }
+    .cng-tx-pdf:hover { opacity:1; }
   </style>
 </head>
 <body>
@@ -270,11 +274,11 @@
       <!-- Header transacciones -->
       <div class="cng-tx-header" id="cngTxHeader" style="display:none">
         <span class="cng-tx-title">TRANSACCIONES</span>
-        <span class="cng-tx-badge">REQUIERE SESIÓN CNE</span>
         <div class="cng-tx-btns">
           <button class="cng-tx-btn cng-tx-ing cng-tx-active" id="cngTabBtnIngresos" onclick="cngActivarTab('ingresos')">↓ Ingresos</button>
           <button class="cng-tx-btn cng-tx-gas" id="cng-tabBtnGastos" onclick="cngActivarTab('gastos')">↑ Gastos</button>
         </div>
+        <button id="cne2026ConectarBtn" onclick="cne2026AbrirLogin()" class="cng-tx-conectar">🔗 Conectar CNE</button>
       </div>
 
       <!-- Consolidado -->
@@ -326,6 +330,21 @@
       <!-- ANI -->
       <div class="cng-tab-panel" id="cngPanelAni" style="display:none">
         <div id="cngAniContent"><p class="cng-tab-msg">Cargando…</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login CNE 2026 -->
+  <div id="cne2026LoginOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;flex-direction:column">
+    <div style="background:#060f1e;border:1px solid rgba(0,212,255,.3);border-radius:12px;padding:28px;width:340px;max-width:92%">
+      <div style="font-family:'Orbitron',monospace;font-size:.85rem;color:var(--accent);margin-bottom:6px">CNE · Congreso 2026</div>
+      <div style="font-size:.73rem;color:rgba(224,244,255,.45);margin-bottom:18px">Ingresa tus credenciales para ver los PDFs</div>
+      <input id="cne2026User" type="text" placeholder="Número de documento" style="width:100%;background:rgba(4,20,40,.9);border:1px solid rgba(0,212,255,.25);color:var(--text);border-radius:6px;padding:8px 12px;font-size:.82rem;margin-bottom:10px;box-sizing:border-box">
+      <input id="cne2026Pass" type="password" placeholder="Contraseña" onkeydown="if(event.key==='Enter')cne2026Login()" style="width:100%;background:rgba(4,20,40,.9);border:1px solid rgba(0,212,255,.25);color:var(--text);border-radius:6px;padding:8px 12px;font-size:.82rem;margin-bottom:10px;box-sizing:border-box">
+      <div id="cne2026Msg" style="font-size:.72rem;color:#ef9a50;min-height:18px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <button id="cne2026Btn" onclick="cne2026Login()" style="flex:1;background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.4);color:var(--accent);border-radius:6px;padding:8px;cursor:pointer;font-size:.82rem">Conectar</button>
+        <button onclick="document.getElementById('cne2026LoginOverlay').style.display='none'" style="background:none;border:1px solid rgba(224,244,255,.2);color:rgba(224,244,255,.5);border-radius:6px;padding:8px 14px;cursor:pointer;font-size:.82rem">Cancelar</button>
       </div>
     </div>
   </div>
