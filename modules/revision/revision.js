@@ -17,16 +17,16 @@ const _trunc   = (s,n) => s && s.length > n ? s.substring(0,n)+'…' : (s||'');
 
 const _CAND_BASE = '/modules/revision/data/candidatos';
 const _PROXY2026 = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost:8081'
-  : 'https://adrianados-cne.onrender.com';
+  ? 'http://localhost:8080'
+  : 'https://portal-cc-cne.onrender.com';
 
 let _cne2026Logueado = false;
 
 async function _cne2026CheckLogin() {
   try {
-    const r = await fetch(_PROXY2026 + '/api/cne2026_status');
+    const r = await fetch(_PROXY2026 + '/api/cne_status');
     const d = await r.json();
-    _cne2026Logueado = d.logueado || false;
+    _cne2026Logueado = d.sesion_activa || false;
   } catch(e) { _cne2026Logueado = false; }
 }
 
@@ -42,13 +42,13 @@ async function cne2026Login() {
   if (!u || !p) { msg.textContent = 'Ingrese usuario y contraseña'; return; }
   btn.disabled = true; msg.textContent = 'Conectando…';
   try {
-    const r = await fetch(_PROXY2026 + '/api/cne2026_login', {
+    const r = await fetch(_PROXY2026 + '/api/cne_login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({usuario: u, password: p})
     });
     const d = await r.json();
-    if (d.ok) {
+    if (d.ok || d.sesion_activa) {
       _cne2026Logueado = true;
       document.getElementById('cne2026LoginOverlay').style.display = 'none';
       document.getElementById('cne2026ConectarBtn').textContent = '● CNE Conectado';
@@ -66,7 +66,7 @@ function cne2026PdfUrl(tipo, id, candId) {
   const ep = tipo === 'ing'
     ? `descargar-archivo-ingreso?id=${id}&id_candi=${candId}&id_proceso=1`
     : `descargar-archivo-gasto?id=${id}&id_candi=${candId}&id_proceso=1`;
-  return `${_PROXY2026}/api/cne2026/${ep}`;
+  return `${_PROXY2026}/api/cne/${ep}`;
 }
 
 function cne2026AbrirPdf(tipo, id, candId) {
