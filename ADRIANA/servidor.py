@@ -57,6 +57,10 @@ _fin_lock_est = threading.Lock()
 _idx26_estado: dict = {"fase": "idle", "pct": 0, "msg": "", "error": ""}
 _idx26_lock = threading.Lock()
 
+# Estado del indexador financiero Congreso 2026
+_fin2026_estado: dict = {"fase": "idle", "pct": 0, "msg": "", "error": ""}
+_fin2026_lock = threading.Lock()
+
 
 # ── Utilidades ────────────────────────────────────────────────────────────────
 
@@ -499,58 +503,178 @@ def _idx26_set(fase: str, pct: int, msg: str, error: str = "") -> None:
     print(f"[Congreso2026] {msg}")
 
 def _indexar_congreso_2026_bg(usuario: str, password: str) -> None:
-    """Corre indexar_congreso_2026.py en segundo plano desde servidor.py."""
-    import importlib.util, sys as _sys, os as _os, traceback
-    _idx26_set("trabajando", 5, "Iniciando login en 2026.cne.gov.co…")
+    """Descarga índice de candidatos Congreso 2026 y actualiza cc_index_1.json."""
+    import importlib.util, os as _os, traceback
+    _idx26_set("trabajando", 5, "Iniciando login en CNE 2026…")
     try:
-        script = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
-                               "indexar_congreso_2026.py")
+        # Buscar indexar_congreso_2026.py en ADRIANADOS (directorio hermano)
+        base = _os.path.dirname(_os.path.abspath(__file__))
+        script = _os.path.join(base, "..", "ADRIANADOS", "indexar_congreso_2026.py")
+        if not _os.path.exists(script):
+            script = _os.path.join(base, "indexar_congreso_2026.py")
+        if not _os.path.exists(script):
+            _idx26_set("error", 0, "indexar_congreso_2026.py no encontrado", "")
+            return
         spec = importlib.util.spec_from_file_location("_idx26", script)
         mod  = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
 
-        _idx26_set("trabajando", 10, "Conectando…")
+        _idx26_set("trabajando", 10, "Conectando con CNE 2026…")
         sess = mod._login(usuario, password)
         if sess is None:
             _idx26_set("error", 0, "Login fallido. Verifica credenciales.", "login")
             return
 
-        _idx26_set("trabajando", 20, "Detectando proceso Congreso 2026…")
-        procesos, candidatos_26 = mod._detectar_proceso(sess)
-
-        # Guardar cc_procesos.json
-        import json as _j
-        data_dir = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "data")
+        # Monkey-patch DATA_DIR para guardar en data/ de ADRIANA
+        data_dir = _os.path.join(base, "data")
         _os.makedirs(data_dir, exist_ok=True)
-        with open(_os.path.join(data_dir, "cc_procesos.json"), "w", encoding="utf-8") as fh:
-            _j.dump([{"id": p["id"], "nombre": p["nombre"], "fecha": p["fecha"]}
-                     for p in procesos], fh, ensure_ascii=False, indent=2)
+        mod.DATA_DIR = data_dir
 
-        if not candidatos_26:
-            _idx26_set("error", 0, "No se encontró proceso Congreso 2026 en el CNE.", "no_proceso")
-            return
-
-        proceso_id = candidatos_26[0]["id"]
-        nombre_proc = candidatos_26[0]["nombre"]
-        _idx26_set("trabajando", 30, f"Proceso detectado: [{proceso_id}] {nombre_proc}")
-
-        # Monkey-patch para reportar progreso
         _orig_ok = mod._ok
         def _ok_prog(msg):
             _orig_ok(msg)
             if "candidatos" in msg.lower():
                 _idx26_set("trabajando", 60, msg)
-            elif "archivos" in msg.lower():
-                _idx26_set("trabajando", 85, msg)
             elif "ndice" in msg.lower():
                 _idx26_set("trabajando", 90, msg)
         mod._ok = _ok_prog
 
-        _idx26_set("trabajando", 35, f"Descargando candidatos del proceso {proceso_id}…")
-        mod.indexar(sess, proceso_id)
-        _idx26_set("listo", 100, f"Indexación completada. Proceso [{proceso_id}] listo.")
+        _idx26_set("trabajando", 30, "Descargando candidatos Congreso 2026…")
+        mod.indexar(sess)
+        _idx26_set("listo", 100, "Índice Congreso 2026 actualizado.")
     except Exception:
         _idx26_set("error", 0, "Error en indexación", traceback.format_exc())
+
+
+# ── Indexador financiero Congreso 2026 ────────────────────────────────────────
+
+def _fin2026_set(fase: str, pct: int, msg: str, error: str = "") -> None:
+    with _fin2026_lock:
+        _fin2026_estado.update({"fase": fase, "pct": pct, "msg": msg, "error": error})
+    print(f"[Fin2026] {msg}")
+
+def _indexar_financiero_2026_bg() -> None:
+    """Descarga ingresos/gastos completos (todas las páginas) para Congreso 2026."""
+    import os as _os, json as _j
+    global _cne_session, _cne_api_activo
+
+    base     = _os.path.dirname(_os.path.abspath(__file__))
+    data_dir = _os.path.join(base, "data")
+    cand_dir = _os.path.join(data_dir, "candidatos_cong")
+
+    idx_path = _os.path.join(data_dir, "cc_index_1.json")
+    if not _os.path.exists(idx_path):
+        return _fin2026_set("error", 0, "cc_index_1.json no encontrado", "")
+
+    with open(idx_path, encoding="utf-8") as f:
+        idx = _j.load(f)
+
+    cands = []
+    for sec_data in idx.values():
+        for mun_data in sec_data.get("municipios", {}).values():
+            for c in mun_data.get("candidatos", []):
+                if c.get("cand_id"):
+                    cands.append(c)
+
+    if not cands:
+        return _fin2026_set("error", 0, "Sin candidatos en el índice", "")
+
+    total = len(cands)
+    _fin2026_set("trabajando", 2, f"Iniciando descarga para {total} candidatos…")
+
+    api_base = CNE_API_2026
+
+    def _cne_get26(endpoint, params=None):
+        if _cne_session is None:
+            return None
+        url  = api_base + "/" + endpoint.lstrip("/")
+        xsrf = _get_xsrf(_cne_session)
+        hdrs = {"Accept": "application/json", "X-Requested-With": "XMLHttpRequest",
+                "X-XSRF-TOKEN": xsrf, "Referer": api_base + "/"}
+        try:
+            r = _cne_session.get(url, params=params, headers=hdrs, timeout=30)
+            return r.json() if r.ok else None
+        except Exception:
+            return None
+
+    def _todas_paginas(endpoint, data_key, cand_id):
+        items = []
+        p0 = {"page": 1, "idcandidato": cand_id, "idproceso": 1}
+        d0 = _cne_get26(endpoint, p0)
+        if not d0 or data_key not in d0:
+            return items
+        blk = d0[data_key]
+        items.extend(blk.get("data", []))
+        last_p = blk.get("last_page", 1)
+        for pg in range(2, last_p + 1):
+            d = _cne_get26(endpoint, {"page": pg, "idcandidato": cand_id, "idproceso": 1})
+            if d and data_key in d:
+                items.extend(d[data_key].get("data", []))
+        return items
+
+    CAMPOS_ING = ["id_ingreso", "nom_ingreso", "des_ingreso", "nom_formato", "codigo",
+                  "total", "nombre_persona", "nit_cedula", "tipo_contribucion",
+                  "especie", "donacion", "credito", "aporte",
+                  "fecha_registro_movimiento", "no_comprobante_interno",
+                  "partido_movimiento", "acta_no", "archivo"]
+    CAMPOS_GAS = ["id_gasto", "nom_ingreso", "des_ingreso", "nom_formato", "codigo",
+                  "total", "nombre_persona", "nit_cedula",
+                  "fecha_registro_movimiento", "no_comprobante_interno",
+                  "acta_no", "clasificacion", "lugar_evento", "archivo"]
+
+    def _slim(r, campos):
+        return {k: r.get(k) for k in campos if r.get(k) is not None}
+
+    def _sum_total(rows):
+        t = 0.0
+        for r in rows:
+            try:
+                t += float(str(r.get("total") or 0).replace(",", "").replace("$", "") or 0)
+            except Exception:
+                pass
+        return t
+
+    done = updated = skipped = 0
+
+    for c in cands:
+        cand_id  = c.get("cand_id")
+        slim_path = _os.path.join(cand_dir, f"{cand_id}.json")
+
+        existing = {}
+        if _os.path.exists(slim_path):
+            try:
+                with open(slim_path, encoding="utf-8") as f:
+                    existing = _j.load(f)
+            except Exception:
+                pass
+
+        ingresos = _todas_paginas("ingreso/listarIngresos", "ingreso", cand_id)
+        gastos   = _todas_paginas("gasto/listarGastos",   "gasto",   cand_id)
+
+        if ingresos or gastos:
+            existing.update({
+                "total_ingresos": _sum_total(ingresos),
+                "total_gastos":   _sum_total(gastos),
+                "num_ingresos":   len(ingresos),
+                "num_gastos":     len(gastos),
+                "ingresos":       [_slim(r, CAMPOS_ING) for r in ingresos[:50]],
+                "gastos":         [_slim(r, CAMPOS_GAS) for r in gastos[:50]],
+            })
+            _os.makedirs(cand_dir, exist_ok=True)
+            with open(slim_path, "w", encoding="utf-8") as f:
+                _j.dump(existing, f, ensure_ascii=False, separators=(",", ":"))
+            updated += 1
+        else:
+            skipped += 1
+
+        done += 1
+        if done % 5 == 0 or done == total:
+            pct = 5 + int(done * 90 / total)
+            _fin2026_set("trabajando", pct,
+                         f"{done}/{total} · Actualizados: {updated} · Sin datos: {skipped}")
+
+    _fin2026_set("listo", 100,
+                 f"Completado: {updated} actualizados, {skipped} sin datos de {total} candidatos")
 
 
 # ── Handler ───────────────────────────────────────────────────────────────────
@@ -613,6 +737,9 @@ class Handler(SimpleHTTPRequestHandler):
             elif path == "/api/idx26_status":
                 with _idx26_lock:
                     self._send_json(dict(_idx26_estado))
+            elif path == "/api/fin2026_status":
+                with _fin2026_lock:
+                    self._send_json(dict(_fin2026_estado))
             elif path.startswith("/api/cne/"):
                 self._handle_cne_proxy()
             elif path == "/api/lista_respuestas":
@@ -638,6 +765,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self._handle_indexar_financiero()
             elif path == "/api/indexar_congreso_2026":
                 self._handle_indexar_congreso_2026()
+            elif path == "/api/indexar_financiero_2026":
+                self._handle_indexar_financiero_2026()
             elif path == "/api/cne_import_cookies":
                 self._handle_cne_import_cookies()
             elif path == "/api/guardar_liquidacion":
@@ -1553,6 +1682,35 @@ class Handler(SimpleHTTPRequestHandler):
             "per_page":   per_page,
             "candidatos": resultados[start: start + per_page],
         })
+
+    # ── /api/indexar_congreso_2026 ────────────────────────────────────────────
+
+    def _handle_indexar_congreso_2026(self):
+        length   = int(self.headers.get("Content-Length", 0))
+        body     = json.loads(self.rfile.read(length) or b"{}") if length else {}
+        usuario  = body.get("usuario", "").strip()
+        password = body.get("password", "").strip()
+        if not usuario or not password:
+            return self._send_error_json("Credenciales requeridas", 400)
+        with _idx26_lock:
+            if _idx26_estado["fase"] == "trabajando":
+                return self._send_json({"ok": False, "msg": "Ya hay una indexación en curso"})
+        t = threading.Thread(target=_indexar_congreso_2026_bg,
+                             args=(usuario, password), daemon=True)
+        t.start()
+        self._send_json({"ok": True, "msg": "Indexación Congreso 2026 iniciada"})
+
+    # ── /api/indexar_financiero_2026 ──────────────────────────────────────────
+
+    def _handle_indexar_financiero_2026(self):
+        if _cne_session is None:
+            return self._send_error_json("Sin sesión CNE activa. Conéctate primero.", 401)
+        with _fin2026_lock:
+            if _fin2026_estado["fase"] == "trabajando":
+                return self._send_json({"ok": False, "msg": "Ya hay una indexación financiera en curso"})
+        t = threading.Thread(target=_indexar_financiero_2026_bg, daemon=True)
+        t.start()
+        self._send_json({"ok": True, "msg": "Indexación financiera Congreso 2026 iniciada"})
 
     # ── /api/guardar_liquidacion ──────────────────────────────────────────────
 

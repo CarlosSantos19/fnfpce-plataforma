@@ -261,6 +261,30 @@
       </div>
     </div>
 
+    <!-- Indexación financiera Congreso 2026 -->
+    <div class="card mb-2 border-warning">
+      <div class="card-body py-2 px-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div>
+            <span class="fw-semibold small"><i class="fa fa-dollar-sign me-1 text-warning"></i>Actualizar Ingresos &amp; Gastos Congreso 2026</span>
+            <div class="small text-muted">Descarga todas las páginas de ingresos/gastos para cada candidato (requiere CNE Conectado)</div>
+          </div>
+          <button class="btn btn-sm btn-warning ms-auto" onclick="_iniciarFin2026()" id="btnFin2026">
+            <i class="fa fa-play me-1"></i>Actualizar
+          </button>
+        </div>
+        <div id="fin2026Box" style="display:none" class="mt-2">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span id="fin2026Msg" class="small text-muted">–</span>
+            <span id="fin2026Pct" class="small fw-bold">0%</span>
+          </div>
+          <div class="progress" style="height:6px">
+            <div class="progress-bar bg-warning" id="fin2026Bar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- PANEL RESUMEN FILTRO ACTUAL -->
     <div id="panelResumen" style="display:none" class="my-2">
       <!-- Fila 1: Financiero -->
@@ -728,6 +752,13 @@ window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('btnIdx2026').innerHTML = '<i class="fa fa-check me-1"></i>Completado — volver a indexar';
     }
   }).catch(() => {});
+  // Estado inicial financiero 2026
+  fetch('/api/fin2026_status').then(r => r.json()).then(d => {
+    if (d.fase === 'trabajando') { document.getElementById('fin2026Box').style.display='block'; _pollFin2026(); }
+    else if (d.fase === 'listo') {
+      document.getElementById('btnFin2026').innerHTML = '<i class="fa fa-check me-1"></i>Completado — actualizar de nuevo';
+    }
+  }).catch(() => {});
 });
 
 // ── Indexación Congreso 2026 ──────────────────────────────────────────────────
@@ -766,6 +797,57 @@ async function _iniciarIndexacion2026() {
     btn.innerHTML = '<i class="fa fa-play me-1"></i>Indexar';
     credBox.style.display = '';
   }
+}
+
+// ── Financiero Congreso 2026 ──────────────────────────────────────────────────
+let _fin2026Timer = null;
+
+async function _iniciarFin2026() {
+  const btn = document.getElementById('btnFin2026');
+  const box = document.getElementById('fin2026Box');
+  box.style.display = 'block';
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i>Iniciando…';
+  try {
+    const r = await fetch('/api/indexar_financiero_2026', { method: 'POST' });
+    const d = await r.json();
+    if (d.ok === false) {
+      alert(d.msg || 'Error al iniciar');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa fa-play me-1"></i>Actualizar';
+      return;
+    }
+    _pollFin2026();
+  } catch(e) {
+    alert('Error: ' + e);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa fa-play me-1"></i>Actualizar';
+  }
+}
+
+function _pollFin2026() {
+  if (_fin2026Timer) clearTimeout(_fin2026Timer);
+  fetch('/api/fin2026_status').then(r => r.json()).then(d => {
+    const msg = document.getElementById('fin2026Msg');
+    const pct = document.getElementById('fin2026Pct');
+    const bar = document.getElementById('fin2026Bar');
+    const btn = document.getElementById('btnFin2026');
+    if (msg) msg.textContent = d.msg || '–';
+    if (pct) pct.textContent = d.pct + '%';
+    if (bar) bar.style.width = d.pct + '%';
+    if (d.fase === 'listo') {
+      if (bar) bar.className = 'progress-bar bg-success';
+      if (msg) msg.className = 'small text-success fw-semibold';
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-check me-1"></i>Completado — actualizar de nuevo'; }
+    } else if (d.fase === 'error') {
+      if (bar) bar.className = 'progress-bar bg-danger';
+      if (msg) { msg.className = 'small text-danger'; msg.textContent = d.error || d.msg; }
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-play me-1"></i>Reintentar'; }
+    } else if (d.fase === 'trabajando') {
+      if (bar) bar.className = 'progress-bar bg-warning progress-bar-striped progress-bar-animated';
+      _fin2026Timer = setTimeout(_pollFin2026, 4000);
+    }
+  }).catch(() => { _fin2026Timer = setTimeout(_pollFin2026, 6000); });
 }
 
 function _poll2026() {
