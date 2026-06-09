@@ -127,6 +127,19 @@ def _indice_set(fase: str, pct: int, msg: str, error: str = "") -> None:
         _indice_estado.update({"fase": fase, "pct": pct, "msg": msg, "error": error})
     print(f"[Indice] {msg}")
 
+def _get_xsrf(sess):
+    """Obtiene el último XSRF-TOKEN de la sesión, eliminando duplicados."""
+    vals = [requests.utils.unquote(c.value) for c in sess.cookies if c.name == "XSRF-TOKEN"]
+    if len(vals) > 1:
+        last = vals[-1]
+        keys_to_remove = [c for c in sess.cookies if c.name == "XSRF-TOKEN"]
+        for c in keys_to_remove:
+            sess.cookies.clear(c.domain, c.path, c.name)
+        sess.cookies.set("XSRF-TOKEN", requests.utils.quote(last, safe=""))
+        return last
+    return vals[0] if vals else ""
+
+
 def _construir_indice_bg() -> None:
     """Descarga todos los candidatos y construye busqueda.json + candidatos_mun/."""
     import time as _t, os as _os, json as _j
@@ -141,7 +154,7 @@ def _construir_indice_bg() -> None:
         if _cne_session is None:
             return None
         url  = CNE_API + "/" + endpoint.lstrip("/")
-        xsrf = requests.utils.unquote(_cne_session.cookies.get("XSRF-TOKEN", ""))
+        xsrf = _get_xsrf(_cne_session)
         hdrs = {"Accept":"application/json","X-Requested-With":"XMLHttpRequest",
                 "X-XSRF-TOKEN": xsrf, "Referer": CNE_API + "/"}
         try:
@@ -349,7 +362,7 @@ def _indexar_financiero_bg() -> None:
         if _cne_session is None:
             return None
         url  = CNE_API + "/" + endpoint.lstrip("/")
-        xsrf = requests.utils.unquote(_cne_session.cookies.get("XSRF-TOKEN", ""))
+        xsrf = _get_xsrf(_cne_session)
         hdrs = {"Accept": "application/json", "X-Requested-With": "XMLHttpRequest",
                 "X-XSRF-TOKEN": xsrf, "Referer": CNE_API + "/"}
         try:
@@ -570,7 +583,7 @@ class Handler(SimpleHTTPRequestHandler):
     def _cne_get(self, endpoint: str, params: dict | None = None) -> requests.Response:
         global _cne_session
         url = CNE_API + "/" + endpoint.lstrip("/")
-        xsrf = requests.utils.unquote(_cne_session.cookies.get("XSRF-TOKEN", ""))
+        xsrf = _get_xsrf(_cne_session)
         headers = {
             "Accept": "application/json",
             "X-Requested-With": "XMLHttpRequest",
@@ -806,7 +819,7 @@ class Handler(SimpleHTTPRequestHandler):
                     print(f"[CNE Login] autoLogin {al_url} error: {_e}")
 
             # Paso 4: verificar API
-            xsrf_val = requests.utils.unquote(sess.cookies.get("XSRF-TOKEN", ""))
+            xsrf_val = _get_xsrf(sess)
             api_hdrs = {"Accept": "application/json", "X-Requested-With": "XMLHttpRequest",
                         "X-XSRF-TOKEN": xsrf_val, "Referer": p_api + "/"}
             r5_status = 0
@@ -1346,7 +1359,7 @@ class Handler(SimpleHTTPRequestHandler):
         cne_url  = CNE_API + endpoint + ("?" + parsed.query if parsed.query else "")
 
         try:
-            xsrf = requests.utils.unquote(_cne_session.cookies.get("XSRF-TOKEN", ""))
+            xsrf = _get_xsrf(_cne_session)
             # Detectar si es descarga de archivo (PDF/Excel) o llamada JSON
             is_file = (
                 "/storage/" in endpoint or
