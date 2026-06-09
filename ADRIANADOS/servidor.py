@@ -2304,7 +2304,7 @@ class Handler(SimpleHTTPRequestHandler):
                     m = _re.search(r'value="([^"]+)"', line)
                     if m: token = m.group(1); break
             r1 = sess.post(CNE2026_LOGIN_URL, data={
-                "_token": token, "login": usuario, "password": password
+                "_token": token, "usuario": usuario, "password": password
             }, timeout=20, allow_redirects=True)
             if "login" in r1.url.lower() and "redirect" not in r1.url.lower():
                 return self._send_json({"ok": False, "msg": "Credenciales incorrectas"}, 401)
@@ -2331,6 +2331,14 @@ class Handler(SimpleHTTPRequestHandler):
                 "Referer": CNE2026_API + "/",
             }
             r = _cne2026_session.get(url, params=params, headers=headers, timeout=30)
+            if not r.ok:
+                body = f"CNE 2026 respondio HTTP {r.status_code}".encode()
+                self.send_response(r.status_code)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
             ct = r.headers.get("Content-Type", "application/octet-stream")
             content = r.content
             self.send_response(200)

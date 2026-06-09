@@ -26,9 +26,9 @@ let _cne2026Logueado = false;
 
 async function _cne2026CheckLogin() {
   try {
-    const r = await fetch(_PROXY2026 + '/api/cne_status');
+    const r = await fetch(_PROXY2026 + '/api/cne2026_status');
     const d = await r.json();
-    _cne2026Logueado = d.sesion_activa || false;
+    _cne2026Logueado = d.logueado || false;
   } catch(e) { _cne2026Logueado = false; }
 }
 
@@ -44,7 +44,7 @@ async function cne2026Login() {
   if (!u || !p) { msg.textContent = 'Ingrese usuario y contraseña'; return; }
   btn.disabled = true; msg.textContent = 'Conectando con CNE… puede tardar hasta 30 segundos';
   try {
-    const r = await fetch(_PROXY2026 + '/api/cne_login', {
+    const r = await fetch(_PROXY2026 + '/api/cne2026_login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({usuario: u, password: p})
@@ -67,7 +67,7 @@ async function cne2026Login() {
 function cne2026AbrirArchivo(archivoEnc) {
   if (!_cne2026Logueado) { cne2026AbrirLogin(); return; }
   const archivo = decodeURIComponent(archivoEnc);
-  window.open(`${_PROXY2026}/api/cne/storage/app/${archivo}`, '_blank');
+  window.open(`${_PROXY2026}/api/cne2026/storage/app/${archivo}`, '_blank');
 }
 
 let _cngIndex = null;
