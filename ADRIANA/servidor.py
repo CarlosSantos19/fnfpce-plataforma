@@ -1356,7 +1356,8 @@ class Handler(SimpleHTTPRequestHandler):
 
         parsed   = urlparse(self.path)
         endpoint = parsed.path[len("/api/cne"):]
-        cne_url  = CNE_API + endpoint + ("?" + parsed.query if parsed.query else "")
+        api_base = _cne_api_activo or CNE_API
+        cne_url  = api_base + endpoint + ("?" + parsed.query if parsed.query else "")
 
         try:
             xsrf = _get_xsrf(_cne_session)
@@ -1375,7 +1376,7 @@ class Handler(SimpleHTTPRequestHandler):
                 "Accept": "application/pdf,application/octet-stream,*/*" if is_file else "application/json",
                 "X-Requested-With": "XMLHttpRequest",
                 "X-XSRF-TOKEN": xsrf,
-                "Referer": CNE_API + "/",
+                "Referer": api_base + "/",
                 "Accept-Language": "es-CO,es;q=0.9",
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             }
