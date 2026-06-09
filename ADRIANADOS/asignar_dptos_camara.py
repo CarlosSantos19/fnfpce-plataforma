@@ -2,185 +2,194 @@
 asignar_dptos_camara.py
 =======================
 Asigna departamento a candidatos CÁMARA en cc_index_1.json
-consultando getCandidatos con id_departamento=X para X en 1-37.
+cruzando por nombre con contador_gerente_congreso_2026.json.
+
+No requiere conexión al CNE — usa archivos locales.
 
 Uso:
-  py asignar_dptos_camara.py --usuario 80115895 --password TuPassword
+  py asignar_dptos_camara.py
 """
 
-import sys, io, os, re, json, argparse, getpass, warnings
-import requests
-from urllib.parse import unquote
+import sys, io, os, re, json, unicodedata
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-warnings.filterwarnings("ignore")
-
-CNE_API        = "https://app_cng_2026.cne.gov.co/fondo_cng_2026/public"
-CNE_LOGIN_HOME = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/"
-CNE_LOGIN_URL  = "https://app_cng_2026.cne.gov.co/usuarios_cng_2026/public/login"
-PROCESO_ID     = 1
 
 BASE     = os.path.dirname(os.path.abspath(__file__))
-IDX_PATH = os.path.join(BASE, "data", "cc_index_1.json")
-IDX_OUT  = os.path.join(BASE, "data", "cc_index_1.json")
-# También actualizar el que usa el portal
-PORTAL_PATH = os.path.join(BASE, "..", "modules", "revision", "data", "cc_index_1.json")
+DATA_DIR = os.path.join(BASE, "data")
 
-def _login(usuario, password):
-    sess = requests.Session()
-    sess.verify = False
-    sess.headers.update({"User-Agent": "Mozilla/5.0", "Accept-Language": "es-CO,es;q=0.9"})
-    r1 = sess.get(CNE_LOGIN_HOME, timeout=15)
-    m = re.search(r'name=["\']_token["\'].*?value=["\']([^"\']+)["\']', r1.text)
-    if not m:
-        print("  [ERR] No se encontró CSRF"); return None
-    csrf = m.group(1)
-    r2 = sess.post(CNE_LOGIN_URL,
-                   data={"_token": csrf, "usuario": usuario, "password": password},
-                   allow_redirects=True, timeout=20)
-    if r2.status_code >= 400 or ("login" in r2.url.lower() and "redirect" not in r2.url.lower()):
-        print("  [ERR] Login fallido"); return None
-    xsrf = unquote(sess.cookies.get("XSRF-TOKEN", ""))
-    sess.headers.update({"X-XSRF-TOKEN": xsrf, "X-Requested-With": "XMLHttpRequest"})
-    print(f"  [OK]  Login exitoso — {r2.url}")
-    return sess
+IDX_PATH   = os.path.join(DATA_DIR, "cc_index_1.json")
+CG_PATH    = os.path.join(DATA_DIR, "contador_gerente_congreso_2026.json")
+GER_PATH   = os.path.join(DATA_DIR, "gerentes_congreso_2026.json")
+PORTAL_IDX = os.path.normpath(os.path.join(BASE, "..", "modules", "revision", "data", "cc_index_1.json"))
 
-def _set_xsrf(sess):
-    xsrf = sess.cookies.get("XSRF-TOKEN")
-    if xsrf:
-        sess.headers.update({"X-XSRF-TOKEN": unquote(xsrf)})
+# Mapa DANE id → nombre normalizado
+DANE = {
+    5:"ANTIOQUIA", 8:"ATLANTICO", 11:"BOGOTA D.C.", 13:"BOLIVAR",
+    15:"BOYACA", 17:"CALDAS", 18:"CAQUETA", 19:"CAUCA", 20:"CESAR",
+    23:"CORDOBA", 25:"CUNDINAMARCA", 27:"CHOCO", 41:"HUILA",
+    44:"LA GUAJIRA", 47:"MAGDALENA", 50:"META", 52:"NARINO",
+    54:"NORTE DE SANTANDER", 63:"QUINDIO", 66:"RISARALDA",
+    68:"SANTANDER", 70:"SUCRE", 73:"TOLIMA", 76:"VALLE DEL CAUCA",
+    81:"ARAUCA", 85:"CASANARE", 86:"PUTUMAYO", 88:"SAN ANDRES",
+    91:"AMAZONAS", 94:"GUAINIA", 95:"GUAVIARE", 97:"VAUPES", 99:"VICHADA",
+}
 
-def _get_dptos(sess):
-    """Obtiene la lista de departamentos válidos del CNE 2026."""
-    _set_xsrf(sess)
-    for ep in ["departamento", "getDepartamentos", "departamentos"]:
-        try:
-            r = sess.get(f"{CNE_API}/{ep}", params={"id_proceso": PROCESO_ID},
-                        headers={"Accept": "application/json"}, timeout=15)
-            if r.ok:
-                d = r.json()
-                items = d if isinstance(d, list) else d.get("departamentos", d.get("data", []))
-                if isinstance(items, list) and items:
-                    return items
-        except Exception:
-            pass
-    return []
+def _norm(s):
+    """Normaliza texto: mayúsculas, sin tildes, solo alfanumérico."""
+    s = unicodedata.normalize("NFD", str(s or "").upper())
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    return re.sub(r"[^A-Z0-9 ]", " ", s).strip()
 
-def _get_cands_dpto(sess, org_ids, id_dpto):
-    """Obtiene candidatos CÁMARA filtrando por departamento usando org_ids conocidos."""
-    _set_xsrf(sess)
-    todos = {}
-    for id_org, id_tipo in org_ids:
-        try:
-            r = sess.get(f"{CNE_API}/getCandidatos", params={
-                "id_tipo": id_tipo, "id_organizacion": id_org,
-                "id_corporacion": 1, "id_circunscripcion": 3,
-                "id_departamento": id_dpto, "id_proceso": PROCESO_ID,
-            }, headers={"Accept": "application/json"}, timeout=15)
-            if r.ok:
-                d = r.json()
-                cands = d.get("candidatos", []) if isinstance(d, dict) else (d if isinstance(d, list) else [])
-                for c in cands:
-                    cid = c.get("id_candi") or c.get("id")
-                    if cid:
-                        todos[cid] = c
-        except Exception:
-            pass
-    return list(todos.values())
+def _nombre_clave(nombre, apellidos=""):
+    """Genera clave de búsqueda de nombre normalizado."""
+    return _norm(f"{nombre} {apellidos}".strip())
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--usuario", default="")
-    parser.add_argument("--password", default="")
-    args = parser.parse_args()
+    print("\n=== Asignando departamentos CÁMARA (modo local) ===\n")
 
-    usuario  = args.usuario  or input("  Usuario (cédula): ").strip()
-    password = args.password or getpass.getpass("  Contraseña: ")
-
-    print("\n=== Asignando departamentos a candidatos CÁMARA ===\n")
-    print("Iniciando sesión…")
-    sess = _login(usuario, password)
-    if not sess:
-        sys.exit(1)
-
-    print("Cargando índice…")
-    with open(IDX_PATH, encoding="utf-8-sig") as f:
-        idx = json.load(f)
-
-    # Extraer org_ids únicos de los candidatos CÁMARA ya indexados
-    org_ids_set = set()
-    for sec_data in idx.values():
-        for mun_data in sec_data.get("municipios", {}).values():
-            for c in mun_data.get("candidatos", []):
-                if c.get("corp_id") == 1 and c.get("org_id"):
-                    org_ids_set.add((int(c["org_id"]), 1))
-                    org_ids_set.add((int(c["org_id"]), 2))
-                    org_ids_set.add((int(c["org_id"]), 3))
-    if not org_ids_set:
-        # Fallback: escanear rango amplio
-        org_ids_set = {(i, t) for i in range(1, 50) for t in (1, 2, 3)}
-    org_ids = list(org_ids_set)
-    print(f"Org IDs a consultar: {len(org_ids) // 3} organizaciones")
-
-    # Obtener lista de departamentos del CNE
-    print("Obteniendo catálogo de departamentos del CNE 2026…")
-    dptos_api = _get_dptos(sess)
-    if dptos_api:
-        dptos_list = [(d.get("id") or d.get("id_departamento"),
-                       (d.get("nombre") or d.get("nom_departamento") or "").upper())
-                      for d in dptos_api if d.get("id") or d.get("id_departamento")]
-        print(f"  {len(dptos_list)} departamentos encontrados")
+    # ── Cargar índice ──────────────────────────────────────────────────────────
+    print("Cargando cc_index_1.json…")
+    for enc in ("utf-8-sig", "utf-8", "latin-1"):
+        try:
+            with open(IDX_PATH, encoding=enc) as f:
+                idx = json.load(f)
+            break
+        except Exception:
+            continue
     else:
-        # Usar códigos DANE de Colombia como fallback
-        print("  API no devolvió departamentos — usando códigos DANE")
-        dptos_list = [
-            (5,"ANTIOQUIA"),(8,"ATLÁNTICO"),(11,"BOGOTÁ D.C."),(13,"BOLÍVAR"),
-            (15,"BOYACÁ"),(17,"CALDAS"),(18,"CAQUETÁ"),(19,"CAUCA"),(20,"CESAR"),
-            (23,"CÓRDOBA"),(25,"CUNDINAMARCA"),(27,"CHOCÓ"),(41,"HUILA"),
-            (44,"LA GUAJIRA"),(47,"MAGDALENA"),(50,"META"),(52,"NARIÑO"),
-            (54,"NORTE DE SANTANDER"),(63,"QUINDÍO"),(66,"RISARALDA"),
-            (68,"SANTANDER"),(70,"SUCRE"),(73,"TOLIMA"),(76,"VALLE DEL CAUCA"),
-            (81,"ARAUCA"),(85,"CASANARE"),(86,"PUTUMAYO"),(88,"SAN ANDRÉS"),
-            (91,"AMAZONAS"),(94,"GUAINÍA"),(95,"GUAVIARE"),(97,"VAUPÉS"),(99,"VICHADA"),
-        ]
+        print("  [ERR] No se pudo leer cc_index_1.json"); sys.exit(1)
 
-    # Construir mapa cand_id → dpto_nom
-    dpto_map = {}  # cand_id (int) → nombre departamento
+    # ── Construir mapa nombre → (dpto_id, dpto_nom) desde archivo local ────────
+    nombre_dpto = {}   # nombre_normalizado → dpto_nombre
+    cedula_dpto = {}   # cedula_str         → dpto_nombre
 
-    print(f"Consultando {len(dptos_list)} departamentos CÁMARA…")
-    for id_dpto, dpto_nom in dptos_list:
-        cands = _get_cands_dpto(sess, org_ids, id_dpto)
-        nuevos = [c for c in cands if c.get("id_candi") and c["id_candi"] not in dpto_map]
-        if nuevos:
-            for c in nuevos:
-                dpto_map[c["id_candi"]] = dpto_nom
-            print(f"  {dpto_nom}: {len(nuevos)} candidatos")
+    def _agregar(nombre_p, apellidos_p, cedula_p, id_dpto, nom_dpto):
+        if not nom_dpto and id_dpto:
+            nom_dpto = DANE.get(int(id_dpto), f"DPTO_{id_dpto}")
+        dpto_str = _norm(nom_dpto) if nom_dpto else ""
+        if not dpto_str:
+            return
+        clave = _nombre_clave(nombre_p, apellidos_p)
+        if clave:
+            nombre_dpto[clave] = dpto_str
+        ced = str(cedula_p or "").strip()
+        if ced:
+            cedula_dpto[ced] = dpto_str
 
-    print(f"\nTotal candidatos con departamento: {len(dpto_map)}")
+    # Cargar contador_gerente_congreso_2026.json
+    if os.path.exists(CG_PATH):
+        print("Leyendo contador_gerente_congreso_2026.json…")
+        for enc in ("utf-8-sig", "utf-8", "latin-1"):
+            try:
+                with open(CG_PATH, encoding=enc) as f:
+                    cg_data = json.load(f)
+                break
+            except Exception:
+                continue
+        else:
+            cg_data = []
 
-    # Actualizar candidatos en el índice
-    actualizados = 0
+        for registro in (cg_data if isinstance(cg_data, list) else []):
+            # Estructura: { "contadores": [...] }  o lista plana de contadores
+            contadores = registro.get("contadores", []) if isinstance(registro, dict) else [registro]
+            for c in contadores:
+                proc = str(c.get("proceso") or "")
+                if "CONGRESO" not in proc.upper():
+                    continue
+                _agregar(
+                    c.get("nombreP", ""), c.get("apellidosP", ""),
+                    c.get("documentoP", ""),
+                    c.get("id_departamento"), c.get("nom_departamento", "")
+                )
+        print(f"  Candidatos con dpto desde contador_gerente: {len(nombre_dpto):,}")
+
+    # Cargar gerentes_congreso_2026.json como fuente adicional
+    if os.path.exists(GER_PATH):
+        print("Leyendo gerentes_congreso_2026.json…")
+        for enc in ("utf-8-sig", "utf-8", "latin-1"):
+            try:
+                with open(GER_PATH, encoding=enc) as f:
+                    ger_data = json.load(f)
+                break
+            except Exception:
+                continue
+        else:
+            ger_data = []
+
+        prev = len(nombre_dpto)
+        for g in (ger_data if isinstance(ger_data, list) else []):
+            proc = str(g.get("proceso") or "")
+            if "CONGRESO" not in proc.upper():
+                continue
+            _agregar(
+                g.get("nombreP", ""), g.get("apellidosP", ""),
+                g.get("documentoP", ""),
+                g.get("id_departamento"), g.get("nom_departamento", "")
+            )
+        print(f"  Candidatos adicionales desde gerentes: {len(nombre_dpto) - prev:,}")
+
+    print(f"Total candidatos en mapa nombre→dpto: {len(nombre_dpto):,}")
+
+    # ── Asignar departamentos a candidatos CÁMARA ──────────────────────────────
+    actualizados = sin_match = 0
+
     for sec_data in idx.values():
         for mun_data in sec_data.get("municipios", {}).values():
             for c in mun_data.get("candidatos", []):
-                cid = c.get("cand_id")
-                if cid in dpto_map:
-                    c["dpto"] = dpto_map[cid]
+                if c.get("corp_id") != 1:   # Solo CÁMARA
+                    continue
+                if c.get("dpto"):           # Ya tiene dpto
                     actualizados += 1
+                    continue
 
-    print(f"Candidatos actualizados en índice: {actualizados}")
+                nombre_norm = _norm(c.get("nombre", ""))
 
-    # Guardar
-    with open(IDX_OUT, "w", encoding="utf-8") as f:
+                # Intentar match exacto por nombre
+                dpto = nombre_dpto.get(nombre_norm)
+
+                # Intentar match parcial (primeras 3 palabras del nombre)
+                if not dpto:
+                    partes = nombre_norm.split()
+                    for n in range(min(len(partes), 4), 2, -1):
+                        clave_parcial = " ".join(partes[:n])
+                        for k, v in nombre_dpto.items():
+                            if k.startswith(clave_parcial):
+                                dpto = v
+                                break
+                        if dpto:
+                            break
+
+                if dpto:
+                    c["dpto"] = dpto
+                    actualizados += 1
+                else:
+                    sin_match += 1
+
+    print(f"\nCandidatos CÁMARA actualizados: {actualizados}")
+    print(f"Sin match (quedarán sin departamento): {sin_match}")
+
+    # Mostrar distribución por departamento
+    todos_dptos = {}
+    for sec_data in idx.values():
+        for mun_data in sec_data.get("municipios", {}).values():
+            for c in mun_data.get("candidatos", []):
+                if c.get("corp_id") == 1 and c.get("dpto"):
+                    d = c["dpto"]
+                    todos_dptos[d] = todos_dptos.get(d, 0) + 1
+    if todos_dptos:
+        print("\nDistribución por departamento:")
+        for d, n in sorted(todos_dptos.items()):
+            print(f"  {d}: {n}")
+
+    # ── Guardar ────────────────────────────────────────────────────────────────
+    with open(IDX_PATH, "w", encoding="utf-8") as f:
         json.dump(idx, f, ensure_ascii=False, separators=(",", ":"))
-    print(f"  [OK]  Guardado: {IDX_OUT}")
+    print(f"\n  [OK]  Guardado: {IDX_PATH}")
 
-    # Copiar al portal si existe la ruta
-    portal = os.path.normpath(PORTAL_PATH)
-    if os.path.exists(os.path.dirname(portal)):
-        with open(portal, "w", encoding="utf-8") as f:
+    if os.path.exists(os.path.dirname(PORTAL_IDX)):
+        with open(PORTAL_IDX, "w", encoding="utf-8") as f:
             json.dump(idx, f, ensure_ascii=False, separators=(",", ":"))
-        print(f"  [OK]  Copiado al portal: {portal}")
+        print(f"  [OK]  Copiado al portal: {PORTAL_IDX}")
 
     print("\n=== Listo. Ejecuta: firebase deploy --only hosting ===\n")
 
