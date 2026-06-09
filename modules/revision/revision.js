@@ -67,7 +67,7 @@ async function cne2026Login() {
 function cne2026AbrirArchivo(archivoEnc) {
   if (!_cne2026Logueado) { cne2026AbrirLogin(); return; }
   const archivo = decodeURIComponent(archivoEnc);
-  window.open(`${_PROXY2026}/api/cne/storage/${archivo}`, '_blank');
+  window.open(`${_PROXY2026}/api/cne/${archivo}`, '_blank');
 }
 
 let _cngIndex = null;
