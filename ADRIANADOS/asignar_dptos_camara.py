@@ -45,24 +45,48 @@ def _login(usuario, password):
     print(f"  [OK]  Login exitoso — {r2.url}")
     return sess
 
-def _get_cands_dpto(sess, id_dpto):
-    """Obtiene todos los candidatos CÁMARA de un departamento específico."""
-    todos = []
-    for id_org in range(1, 32):
-        for id_tipo in (1, 2, 3):
-            try:
-                r = sess.get(f"{CNE_API}/getCandidatos", params={
-                    "id_tipo": id_tipo, "id_organizacion": id_org,
-                    "id_corporacion": 1, "id_circunscripcion": 3,
-                    "id_departamento": id_dpto, "id_proceso": PROCESO_ID,
-                }, headers={"Accept": "application/json"}, timeout=15)
-                if r.ok:
-                    d = r.json()
-                    cands = d.get("candidatos", []) if isinstance(d, dict) else d
-                    todos.extend(cands)
-            except Exception:
-                pass
-    return todos
+def _set_xsrf(sess):
+    xsrf = sess.cookies.get("XSRF-TOKEN")
+    if xsrf:
+        sess.headers.update({"X-XSRF-TOKEN": unquote(xsrf)})
+
+def _get_dptos(sess):
+    """Obtiene la lista de departamentos válidos del CNE 2026."""
+    _set_xsrf(sess)
+    for ep in ["departamento", "getDepartamentos", "departamentos"]:
+        try:
+            r = sess.get(f"{CNE_API}/{ep}", params={"id_proceso": PROCESO_ID},
+                        headers={"Accept": "application/json"}, timeout=15)
+            if r.ok:
+                d = r.json()
+                items = d if isinstance(d, list) else d.get("departamentos", d.get("data", []))
+                if isinstance(items, list) and items:
+                    return items
+        except Exception:
+            pass
+    return []
+
+def _get_cands_dpto(sess, org_ids, id_dpto):
+    """Obtiene candidatos CÁMARA filtrando por departamento usando org_ids conocidos."""
+    _set_xsrf(sess)
+    todos = {}
+    for id_org, id_tipo in org_ids:
+        try:
+            r = sess.get(f"{CNE_API}/getCandidatos", params={
+                "id_tipo": id_tipo, "id_organizacion": id_org,
+                "id_corporacion": 1, "id_circunscripcion": 3,
+                "id_departamento": id_dpto, "id_proceso": PROCESO_ID,
+            }, headers={"Accept": "application/json"}, timeout=15)
+            if r.ok:
+                d = r.json()
+                cands = d.get("candidatos", []) if isinstance(d, dict) else (d if isinstance(d, list) else [])
+                for c in cands:
+                    cid = c.get("id_candi") or c.get("id")
+                    if cid:
+                        todos[cid] = c
+        except Exception:
+            pass
+    return list(todos.values())
 
 def main():
     parser = argparse.ArgumentParser()
@@ -80,33 +104,57 @@ def main():
         sys.exit(1)
 
     print("Cargando índice…")
-    with open(IDX_PATH, encoding="utf-8") as f:
+    with open(IDX_PATH, encoding="utf-8-sig") as f:
         idx = json.load(f)
+
+    # Extraer org_ids únicos de los candidatos CÁMARA ya indexados
+    org_ids_set = set()
+    for sec_data in idx.values():
+        for mun_data in sec_data.get("municipios", {}).values():
+            for c in mun_data.get("candidatos", []):
+                if c.get("corp_id") == 1 and c.get("org_id"):
+                    org_ids_set.add((int(c["org_id"]), 1))
+                    org_ids_set.add((int(c["org_id"]), 2))
+                    org_ids_set.add((int(c["org_id"]), 3))
+    if not org_ids_set:
+        # Fallback: escanear rango amplio
+        org_ids_set = {(i, t) for i in range(1, 50) for t in (1, 2, 3)}
+    org_ids = list(org_ids_set)
+    print(f"Org IDs a consultar: {len(org_ids) // 3} organizaciones")
+
+    # Obtener lista de departamentos del CNE
+    print("Obteniendo catálogo de departamentos del CNE 2026…")
+    dptos_api = _get_dptos(sess)
+    if dptos_api:
+        dptos_list = [(d.get("id") or d.get("id_departamento"),
+                       (d.get("nombre") or d.get("nom_departamento") or "").upper())
+                      for d in dptos_api if d.get("id") or d.get("id_departamento")]
+        print(f"  {len(dptos_list)} departamentos encontrados")
+    else:
+        # Usar códigos DANE de Colombia como fallback
+        print("  API no devolvió departamentos — usando códigos DANE")
+        dptos_list = [
+            (5,"ANTIOQUIA"),(8,"ATLÁNTICO"),(11,"BOGOTÁ D.C."),(13,"BOLÍVAR"),
+            (15,"BOYACÁ"),(17,"CALDAS"),(18,"CAQUETÁ"),(19,"CAUCA"),(20,"CESAR"),
+            (23,"CÓRDOBA"),(25,"CUNDINAMARCA"),(27,"CHOCÓ"),(41,"HUILA"),
+            (44,"LA GUAJIRA"),(47,"MAGDALENA"),(50,"META"),(52,"NARIÑO"),
+            (54,"NORTE DE SANTANDER"),(63,"QUINDÍO"),(66,"RISARALDA"),
+            (68,"SANTANDER"),(70,"SUCRE"),(73,"TOLIMA"),(76,"VALLE DEL CAUCA"),
+            (81,"ARAUCA"),(85,"CASANARE"),(86,"PUTUMAYO"),(88,"SAN ANDRÉS"),
+            (91,"AMAZONAS"),(94,"GUAINÍA"),(95,"GUAVIARE"),(97,"VAUPÉS"),(99,"VICHADA"),
+        ]
 
     # Construir mapa cand_id → dpto_nom
     dpto_map = {}  # cand_id (int) → nombre departamento
 
-    print("Consultando departamentos CÁMARA (1-37)…")
-    for id_dpto in range(1, 38):
-        cands = _get_cands_dpto(sess, id_dpto)
+    print(f"Consultando {len(dptos_list)} departamentos CÁMARA…")
+    for id_dpto, dpto_nom in dptos_list:
+        cands = _get_cands_dpto(sess, org_ids, id_dpto)
         nuevos = [c for c in cands if c.get("id_candi") and c["id_candi"] not in dpto_map]
         if nuevos:
-            # Obtener nombre del departamento haciendo una consulta con nombre
-            dpto_nom = f"DPTO_{id_dpto}"
-            # Intentar descubrir nombre desde la respuesta del API
-            r = sess.get(f"{CNE_API}/departamento", params={"id_proceso": PROCESO_ID},
-                         headers={"Accept": "application/json"}, timeout=15)
-            if r.ok:
-                dptos = r.json()
-                if isinstance(dptos, list):
-                    for d in dptos:
-                        did = d.get("id") or d.get("id_departamento")
-                        if str(did) == str(id_dpto):
-                            dpto_nom = (d.get("nombre") or d.get("nom_departamento") or dpto_nom).upper()
-                            break
             for c in nuevos:
                 dpto_map[c["id_candi"]] = dpto_nom
-            print(f"  dpto_id={id_dpto:2d} ({dpto_nom}): {len(nuevos)} candidatos nuevos")
+            print(f"  {dpto_nom}: {len(nuevos)} candidatos")
 
     print(f"\nTotal candidatos con departamento: {len(dpto_map)}")
 
