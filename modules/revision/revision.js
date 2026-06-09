@@ -15,7 +15,9 @@ const _fmtDate = s => s ? s.substring(0,10) : '—';
 const _fmtTot  = v => { const n = parseFloat(String(v||0).replace(/,/g,'')); return isNaN(n) ? (v||'—') : '$'+n.toLocaleString('es-CO',{maximumFractionDigits:0}); };
 const _trunc   = (s,n) => s && s.length > n ? s.substring(0,n)+'…' : (s||'');
 
-const _CAND_BASE = '/modules/revision/data/candidatos';
+const _CAND_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? '/modules/revision/data/candidatos'
+  : 'https://carlos-cne.onrender.com/data/candidatos_cong';
 const _PROXY2026 = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:8081'
   : 'https://carlos-cne.onrender.com';
@@ -40,7 +42,7 @@ async function cne2026Login() {
   const msg = document.getElementById('cne2026Msg');
   const btn = document.getElementById('cne2026Btn');
   if (!u || !p) { msg.textContent = 'Ingrese usuario y contraseña'; return; }
-  btn.disabled = true; msg.textContent = 'Conectando…';
+  btn.disabled = true; msg.textContent = 'Conectando con CNE… puede tardar hasta 30 segundos';
   try {
     const r = await fetch(_PROXY2026 + '/api/cne_login', {
       method: 'POST',
@@ -57,21 +59,15 @@ async function cne2026Login() {
       msg.textContent = d.msg || 'Error de autenticación';
     }
   } catch(e) {
-    msg.textContent = 'No se pudo conectar al proxy ADRIANADOS';
+    msg.textContent = 'Error: ' + (e && e.message ? e.message : String(e));
   }
   btn.disabled = false;
 }
 
-function cne2026PdfUrl(tipo, id, candId) {
-  const ep = tipo === 'ing'
-    ? `descargar-archivo-ingreso?id=${id}&id_candi=${candId}&id_proceso=1`
-    : `descargar-archivo-gasto?id=${id}&id_candi=${candId}&id_proceso=1`;
-  return `${_PROXY2026}/api/cne/${ep}`;
-}
-
-function cne2026AbrirPdf(tipo, id, candId) {
+function cne2026AbrirArchivo(archivoEnc) {
   if (!_cne2026Logueado) { cne2026AbrirLogin(); return; }
-  window.open(cne2026PdfUrl(tipo, id, candId), '_blank');
+  const archivo = decodeURIComponent(archivoEnc);
+  window.open(`${_PROXY2026}/api/cne/storage/app/${archivo}`, '_blank');
 }
 
 let _cngIndex = null;
@@ -291,12 +287,10 @@ async function cngAbrirDetalle(candId) {
 let _cngCurrentCandId = null;
 
 function _cngTxRows(rows, esGasto) {
-  const tipo = esGasto ? 'gas' : 'ing';
-  const idField = esGasto ? 'id_gasto' : 'id_ingreso';
   return rows.map(r => {
-    const docId = r[idField];
-    const pdfBtn = docId
-      ? `<button class="cng-tx-pdf" onclick="cne2026AbrirPdf('${tipo}',${docId},${_cngCurrentCandId})" title="Ver PDF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`
+    const archivo = r.archivo;
+    const pdfBtn = archivo
+      ? `<button class="cng-tx-pdf" onclick="cne2026AbrirArchivo('${encodeURIComponent(archivo)}')" title="Ver PDF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>`
       : '';
     return `
     <div class="cng-tx-row">
