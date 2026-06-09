@@ -225,6 +225,7 @@
         <div class="cng-filtros">
           <div><label>Corporación</label><select id="cngSelCorp" onchange="cngOnCorpChange()"><option value="">Todas</option></select></div>
           <div><label>Circunscripción</label><select id="cngSelCirc" onchange="cngOnCircChange()"><option value="">Todas</option></select></div>
+          <div id="cngDptoWrap" style="display:none"><label>Departamento</label><select id="cngSelDpto" onchange="cngFiltrar()"><option value="">Todos</option></select></div>
           <div><label>Partido</label><select id="cngSelPartido" onchange="cngFiltrar()"><option value="">Todos</option></select></div>
           <div><label>Buscar</label><input id="cngTxtBuscar" type="text" placeholder="Nombre…" oninput="cngFiltrar()"></div>
           <div><label>ANI</label>
@@ -268,17 +269,15 @@
 
       <div class="cng-tabs">
         <button class="cng-tab cng-tab-active" id="cngTabBtnConsolidado" onclick="cngActivarTab('consolidado')">Consolidado</button>
+        <button class="cng-tab" id="cngTabBtnIngresos" onclick="cngActivarTab('ingresos')">↓ Ingresos</button>
+        <button class="cng-tab" id="cng-tabBtnGastos" onclick="cngActivarTab('gastos')">↑ Gastos</button>
         <button class="cng-tab" id="cngTabBtnAni" onclick="cngActivarTab('ani')">ANI</button>
+        <button id="cne2026ConectarBtn" onclick="cne2026AbrirLogin()" class="cng-tx-conectar" style="margin-left:auto">🔗 Conectar CNE</button>
       </div>
 
       <!-- Header transacciones -->
       <div class="cng-tx-header" id="cngTxHeader" style="display:none">
         <span class="cng-tx-title">TRANSACCIONES</span>
-        <div class="cng-tx-btns">
-          <button class="cng-tx-btn cng-tx-ing cng-tx-active" id="cngTabBtnIngresos" onclick="cngActivarTab('ingresos')">↓ Ingresos</button>
-          <button class="cng-tx-btn cng-tx-gas" id="cng-tabBtnGastos" onclick="cngActivarTab('gastos')">↑ Gastos</button>
-        </div>
-        <button id="cne2026ConectarBtn" onclick="cne2026AbrirLogin()" class="cng-tx-conectar">🔗 Conectar CNE</button>
       </div>
 
       <!-- Consolidado -->

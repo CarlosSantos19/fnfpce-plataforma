@@ -275,30 +275,43 @@ def _escanear_todos(sess, orgs, circs):
     lock = threading.Lock()
     procesadas = [0]
 
-    def _probar(corp_id, corp_nom, id_tipo, id_org, org_nom, id_circ, circ_nom):
-        cands = _get_candidatos(sess, id_tipo, id_org, corp_id, id_circ)
+    def _probar(corp_id, corp_nom, id_tipo, id_org, org_nom, id_circ, circ_nom,
+                id_dpto="undefined", dpto_nom=""):
+        cands = _get_candidatos(sess, id_tipo, id_org, corp_id, id_circ, id_dpto)
         with lock:
             procesadas[0] += 1
             if cands:
                 for c in cands:
                     cid = c.get("id_candi") or c.get("id")
-                    if cid and cid not in candidatos_total:
-                        candidatos_total[cid] = {
-                            "id_candi":   cid,
-                            "nombre":     c.get("nombre", ""),
-                            "cedula":     str(c.get("cedula") or c.get("documento") or ""),
-                            "org":        org_nom,
-                            "org_id":     id_org,
-                            "corp":       corp_nom,
-                            "corp_id":    corp_id,
-                            "circ_id":    id_circ,
-                            "circ":       circ_nom,
-                            "proceso_id": PROCESO_ID,
-                        }
+                    if not cid:
+                        continue
+                    entry = {
+                        "id_candi":   cid,
+                        "nombre":     c.get("nombre", ""),
+                        "cedula":     str(c.get("cedula") or c.get("documento") or ""),
+                        "org":        org_nom,
+                        "org_id":     id_org,
+                        "corp":       corp_nom,
+                        "corp_id":    corp_id,
+                        "circ_id":    id_circ,
+                        "circ":       circ_nom,
+                        "proceso_id": PROCESO_ID,
+                    }
+                    if dpto_nom:
+                        entry["dpto_id"] = id_dpto
+                        entry["dpto"]    = dpto_nom
+                    # Si ya existe el candidato, actualizar dpto si no lo tiene
+                    if cid in candidatos_total:
+                        if dpto_nom and not candidatos_total[cid].get("dpto"):
+                            candidatos_total[cid]["dpto_id"] = id_dpto
+                            candidatos_total[cid]["dpto"]    = dpto_nom
+                    else:
+                        candidatos_total[cid] = entry
                 _inf(f"  [{procesadas[0]:4d}] corp={corp_id} org={id_org} circ={id_circ}"
-                     f" → {len(cands)} candidatos (total: {len(candidatos_total)})")
+                     f" dpto={id_dpto} → {len(cands)} candidatos (total: {len(candidatos_total)})")
         return len(cands)
 
+    # Fase 1: escaneo normal (descubre todos los candidatos)
     tareas = []
     for corp_id, corp_nom, circ_list in corps:
         for id_org, id_tipo, org_nom in org_ids:
@@ -311,10 +324,23 @@ def _escanear_todos(sess, orgs, circs):
     with ThreadPoolExecutor(max_workers=30) as pool:
         futs = [pool.submit(_probar, *t) for t in tareas]
         for fut in as_completed(futs):
-            try:
-                fut.result()
-            except Exception:
-                pass
+            try: fut.result()
+            except Exception: pass
+
+    # Fase 2: asignar departamento a candidatos CÁMARA (circ=3 = departamental ordinaria)
+    _inf("\nFase 2: Identificando departamentos CÁMARA…")
+    dptos_scan = list(range(1, 38))  # IDs departamentos Colombia
+    tareas_dpto = []
+    for id_dpto in dptos_scan:
+        for id_org, id_tipo, org_nom in org_ids:
+            tareas_dpto.append((1, "CAMARA DE REPRESENTANTES", id_tipo, id_org, org_nom,
+                                3, "circ_3", id_dpto, f"DPTO_{id_dpto}"))
+
+    with ThreadPoolExecutor(max_workers=30) as pool:
+        futs = [pool.submit(_probar, *t) for t in tareas_dpto]
+        for fut in as_completed(futs):
+            try: fut.result()
+            except Exception: pass
 
     return list(candidatos_total.values())
 
@@ -327,21 +353,27 @@ def _construir_index(candidatos):
         circ     = c.get("circ", "") or corp
         circ_key = _norm(circ)
 
-        # Para el portal: SENADO → dpto "NACIONAL", Cámara → dpto = circunscripción
+        # Para el portal: SENADO → "NACIONAL", Cámara → por departamento si existe
         if corp_id == 4:
             dpto_key = "NACIONAL"
             mun_key  = "NACIONAL"
+            sec_nom  = "SENADO - NACIONAL"
+        elif c.get("dpto"):
+            dpto_key = _norm(c["dpto"])
+            mun_key  = dpto_key
+            sec_nom  = c["dpto"]
         else:
             dpto_key = circ_key or "SIN_CIRC"
-            mun_key  = circ_key or "SIN_CIRC"
+            mun_key  = dpto_key
+            sec_nom  = circ
 
         if dpto_key not in cc_index:
             cc_index[dpto_key] = {"id": str(c.get("circ_id", "")),
-                                   "nombre": circ, "municipios": {}}
+                                   "nombre": sec_nom, "municipios": {}}
         muns = cc_index[dpto_key]["municipios"]
         if mun_key not in muns:
             muns[mun_key] = {"id": str(c.get("circ_id", "")),
-                              "nombre": circ, "candidatos": []}
+                              "nombre": sec_nom, "candidatos": []}
         muns[mun_key]["candidatos"].append({
             "nombre":     c["nombre"],
             "cedula":     c.get("cedula", ""),
@@ -351,6 +383,7 @@ def _construir_index(candidatos):
             "cand_id":    c["id_candi"],
             "org_id":     c.get("org_id", ""),
             "circ_id":    c.get("circ_id", ""),
+            "dpto":       c.get("dpto", ""),
             "proceso_id": PROCESO_ID,
         })
     return cc_index

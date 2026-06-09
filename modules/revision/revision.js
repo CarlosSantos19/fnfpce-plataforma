@@ -132,12 +132,35 @@ function cngOnCorpChange() {
   )].sort();
   document.getElementById('cngSelCirc').innerHTML =
     '<option value="">Todas</option>' + circs.map(k => `<option value="${k}">${_cngIndex[k]?.nombre || k}</option>`).join('');
+
+  // Mostrar filtro departamento solo para CÁMARA
+  const dptoWrap = document.getElementById('cngDptoWrap');
+  const esCamara = corp === 'CAMARA DE REPRESENTANTES';
+  dptoWrap.style.display = esCamara ? '' : 'none';
+  if (!esCamara) document.getElementById('cngSelDpto').value = '';
+
   cngOnCircChange();
 }
 
 function cngOnCircChange() {
   const corp = document.getElementById('cngSelCorp').value;
   const circ = document.getElementById('cngSelCirc').value;
+  const esCamara = corp === 'CAMARA DE REPRESENTANTES';
+
+  // Poblar departamentos si es CÁMARA
+  if (esCamara) {
+    const dptos = [...new Set(
+      Object.entries(_cngIndex)
+        .filter(([k]) => !circ || k === circ)
+        .flatMap(([, d]) => Object.values(d.municipios)
+          .flatMap(m => m.candidatos
+            .filter(c => c.corp === corp && c.dpto)
+            .map(c => c.dpto)))
+    )].sort();
+    document.getElementById('cngSelDpto').innerHTML =
+      '<option value="">Todos</option>' + dptos.map(d => `<option>${d}</option>`).join('');
+  }
+
   const partidos = [...new Set(
     Object.entries(_cngIndex)
       .filter(([k]) => !circ || k === circ)
@@ -153,6 +176,7 @@ function cngFiltrar() {
   if (!_cngIndex) return;
   const corp    = document.getElementById('cngSelCorp').value;
   const circ    = document.getElementById('cngSelCirc').value;
+  const dpto    = document.getElementById('cngSelDpto').value;
   const partido = document.getElementById('cngSelPartido').value;
   const aniF    = document.getElementById('cngSelANI').value;
   const txt     = (document.getElementById('cngTxtBuscar').value || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
@@ -163,6 +187,7 @@ function cngFiltrar() {
     for (const mun of Object.values(ddata.municipios)) {
       for (const c of mun.candidatos) {
         if (corp    && c.corp !== corp)    continue;
+        if (dpto    && c.dpto !== dpto)    continue;
         if (partido && c.org  !== partido) continue;
         if (txt) {
           const h = (c.nombre + ' ' + (c.cedula||'')).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
