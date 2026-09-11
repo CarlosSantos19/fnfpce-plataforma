@@ -1,103 +1,70 @@
-/**
- * login.js
- * Autenticación con validación de nombre + contraseña contra Firestore.
- * Guarda nombre y rol en sessionStorage al autenticar.
- */
-
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  collection, getDocs, query, where
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-// Cargar usuarios activos desde Firestore
-async function cargarContadores() {
-  const select   = document.getElementById('usuario');
-  const errorMsg = document.getElementById('errorMsg');
-
+// Cargar usuarios activos en el select
+async function cargarUsuarios() {
+  const select = document.getElementById('usuario');
   try {
-    const q        = query(collection(db, 'usuarios'), where('activo', '==', true));
-    const snapshot = await getDocs(q);
+    const snap = await getDocs(query(collection(db, 'usuarios'), where('activo', '==', true)));
+    const usuarios = [];
+    snap.forEach(d => usuarios.push(d.data()));
+    usuarios.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
 
-    const nombres = [];
-    snapshot.forEach(doc => nombres.push(doc.data().nombre));
-    nombres.sort((a, b) => a.localeCompare(b));
-
-    // Limpiar y poblar el select
     select.innerHTML = '<option value="">— Seleccione su nombre —</option>';
-    nombres.forEach(nombre => {
-      const opt       = document.createElement('option');
-      opt.value       = nombre;
-      opt.textContent = nombre;
+    usuarios.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value       = u.nombre;
+      opt.textContent = u.nombre;
+      opt.dataset.rol         = u.rol         || '';
+      opt.dataset.password    = u.password    || '';
+      opt.dataset.ccUsuario   = u.cc_usuario  || '';
+      opt.dataset.ccPassword  = u.cc_password || '';
       select.appendChild(opt);
     });
-
   } catch (err) {
-    console.error('Error cargando usuarios:', err);
-    errorMsg.textContent = '⚠ Error al conectar con el servidor. Intente más tarde.';
-    errorMsg.classList.add('show');
+    select.innerHTML = '<option value="">Error al cargar usuarios</option>';
+    console.error(err);
   }
 }
 
-// Validar login contra Firestore
+// Validar login
 async function validarLogin(e) {
   e.preventDefault();
 
-  const nombre   = document.getElementById('usuario').value;
-  const password = document.getElementById('password').value;
-  const errorMsg = document.getElementById('errorMsg');
-  const btnLogin = document.querySelector('.btn-login span');
+  const select    = document.getElementById('usuario');
+  const opt       = select.options[select.selectedIndex];
+  const nombre    = opt?.value || '';
+  const password  = document.getElementById('password').value;
+  const errorMsg  = document.getElementById('errorMsg');
+  const btnSpan   = document.querySelector('.btn-login span');
 
   const mostrarError = (msg) => {
     errorMsg.textContent = msg;
     errorMsg.classList.remove('show');
     void errorMsg.offsetWidth;
     errorMsg.classList.add('show');
+    btnSpan.textContent = '[ Ingresar al Sistema ]';
   };
 
-  if (!nombre) {
-    mostrarError('⚠ Seleccione su identificación.');
-    return;
+  if (!nombre)   return mostrarError('⚠ Seleccione su nombre de usuario.');
+  if (!password) return mostrarError('⚠ Ingrese su clave de acceso.');
+
+  btnSpan.textContent = '[ Verificando... ]';
+  errorMsg.classList.remove('show');
+
+  if (opt.dataset.password !== password) {
+    return mostrarError('⚠ Clave incorrecta.');
   }
 
-  if (!password) {
-    mostrarError('⚠ Ingrese su clave de acceso.');
-    return;
-  }
+  // Guardar sesión
+  sessionStorage.setItem('contador', nombre);
+  sessionStorage.setItem('rol',      opt.dataset.rol);
+  if (opt.dataset.ccUsuario)  sessionStorage.setItem('cc_usuario',  opt.dataset.ccUsuario);
+  if (opt.dataset.ccPassword) sessionStorage.setItem('cc_password', opt.dataset.ccPassword);
 
-  btnLogin.textContent = '[ Verificando... ]';
-
-  try {
-    const q        = query(collection(db, 'usuarios'),
-                           where('nombre', '==', nombre),
-                           where('activo', '==', true));
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) {
-      mostrarError('⚠ Usuario no encontrado o inactivo.');
-      btnLogin.textContent = '[ Ingresar al Sistema ]';
-      return;
-    }
-
-    const userData = snapshot.docs[0].data();
-
-    if (userData.password !== password) {
-      mostrarError('⚠ Clave de acceso inválida. Intente nuevamente.');
-      document.getElementById('password').value = '';
-      document.getElementById('password').focus();
-      btnLogin.textContent = '[ Ingresar al Sistema ]';
-      return;
-    }
-
-    // Autenticación exitosa
-    sessionStorage.setItem('contador', userData.nombre);
-    sessionStorage.setItem('rol',      userData.rol || 'contador');
-    if (userData.cc_usuario)  sessionStorage.setItem('cc_usuario',  userData.cc_usuario);
-    if (userData.cc_password) sessionStorage.setItem('cc_password', userData.cc_password);
-    window.location.href = '/dashboard.html';
-
-  } catch (err) {
-    console.error('Error en login:', err);
-    mostrarError('⚠ Error al conectar con el servidor.');
-    btnLogin.textContent = '[ Ingresar al Sistema ]';
-  }
+  window.location.href = '/dashboard.html';
 }
 
 // Mostrar/ocultar contraseña
@@ -113,7 +80,7 @@ function togglePassword() {
   }
 }
 
-// Generar partículas de fondo
+// Partículas de fondo
 (function generarParticulas() {
   const container = document.getElementById('particles');
   for (let i = 0; i < 25; i++) {
@@ -128,9 +95,7 @@ function togglePassword() {
   }
 })();
 
-// Exponer funciones al HTML
 window.validarLogin   = validarLogin;
 window.togglePassword = togglePassword;
 
-// Iniciar
-cargarContadores();
+cargarUsuarios();

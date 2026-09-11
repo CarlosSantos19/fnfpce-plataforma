@@ -1,11 +1,13 @@
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
     "public": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      "**/*.xlsx",
       "**/*.xls",
       "**/*.py",
       "**/*.bat",
@@ -20,6 +22,8 @@
       "**/*.pdf",
       "ADRIANADOS/**",
       "ADRIANA/**",
+      "modules/revision/data/candidatos/**",
+      "modules/consultor-et2019/et2019_convert.py",
       "BOOTRESPUESTA/**",
       "cuentas claras/**",
       "PT NUEVO/**",
@@ -36,7 +40,7 @@
     ],
     "headers": [
       {
-        "source": "**/*.@(js|css|html)",
+        "source": "**/*.@(js|css|html|json)",
         "headers": [
           {
             "key": "Cache-Control",

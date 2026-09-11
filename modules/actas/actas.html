@@ -29,12 +29,27 @@
       <div id="panel-selector" class="content-card">
         <div class="card-section-title">// SELECCIONAR ACTA DE ENTREGA</div>
 
-        <!-- Filtro contador (solo admin/administrativo) -->
-        <div id="filtro-admin" style="display:none" class="filtro-bar">
-          <label class="filtro-label">CONTADOR:</label>
-          <select id="sel-contador" class="filtro-sel" onchange="filtrarPorContador()">
-            <option value="">— Todos los contadores —</option>
+        <div class="filtro-bar">
+          <!-- Selector de proceso -->
+          <label class="filtro-label">PROCESO:</label>
+          <select id="sel-proceso" class="filtro-sel" style="min-width:220px" onchange="cambiarProceso()">
+            <option value="ET2023">Territoriales 2023</option>
+            <option value="ET2019">Territoriales 2019</option>
+            <option value="CG2026">Congreso 2026</option>
+            <option value="FN2025">Funcionamiento 2025</option>
           </select>
+
+          <!-- Filtro contador (solo admin) -->
+          <span id="filtro-admin" style="display:none; display:contents;">
+            <label class="filtro-label" style="margin-left:12px;">CONTADOR:</label>
+            <select id="sel-contador" class="filtro-sel" onchange="filtrarPorContador()">
+              <option value="">— Todos los contadores —</option>
+            </select>
+            <button id="btn-imprimir-todas" class="btn-imprimir-todas" style="display:none"
+                    onclick="imprimirTodas()">
+              ⬡ Imprimir todas
+            </button>
+          </span>
         </div>
 
         <div id="lista-actas" class="lista-actas">
@@ -45,11 +60,10 @@
       <!-- ══ PANEL DOCUMENTO ══════════════════════════════════════════ -->
       <div id="panel-acta" style="display:none">
 
-        <!-- Controles (se ocultan al imprimir) -->
         <div class="acta-controles no-print">
           <button class="btn-paso btn-paso--sec" onclick="volverSelector()">← Volver</button>
 
-          <div class="acta-campos-edit">
+          <div id="acta-campos-edit" class="acta-campos-edit">
             <div class="campo-edit-group">
               <label class="campo-edit-lbl">N° ACTA DE REPARTO</label>
               <input type="text" id="inp-num-acta" class="campo-edit-inp"
@@ -63,10 +77,13 @@
             </div>
           </div>
 
+          <div id="acta-modo-badge" class="acta-modo-badge" style="display:none">
+            ◈ Modo impresión masiva — todas las actas
+          </div>
+
           <button class="btn-paso btn-paso--guardar" onclick="window.print()">⬡ Imprimir / PDF</button>
         </div>
 
-        <!-- Documento oficial -->
         <div id="acta-documento"></div>
       </div>
 

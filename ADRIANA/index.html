@@ -21,33 +21,35 @@
 <body>
 
 <!-- ══ OVERLAY LOGIN CNE — bloquea portal hasta autenticarse ══ -->
-<div id="cneLoginOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#003478 0%,#001a3d 100%);z-index:9999;display:flex;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:2.5rem;width:420px;max-width:95%;box-shadow:0 8px 32px rgba(0,0,0,.4);">
-    <div class="text-center mb-3">
-      <i class="fa fa-university" style="font-size:2.5rem;color:#003478;"></i>
-      <h4 class="mt-2 mb-0" style="color:#003478;font-weight:700;">Iniciar Sesión</h4>
-      <div class="text-muted small">CNE — CUENTAS CLARAS</div>
+<style>
+#cneLoginOverlay{position:fixed;inset:0;background:rgba(7,12,26,.97);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#cneLoginCard{background:#0d1628;border:1px solid rgba(0,180,255,.18);border-radius:10px;padding:2.5rem;width:100%;max-width:400px;position:relative;overflow:hidden;box-sizing:border-box}
+#cneLoginCard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00c8ff,transparent);animation:_lscan 3s ease-in-out infinite}
+@keyframes _lscan{0%,100%{opacity:.3}50%{opacity:1}}
+.cne-lbl{font-size:.7rem;color:rgba(252,209,22,.75);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.3rem;display:block}
+.cne-inp{width:100%;background:rgba(0,180,255,.04);border:1px solid rgba(0,180,255,.16);color:#c4daf0;padding:.55rem .9rem;border-radius:5px;font-size:.88rem;outline:none;transition:border-color .2s;margin-bottom:1rem;box-sizing:border-box}
+.cne-inp:focus{border-color:#00c8ff}
+.cne-inp::placeholder{color:rgba(196,218,240,.35)}
+.cne-btn-main{width:100%;background:rgba(0,56,147,.5);border:1px solid #00c8ff;color:#00c8ff;font-size:.82rem;letter-spacing:.06em;padding:.65rem;border-radius:5px;cursor:pointer;transition:background .2s}
+.cne-btn-main:hover{background:rgba(0,56,147,.75)}
+.cne-btn-main:disabled{opacity:.4;cursor:default}
+#cneLoginOverlayMsg{font-size:.78rem;min-height:1.1rem;text-align:center;margin-top:.7rem}
+</style>
+<div id="cneLoginOverlay">
+  <div id="cneLoginCard">
+    <div style="text-align:center;margin-bottom:1.2rem">
+      <img src="/logo.jpg" alt="CNE" style="height:52px;filter:brightness(1.05)">
     </div>
-    <div id="cneLoginOverlayMsg" class="alert alert-info py-2 small mb-2 text-center" style="display: block;"><i class="fa fa-lock me-1"></i>Ingrese sus credenciales para acceder al portal.</div>
-    <div class="mb-3">
-      <label class="form-label small fw-semibold">Usuario (Cédula)</label>
-      <input type="text" id="cneLoginUser" class="form-control" placeholder="Número de documento" autocomplete="username">
-    </div>
-    <div class="mb-3">
-      <label class="form-label small fw-semibold">Contraseña</label>
-      <div class="input-group">
-        <input type="password" id="cneLoginPass" class="form-control" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')_cneLoginManual();">
-        <button class="btn btn-outline-secondary" type="button" onclick="var p=document.getElementById('cneLoginPass'),i=this.querySelector('i');if(p.type==='password'){p.type='text';i.className='fa fa-eye-slash';}else{p.type='password';i.className='fa fa-eye';}">
-          <i class="fa fa-eye"></i>
-        </button>
-      </div>
-    </div>
-    <button id="cneLoginBtn" class="btn w-100 text-white" style="background:#003478;" onclick="_cneLoginManual()">
-      <i class="fa fa-sign-in-alt me-1"></i>Iniciar Sesión
+    <div style="font-size:1rem;font-weight:700;color:#00c8ff;text-align:center;letter-spacing:.04em;margin-bottom:.2rem">Portal Cuentas Claras — CNE</div>
+    <div style="font-size:.75rem;color:rgba(196,218,240,.4);text-align:center;margin-bottom:1.8rem">Congreso 2026 · Ingrese sus credenciales del portal CNE</div>
+    <label class="cne-lbl">Usuario CNE</label>
+    <input type="text" id="cneLoginUser" class="cne-inp" placeholder="Número de documento" autocomplete="username">
+    <label class="cne-lbl">Contraseña</label>
+    <input type="password" id="cneLoginPass" class="cne-inp" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')_cneLoginManual();">
+    <button id="cneLoginBtn" class="cne-btn-main" onclick="_cneLoginManual()">
+      <i class="fa fa-sign-in-alt me-1"></i> Iniciar sesión
     </button>
-    <div class="text-center mt-3 small text-muted">
-      <i class="fa fa-info-circle me-1"></i>Use sus credenciales del portal CNE-Cuentas Claras.
-    </div>
+    <div id="cneLoginOverlayMsg" style="color:#ef5350"></div>
   </div>
 </div>
 

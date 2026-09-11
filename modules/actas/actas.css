@@ -436,6 +436,38 @@
   line-height: 1.4;
 }
 
+/* ── Botón imprimir todas ───────────────────────────────────────────────────── */
+.btn-imprimir-todas {
+  background: rgba(252,209,22,.12);
+  border: 1px solid rgba(252,209,22,.4);
+  color: var(--gold, #FCD116);
+  font-size: 12px;
+  letter-spacing: .08em;
+  padding: 9px 20px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .2s;
+  white-space: nowrap;
+}
+.btn-imprimir-todas:hover { background: rgba(252,209,22,.22); }
+
+/* Badge modo masivo (reemplaza los campos de edición en impresión masiva) */
+.acta-modo-badge {
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: rgba(252,209,22,.6);
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border: 1px solid rgba(252,209,22,.2);
+  background: rgba(252,209,22,.04);
+}
+
+/* Salto de página entre actas en impresión masiva */
+.acta-page-break {
+  page-break-after: always;
+  break-after: always;
+}
+
 /* ── Impresión ─────────────────────────────────────────────────────────────── */
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }

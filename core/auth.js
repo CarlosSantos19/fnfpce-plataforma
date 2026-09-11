@@ -34,8 +34,7 @@ const Auth = {
   },
 
   logout() {
-    sessionStorage.removeItem('contador');
-    sessionStorage.removeItem('rol');
+    sessionStorage.clear();
     window.location.href = '/login.html';
   }
 };

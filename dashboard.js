@@ -18,6 +18,9 @@ const CARDS_CONFIG = {
   tablero:              { icon: '⬡', titulo: 'Tablero',           desc: 'Vista general de indicadores y avance del proceso',           path: '/modules/tablero/tablero.html' },
   analisis:             { icon: '◫', titulo: 'Análisis',          desc: 'Análisis de cuentas de campañas electorales ET2023',          path: '/modules/analisis/analisis.html' },
   consultor:            { icon: '⬟', titulo: 'Consultas ET2023',  desc: 'Consultor de expedientes ET2023',                             path: '/modules/consultor/consultor.html' },
+  'consultor-et2019':  { icon: '⬟', titulo: 'Consultas ET2019',  desc: 'Consultor de expedientes Elecciones Territoriales 2019',       path: '/modules/consultor-et2019/consultor-et2019.html' },
+  'consultor-cg2026':  { icon: '⬟', titulo: 'Consultas CG2026',  desc: 'Consultor de expedientes Congreso 2026',                      path: '/modules/consultor-cg2026/consultor-cg2026.html' },
+  'consultor-fn2025':  { icon: '⬟', titulo: 'Consultas FN2025',  desc: 'Consultor de expedientes Funcionamiento 2025',                path: '/modules/consultor-fn2025/consultor-fn2025.html' },
   chat:                 { icon: '◈', titulo: 'Chat',              desc: 'Canal de comunicación institucional en tiempo real',          path: '/modules/chat/chat.html' },
   'descarga-pdf':       { icon: '◧', titulo: 'Descarga PDF',      desc: 'Gestión de descarga de documentos AUTOCASH por organización', path: '/modules/descarga-pdf/descarga-pdf.html' },
   'horas-extras':       { icon: '⏱', titulo: 'Horas Extras',     desc: 'Registro y seguimiento de horas extras autorizadas',          path: '/modules/horas-extras/horas-extras.html' },
@@ -27,6 +30,8 @@ const CARDS_CONFIG = {
   calendario:           { icon: '◈', titulo: 'Calendario',        desc: 'Fechas clave, plazos y eventos del proceso ET2023',           path: '/modules/calendario/calendario.html' },
   'dashboard-ejecutivo':{ icon: '◑', titulo: 'Dashboard Ejecutivo', desc: 'Indicadores ejecutivos y gráficas del proceso ET2023',     path: '/modules/dashboard-ejecutivo/dashboard-ejecutivo.html' },
   requerimientos:       { icon: '◌', titulo: 'Requerimientos',    desc: 'Registro y seguimiento de oficios a partidos y organizaciones', path: '/modules/requerimientos/requerimientos.html' },
+  'auditor-ia':         { icon: '⚡', titulo: 'Auditor IA',        desc: 'Análisis inteligente de cuentas y generación automática de requerimientos', path: '/modules/auditor-ia/auditor-ia.html' },
+  'gestion-partidos':   { icon: '◈', titulo: 'Gestión Partidos',  desc: 'Administración de acceso al portal de organizaciones políticas',              path: '/modules/gestion-partidos/gestion-partidos.html' },
 };
 
 // MODULES_BY_ROLE se toma de components/sidebar.js (ya cargado en la misma página)

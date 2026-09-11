@@ -1,15 +1,10 @@
 /**
  * modules/actas/actas.js
- * Visualización e impresión de Actas de Entrega ET2023.
- *
- * Agrupación: cada acta = único (numeroActaEntrega) si existe,
- * o (nombreContador + cajaDigital + numeroActaReparto + fechaActaReparto).
+ * Visualización e impresión de Actas de Entrega — ET2023, ET2019, CG2026, FN2025.
  */
 
 import { db } from '/firebase-config.js';
-import {
-  collection, getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 Auth.requireRole(['administrador', 'contador']);
 renderSidebar('actas');
@@ -21,6 +16,14 @@ const esContador    = rol === 'contador';
 let todosExpedientes = [];
 let _actaGrupos      = [];
 let actaActual       = null;
+let procesoActual    = 'ET2023';
+
+const PROCESO_LABELS = {
+  ET2023: 'Elecciones Territoriales 2023',
+  ET2019: 'Elecciones Territoriales 2019',
+  CG2026: 'Congreso de la República 2026',
+  FN2025: 'Funcionamiento Normal 2025',
+};
 
 // ── Partículas ────────────────────────────────────────────────────────────────
 (function initParticulas() {
@@ -36,42 +39,70 @@ let actaActual       = null;
   }
 })();
 
+// ── Cambiar proceso ───────────────────────────────────────────────────────────
+window.cambiarProceso = function () {
+  procesoActual = document.getElementById('sel-proceso').value;
+  // Limpiar filtro contador
+  const sel = document.getElementById('sel-contador');
+  sel.innerHTML = '<option value="">— Todos los contadores —</option>';
+  init();
+};
+
+// ── Carga de expedientes según proceso ────────────────────────────────────────
+async function cargarExpedientes(proc) {
+  if (proc === 'ET2019') {
+    const resp = await fetch('/modules/consultor-et2019/data/et2019_reparto.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const todos = await resp.json();
+    return todos.map(d => ({ ...d }));
+  }
+  const colName = proc === 'CG2026' ? 'reparto_cg2026'
+                : proc === 'FN2025' ? 'reparto_fn2025'
+                : 'reparto';
+  const snap = await getDocs(collection(db, colName));
+  return snap.docs.map(d => {
+    const data = d.data();
+    if (data.nombreContador !== undefined) data.nombreContador = String(data.nombreContador);
+    return { _id: d.id, ...data };
+  });
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function init() {
+  const listaEl = document.getElementById('lista-actas');
+  listaEl.innerHTML = '<div class="loading-txt">Cargando actas…</div>';
+
   try {
-    const snap = await getDocs(collection(db, 'reparto'));
-    todosExpedientes = snap.docs
-      .map(d => {
-        const data = d.data();
-        if (data.nombreContador !== undefined) data.nombreContador = String(data.nombreContador);
-        return { _id: d.id, ...data };
-      })
-      .filter(e => e.nombreContador && e.nombreContador.trim()); // debe tener contador asignado
+    let expedientes = await cargarExpedientes(procesoActual);
+
+    // Solo expedientes con contador asignado
+    expedientes = expedientes.filter(e => e.nombreContador && String(e.nombreContador).trim());
 
     if (esContador) {
-      todosExpedientes = todosExpedientes.filter(e =>
-        e.nombreContador.trim().toLowerCase() === nombreUsuario.trim().toLowerCase()
+      expedientes = expedientes.filter(e =>
+        String(e.nombreContador).trim().toLowerCase() === nombreUsuario.trim().toLowerCase()
       );
     } else {
-      poblarFiltroContador();
-      document.getElementById('filtro-admin').style.display = '';
+      poblarFiltroContador(expedientes);
+      document.getElementById('filtro-admin').style.display = 'contents';
     }
 
+    todosExpedientes = expedientes;
     renderListaActas(todosExpedientes);
 
   } catch (err) {
-    document.getElementById('lista-actas').innerHTML =
-      `<div class="loading-txt">Error al cargar datos: ${err.message}</div>`;
+    listaEl.innerHTML = `<div class="loading-txt">Error al cargar datos: ${err.message}</div>`;
   }
 }
 
 // ── Filtro de contador (admin) ────────────────────────────────────────────────
-function poblarFiltroContador() {
+function poblarFiltroContador(expedientes) {
   const contadores = [...new Set(
-    todosExpedientes.map(e => e.nombreContador).filter(Boolean)
+    expedientes.map(e => e.nombreContador).filter(Boolean)
   )].sort();
 
   const sel = document.getElementById('sel-contador');
+  sel.innerHTML = '<option value="">— Todos los contadores —</option>';
   contadores.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c;
@@ -80,7 +111,7 @@ function poblarFiltroContador() {
   });
 }
 
-window.filtrarPorContador = function() {
+window.filtrarPorContador = function () {
   const filtro = document.getElementById('sel-contador').value;
   const filtrado = filtro
     ? todosExpedientes.filter(e => e.nombreContador === filtro)
@@ -89,7 +120,6 @@ window.filtrarPorContador = function() {
 };
 
 // ── Agrupación de expedientes por acta ───────────────────────────────────────
-// Clave: numeroActaEntrega (si existe) o combinación de campos
 function claveActa(e) {
   const codigo = (e.numeroActaEntrega || '').trim();
   if (codigo) return `cod:${codigo}`;
@@ -119,7 +149,6 @@ function renderListaActas(expedientes) {
     grupos[key].expedientes.push(e);
   });
 
-  // Ordenar: contador → fecha acta → caja
   _actaGrupos = Object.values(grupos).sort((a, b) => {
     const nc = a.nombreContador.localeCompare(b.nombreContador);
     if (nc !== 0) return nc;
@@ -131,8 +160,16 @@ function renderListaActas(expedientes) {
   const el = document.getElementById('lista-actas');
 
   if (!_actaGrupos.length) {
-    el.innerHTML = '<div class="loading-txt">No hay actas registradas.</div>';
+    el.innerHTML = `<div class="loading-txt">No hay actas registradas para ${PROCESO_LABELS[procesoActual]}.</div>`;
+    const btnTodas = document.getElementById('btn-imprimir-todas');
+    if (btnTodas) btnTodas.style.display = 'none';
     return;
+  }
+
+  const btnTodas = document.getElementById('btn-imprimir-todas');
+  if (btnTodas) {
+    btnTodas.style.display = '';
+    btnTodas.textContent = `⬡ Imprimir todas (${_actaGrupos.length})`;
   }
 
   el.innerHTML = _actaGrupos.map((g, idx) => {
@@ -142,20 +179,22 @@ function renderListaActas(expedientes) {
       .map(([k, v]) => `<span class="acta-stat">${k}: ${v}</span>`)
       .join('');
 
-    const etiquetaNumActa = g.numeroActaReparto
-      ? `Acta No. ${g.numeroActaReparto}` : '';
+    const etiquetaNumActa = g.numeroActaReparto ? `Acta No. ${g.numeroActaReparto}` : '';
     const etiquetaCodigo  = g.numeroActaEntrega
       ? `<span class="acta-codigo-tag">${g.numeroActaEntrega}</span>` : '';
+    const cajaLabel = g.cajaDigital
+      ? `◆ Caja Digital ${String(g.cajaDigital).padStart(2, '0')}`
+      : `◆ ${g.nombreContador}`;
 
     return `
       <div class="acta-item" onclick="abrirActa(${idx})">
         <div class="acta-item-header">
-          <span class="acta-caja">◆ Caja Digital ${String(g.cajaDigital).padStart(2, '0')}</span>
+          <span class="acta-caja">${cajaLabel}</span>
           <span class="acta-num-tag">${etiquetaNumActa}</span>
         </div>
         ${etiquetaCodigo}
         <div class="acta-item-nombre">${g.nombreContador}</div>
-        <div class="acta-item-fecha">${formatearFechaCorta(g.fechaActaReparto)}</div>
+        <div class="acta-item-fecha">${g.fechaActaReparto ? formatearFechaCorta(g.fechaActaReparto) : 'Sin fecha'}</div>
         <div class="acta-item-stats">
           ${resumen}
           <span class="acta-stat acta-stat--total">TOTAL: ${g.expedientes.length}</span>
@@ -180,37 +219,66 @@ function contarPorTipo(expedientes) {
   return c;
 }
 
-// ── Abrir acta ────────────────────────────────────────────────────────────────
-window.abrirActa = function(idx) {
+// ── Abrir acta individual ────────────────────────────────────────────────────
+window.abrirActa = function (idx) {
   actaActual = _actaGrupos[idx];
-
   document.getElementById('inp-num-acta').value   = actaActual.numeroActaReparto || '';
   document.getElementById('inp-codigo-doc').value = actaActual.numeroActaEntrega || '';
+  document.getElementById('acta-campos-edit').style.display = '';
+  document.getElementById('acta-modo-badge').style.display  = 'none';
 
   document.getElementById('panel-selector').style.display = 'none';
   document.getElementById('panel-acta').style.display     = '';
-
   renderActa();
 };
 
-window.volverSelector = function() {
+window.volverSelector = function () {
   document.getElementById('panel-selector').style.display = '';
   document.getElementById('panel-acta').style.display     = 'none';
   actaActual = null;
 };
 
-window.actualizarActa = function() { renderActa(); };
+window.actualizarActa = function () { renderActa(); };
 
-// ── Renderizar documento ──────────────────────────────────────────────────────
+// ── Imprimir todas ────────────────────────────────────────────────────────────
+window.imprimirTodas = function () {
+  if (!_actaGrupos.length) return;
+
+  document.getElementById('inp-num-acta').value   = '';
+  document.getElementById('inp-codigo-doc').value = '';
+  document.getElementById('acta-campos-edit').style.display = 'none';
+  document.getElementById('acta-modo-badge').style.display  = '';
+
+  document.getElementById('panel-selector').style.display = 'none';
+  document.getElementById('panel-acta').style.display     = '';
+
+  const html = _actaGrupos.map((g, i) =>
+    `<div class="${i < _actaGrupos.length - 1 ? 'acta-page-break' : ''}">${generarHTMLActa(g, g.numeroActaReparto || '', g.numeroActaEntrega || '')}</div>`
+  ).join('');
+
+  document.getElementById('acta-documento').innerHTML = html;
+  actaActual = null;
+  window.print();
+
+  window.addEventListener('afterprint', function restaurar() {
+    document.getElementById('acta-campos-edit').style.display = '';
+    document.getElementById('acta-modo-badge').style.display  = 'none';
+    window.removeEventListener('afterprint', restaurar);
+  }, { once: true });
+};
+
+// ── Renderizar acta actual ────────────────────────────────────────────────────
 function renderActa() {
   if (!actaActual) return;
-
   const numActa   = document.getElementById('inp-num-acta').value.trim();
   const codigoDoc = document.getElementById('inp-codigo-doc').value.trim();
+  document.getElementById('acta-documento').innerHTML = generarHTMLActa(actaActual, numActa, codigoDoc);
+}
 
-  const { nombreContador, cajaDigital, fechaActaReparto, expedientes } = actaActual;
+// ── Generador HTML de una acta ────────────────────────────────────────────────
+function generarHTMLActa(grupo, numActa, codigoDoc) {
+  const { nombreContador, cajaDigital, fechaActaReparto, expedientes } = grupo;
 
-  // Ordenar: corporacion → departamento → municipio → consecutivo
   const ordenados = [...expedientes].sort((a, b) => {
     const cc = (a.corporacion || '').localeCompare(b.corporacion || '');
     if (cc !== 0) return cc;
@@ -223,7 +291,8 @@ function renderActa() {
 
   const counts = contarPorTipo(expedientes);
   const total  = expedientes.length;
-  const fechaFormateada = formatearFechaLarga(fechaActaReparto);
+  const fechaFormateada = fechaActaReparto ? formatearFechaLarga(fechaActaReparto)
+    : new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
 
   const filas = ordenados.map((e, i) => `
     <tr>
@@ -250,18 +319,18 @@ function renderActa() {
     ? `Acta de Reparto No. <strong>${numActa}</strong> del día <strong>${fechaFormateada}</strong>`
     : `acta de reparto del día <strong>${fechaFormateada}</strong>`;
 
-  document.getElementById('acta-documento').innerHTML = `
-    <div class="acta-paper">
+  const cajaLinea = cajaDigital
+    ? `${cajaDigital}${numActa ? ` &mdash; Acta No. ${numActa} del día ${fechaFormateada}` : ''}`
+    : (numActa ? `Acta No. ${numActa} del día ${fechaFormateada}` : fechaFormateada);
 
-      <!-- Encabezado institucional -->
+  return `
+    <div class="acta-paper">
       <div class="acta-encabezado">
         <div class="acta-logo-block">
           <img src="/imagenes/logo.jpg" class="acta-logo-img" alt="CNE" />
           <div class="acta-inst-nombres">
             <div class="acta-inst-1">CONSEJO NACIONAL ELECTORAL</div>
-            <div class="acta-inst-2">
-              FONDO NACIONAL DE FINANCIAMIENTO PARA LA COMPETENCIA ELECTORAL
-            </div>
+            <div class="acta-inst-2">FONDO NACIONAL DE FINANCIAMIENTO PARA LA COMPETENCIA ELECTORAL</div>
           </div>
         </div>
         <div class="acta-header-right">
@@ -270,19 +339,16 @@ function renderActa() {
         </div>
       </div>
 
-      <!-- Título -->
       <div class="acta-titulo">ACTA DE ENTREGA</div>
 
-      <!-- Párrafo introductorio -->
       <div class="acta-intro">
         <p>
-          Por medio de la presente acta, se hace entrega de las cuentas de rendición del proceso
-          de Extinción de Términos ET2023, correspondientes al ${introActa},
-          descritas a continuación:
+          Por medio de la presente acta, se hace entrega de las cuentas de rendición del
+          <strong>${PROCESO_LABELS[procesoActual]}</strong>,
+          correspondientes al ${introActa}, descritas a continuación:
         </p>
       </div>
 
-      <!-- Tabla de expedientes -->
       <div class="acta-tabla-wrap">
         <table class="acta-tabla">
           <thead>
@@ -301,30 +367,25 @@ function renderActa() {
         </table>
       </div>
 
-      <!-- Línea resumen por tipo -->
       <div class="acta-resumen">
         <span class="acta-resumen-tipos">${resumenLinea}</span>
         <span class="acta-resumen-sep">|</span>
         <span class="acta-resumen-total"><strong>TOTAL ${total}</strong></span>
-        <span class="acta-resumen-sep">|</span>
-        <span class="acta-resumen-caja"><strong>CAJA DIGITAL ${cajaDigital}</strong></span>
+        ${cajaDigital ? `<span class="acta-resumen-sep">|</span><span class="acta-resumen-caja"><strong>CAJA DIGITAL ${cajaDigital}</strong></span>` : ''}
       </div>
 
-      <!-- Nota de abreviaturas -->
       <div class="acta-nota">
         <strong>NOTA:</strong>&nbsp; AL: Alcaldía Municipal / Alcaldía Local &mdash;
         CO: Concejo Municipal &mdash; AS: Asamblea Departamental &mdash;
         GO: Gobernación &mdash; JAL: Junta Administradora Local
       </div>
 
-      <!-- Bloque de detalle -->
       <div class="acta-detalle">
+        ${cajaDigital ? `
         <div class="acta-detalle-row">
           <span class="acta-detalle-lbl">Caja Digital:</span>
-          <span class="acta-detalle-val">
-            ${cajaDigital}${numActa ? ` &mdash; Acta No. ${numActa} del día ${fechaFormateada}` : ''}
-          </span>
-        </div>
+          <span class="acta-detalle-val">${cajaLinea}</span>
+        </div>` : ''}
         <div class="acta-detalle-row">
           <span class="acta-detalle-lbl">Número de cuentas:</span>
           <span class="acta-detalle-val">${total}</span>
@@ -335,7 +396,6 @@ function renderActa() {
         </div>
       </div>
 
-      <!-- Firmas -->
       <div class="acta-firmas">
         <div class="acta-firma-bloque">
           <div class="acta-firma-linea"></div>
@@ -346,10 +406,9 @@ function renderActa() {
           <div class="acta-firma-linea"></div>
           <div class="acta-firma-nombre">ANDREA DEL PILAR LOPERA PRADA</div>
           <div class="acta-firma-cargo">JEFE DE OFICINA — QUIEN ENTREGA</div>
-          <div class="acta-firma-cargo">FNFPCE — ET2023</div>
+          <div class="acta-firma-cargo">FNFPCE — ${procesoActual}</div>
         </div>
       </div>
-
     </div>
   `;
 }
@@ -369,12 +428,10 @@ function formatearFechaCorta(fechaStr) {
 
 function parsarFecha(fechaStr) {
   if (!fechaStr) return null;
-  // YYYY-MM-DD (del seed original)
   if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
     const [y, m, d] = fechaStr.split('-').map(Number);
     return new Date(y, m - 1, d);
   }
-  // dd/mm/yyyy (del sorteo)
   if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(fechaStr)) {
     const [d, m, y] = fechaStr.split('/').map(Number);
     return new Date(y, m - 1, d);
@@ -383,7 +440,6 @@ function parsarFecha(fechaStr) {
 }
 
 function formatearConsecutivo(consec) {
-  // "AL-0279" o "AL-279" → "AL04279" (sin guión, con padding a 5 dígitos)
   if (!consec) return '';
   const m = consec.match(/^([A-Za-z]+)-?0*(\d+)$/);
   if (m) return m[1] + String(m[2]).padStart(5, '0');
