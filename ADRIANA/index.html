@@ -10,28 +10,113 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables.net-buttons-bs5/2.4.1/buttons.bootstrap5.min.css">
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- Estilos propios (inline) -->
+<!-- Tema oscuro — mismo estilo que portal-cc-cne.onrender.com (Territoriales 2023) -->
 <style>
-:root{--cne-azul:#003478;--cne-rojo:#c8102e;--cne-dorado:#f4b223;}
-body{font-size:.9rem;background:#f4f6f9;}
-.navbar{background:var(--cne-azul)!important;}
-.sidebar{background:#fff;border-right:2px solid var(--cne-azul);min-height:100vh;padding:1rem .5rem;}
-.paso{border-left:4px solid #dee2e6;padding:.75rem 1rem;margin-bottom:.75rem;border-radius:0 .4rem .4rem 0;cursor:pointer;transition:.2s;}
-.paso:hover{background:#f0f4ff;}
-.paso.activo{border-color:var(--cne-azul);background:#e8efff;}
-.paso.completado{border-color:#198754;}
-.paso-num{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;background:#dee2e6;color:#333;}
-.paso.activo .paso-num{background:var(--cne-azul);color:#fff;}
-.paso.completado .paso-num{background:#198754;color:#fff;}
+:root{
+  --bg:#070c1a;--panel:#0d1628;--bdr:rgba(0,180,255,.16);
+  --cyan:#00c8ff;--gold:#fcd116;--text:#c4daf0;--dim:rgba(196,218,240,.4);
+  --cne-azul:#003478;--cne-rojo:#c8102e;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)!important;color:var(--text)!important;font-size:.88rem;font-family:'Segoe UI',sans-serif;}
+
+/* ── Navbar ── */
+.navbar{background:linear-gradient(90deg,#00112e,#001d52)!important;border-bottom:1px solid var(--bdr);}
+.navbar-brand,.navbar-text{color:var(--text)!important}
+.navbar-text.text-warning{color:var(--gold)!important}
+.btn-outline-light{border-color:rgba(0,180,255,.35)!important;color:var(--cyan)!important}
+.btn-outline-light:hover{background:rgba(0,180,255,.1)!important}
+
+/* ── Sidebar ── */
+.sidebar{background:var(--panel)!important;border-right:1px solid var(--bdr)!important;min-height:100vh;padding:1rem .5rem;}
+.sidebar .fw-bold.text-uppercase.text-muted{color:var(--dim)!important}
+.paso{border-left:4px solid rgba(0,180,255,.2);padding:.75rem 1rem;margin-bottom:.6rem;border-radius:0 .4rem .4rem 0;cursor:pointer;transition:.2s;background:transparent;}
+.paso:hover{background:rgba(0,180,255,.05)!important;border-left-color:rgba(0,180,255,.5);}
+.paso.activo{border-left-color:var(--cyan)!important;background:rgba(0,180,255,.08)!important;}
+.paso.activo .fw-semibold{color:var(--cyan)!important}
+.paso.completado{border-left-color:#00e676!important;}
+.paso-num{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;background:rgba(0,180,255,.12);color:var(--dim);}
+.paso.activo .paso-num{background:var(--cyan);color:#000;}
+.paso.completado .paso-num{background:#00e676;color:#000;}
+.paso .small.text-muted{color:var(--dim)!important}
+
+/* ── Cards y paneles ── */
+.card{background:var(--panel)!important;border:1px solid var(--bdr)!important;color:var(--text)!important}
+.card-body,.card-header{background:transparent!important;color:var(--text)!important}
+.card-header{border-bottom:1px solid var(--bdr)!important}
+.list-group-item{background:var(--panel)!important;border-color:var(--bdr)!important;color:var(--text)!important}
+
+/* ── Tablas ── */
+.table{color:var(--text)!important;--bs-table-bg:transparent;}
+.table-dark{--bs-table-bg:rgba(0,180,255,.08);}
+.table th{color:var(--dim)!important;border-bottom:1px solid var(--bdr)!important;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
+.table td{border-color:rgba(0,180,255,.07)!important;vertical-align:middle;}
+.table tbody tr:hover td{background:rgba(252,209,22,.03)!important}
+.table-striped>tbody>tr:nth-of-type(odd)>*{--bs-table-color:var(--text);--bs-table-bg-type:rgba(0,180,255,.03);}
+
+/* ── DataTables ── */
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate{color:var(--text)!important}
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select{background:rgba(0,180,255,.04)!important;border:1px solid var(--bdr)!important;color:var(--text)!important;border-radius:4px;padding:.2rem .5rem;}
+.paginate_button{color:var(--dim)!important;}
+.paginate_button.current{background:rgba(0,180,255,.15)!important;border-color:var(--cyan)!important;color:var(--cyan)!important;}
+.paginate_button:hover{background:rgba(0,180,255,.08)!important;color:var(--cyan)!important;}
+
+/* ── Forms ── */
+.form-control,.form-select{background:rgba(0,180,255,.04)!important;border:1px solid var(--bdr)!important;color:var(--text)!important;border-radius:5px;}
+.form-control:focus,.form-select:focus{border-color:var(--cyan)!important;box-shadow:0 0 0 2px rgba(0,200,255,.15)!important;}
+.form-control::placeholder{color:var(--dim)!important}
+.form-label,.col-form-label{color:rgba(252,209,22,.75)!important;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;}
+.input-group-text{background:rgba(0,180,255,.06)!important;border-color:var(--bdr)!important;color:var(--dim)!important}
+
+/* ── Botones ── */
+.btn-primary{background:rgba(0,56,147,.5)!important;border-color:var(--cyan)!important;color:var(--cyan)!important}
+.btn-primary:hover{background:rgba(0,56,147,.75)!important}
+.btn-secondary{background:rgba(0,180,255,.08)!important;border-color:var(--bdr)!important;color:var(--text)!important}
+.btn-success{background:rgba(0,230,118,.1)!important;border-color:#00e676!important;color:#00e676!important}
+.btn-warning{background:rgba(252,209,22,.1)!important;border-color:var(--gold)!important;color:var(--gold)!important}
+.btn-danger{background:rgba(239,83,80,.1)!important;border-color:#ef5350!important;color:#ef5350!important}
+.btn-info{background:rgba(0,180,255,.1)!important;border-color:var(--cyan)!important;color:var(--cyan)!important}
+.btn-sm{font-size:.72rem;}
+
+/* ── Badges ── */
+.badge.bg-primary{background:rgba(0,180,255,.2)!important;color:var(--cyan)!important;border:1px solid rgba(0,180,255,.3)}
+.badge.bg-success{background:rgba(0,230,118,.15)!important;color:#00e676!important;border:1px solid rgba(0,230,118,.3)}
+.badge.bg-warning{background:rgba(252,209,22,.12)!important;color:var(--gold)!important;border:1px solid rgba(252,209,22,.3)}
+.badge.bg-danger{background:rgba(239,83,80,.15)!important;color:#ef5350!important;border:1px solid rgba(239,83,80,.3)}
+.badge.bg-secondary{background:rgba(196,218,240,.08)!important;color:var(--dim)!important;border:1px solid rgba(196,218,240,.15)}
+.badge.bg-dark{background:rgba(0,0,0,.4)!important;border:1px solid rgba(255,255,255,.1)}
+
+/* ── Alerts ── */
+.alert-info{background:rgba(0,180,255,.08)!important;border-color:rgba(0,180,255,.25)!important;color:var(--cyan)!important}
+.alert-success{background:rgba(0,230,118,.08)!important;border-color:rgba(0,230,118,.25)!important;color:#00e676!important}
+.alert-warning{background:rgba(252,209,22,.08)!important;border-color:rgba(252,209,22,.25)!important;color:var(--gold)!important}
+.alert-danger{background:rgba(239,83,80,.08)!important;border-color:rgba(239,83,80,.25)!important;color:#ef5350!important}
+
+/* ── Misc ── */
+.text-muted{color:var(--dim)!important}
+.border,.border-bottom,.border-top{border-color:var(--bdr)!important}
+hr{border-color:var(--bdr)!important}
+a{color:var(--cyan)}
+a:hover{color:#7de8ff}
+
+/* ── Pasos — estados chips ── */
 .seccion{display:none;}
 .seccion.activa{display:block;}
 .estado-chip{display:inline-block;padding:.15rem .5rem;border-radius:2rem;font-size:.7rem;font-weight:600;}
-.chip-renuncia{background:#fff3cd;color:#856404;}
-.chip-no-presento{background:#f8d7da;color:#842029;}
-.chip-extempor{background:#fff3cd;color:#664d03;}
-.chip-revocado{background:#f8d7da;color:#842029;}
+.chip-renuncia{background:rgba(255,190,0,.1);color:#ffbe00;border:1px solid rgba(255,190,0,.3)}
+.chip-no-presento{background:rgba(239,83,80,.1);color:#ef5350;border:1px solid rgba(239,83,80,.3)}
+.chip-extempor{background:rgba(252,209,22,.1);color:var(--gold);border:1px solid rgba(252,209,22,.3)}
+.chip-revocado{background:rgba(239,83,80,.1);color:#ef5350;border:1px solid rgba(239,83,80,.3)}
 .tabla-obs td{font-size:.8rem;}
 .url-preview-btn{font-size:.75rem;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:rgba(0,180,255,.2);border-radius:2px}
 </style>
 
 <!-- PDF.js para lector de dictamen sin Python -->
