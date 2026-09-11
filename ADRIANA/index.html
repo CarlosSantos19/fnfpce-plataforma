@@ -1,989 +1,946 @@
-<html lang="es"><head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CNE · Análisis Previo Certificador · Territoriales 2023</title>
-
-<!-- Bootstrap 5 -->
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portal Cuentas Claras — Congreso 2026</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-<!-- DataTables -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables.net-bs5/1.13.6/dataTables.bootstrap5.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datatables.net-buttons-bs5/2.4.1/buttons.bootstrap5.min.css">
-<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- Tema oscuro — mismo estilo que portal-cc-cne.onrender.com (Territoriales 2023) -->
 <style>
-:root{
-  --bg:#070c1a;--panel:#0d1628;--bdr:rgba(0,180,255,.16);
-  --cyan:#00c8ff;--gold:#fcd116;--text:#c4daf0;--dim:rgba(196,218,240,.4);
-  --cne-azul:#003478;--cne-rojo:#c8102e;
-}
-*{box-sizing:border-box}
-html,body{background:var(--bg)!important;color:var(--text)!important;font-size:.88rem;font-family:'Segoe UI',sans-serif;}
+:root{--bg:#070c1a;--panel:#0d1628;--bdr:rgba(0,180,255,.16);--cyan:#00c8ff;--gold:#fcd116;--text:#c4daf0;--dim:rgba(196,218,240,.4)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;font-size:.88rem;display:flex;flex-direction:column}
 
-/* ── Navbar ── */
-.navbar{background:linear-gradient(90deg,#00112e,#001d52)!important;border-bottom:1px solid var(--bdr);}
-.navbar-brand,.navbar-text{color:var(--text)!important}
-.navbar-text.text-warning{color:var(--gold)!important}
-.btn-outline-light{border-color:rgba(0,180,255,.35)!important;color:var(--cyan)!important}
-.btn-outline-light:hover{background:rgba(0,180,255,.1)!important}
+/* ── Overlay pantallas ────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(7,12,26,.96);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+.overlay.hidden{display:none}
 
-/* ── Sidebar ── */
-.sidebar{background:var(--panel)!important;border-right:1px solid var(--bdr)!important;min-height:100vh;padding:1rem .5rem;}
-.sidebar .fw-bold.text-uppercase.text-muted{color:var(--dim)!important}
-.paso{border-left:4px solid rgba(0,180,255,.2);padding:.75rem 1rem;margin-bottom:.6rem;border-radius:0 .4rem .4rem 0;cursor:pointer;transition:.2s;background:transparent;}
-.paso:hover{background:rgba(0,180,255,.05)!important;border-left-color:rgba(0,180,255,.5);}
-.paso.activo{border-left-color:var(--cyan)!important;background:rgba(0,180,255,.08)!important;}
-.paso.activo .fw-semibold{color:var(--cyan)!important}
-.paso.completado{border-left-color:#00e676!important;}
-.paso-num{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;background:rgba(0,180,255,.12);color:var(--dim);}
-.paso.activo .paso-num{background:var(--cyan);color:#000;}
-.paso.completado .paso-num{background:#00e676;color:#000;}
-.paso .small.text-muted{color:var(--dim)!important}
+.card-cnt{background:var(--panel);border:1px solid var(--bdr);border-radius:10px;padding:2.5rem;width:100%;max-width:400px;position:relative;overflow:hidden}
+.card-cnt::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation:scan 3s ease-in-out infinite}
+@keyframes scan{0%,100%{opacity:.3}50%{opacity:1}}
 
-/* ── Cards y paneles ── */
-.card{background:var(--panel)!important;border:1px solid var(--bdr)!important;color:var(--text)!important}
-.card-body,.card-header{background:transparent!important;color:var(--text)!important}
-.card-header{border-bottom:1px solid var(--bdr)!important}
-.list-group-item{background:var(--panel)!important;border-color:var(--bdr)!important;color:var(--text)!important}
+.card-logo{margin-bottom:1rem;display:block;text-align:center}
+.card-logo img{height:52px;filter:brightness(1.05)}
+.card-title{font-size:1rem;font-weight:700;color:var(--cyan);text-align:center;letter-spacing:.04em;margin-bottom:.2rem}
+.card-sub{font-size:.75rem;color:var(--dim);text-align:center;margin-bottom:1.8rem}
 
-/* ── Tablas ── */
-.table{color:var(--text)!important;--bs-table-bg:transparent;}
-.table-dark{--bs-table-bg:rgba(0,180,255,.08);}
-.table th{color:var(--dim)!important;border-bottom:1px solid var(--bdr)!important;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
-.table td{border-color:rgba(0,180,255,.07)!important;vertical-align:middle;}
-.table tbody tr:hover td{background:rgba(252,209,22,.03)!important}
-.table-striped>tbody>tr:nth-of-type(odd)>*{--bs-table-color:var(--text);--bs-table-bg-type:rgba(0,180,255,.03);}
+.f-label{font-size:.7rem;color:rgba(252,209,22,.7);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.3rem;display:block}
+.f-input{width:100%;background:rgba(0,180,255,.04);border:1px solid var(--bdr);color:var(--text);padding:.55rem .9rem;border-radius:5px;font-size:.88rem;outline:none;transition:border-color .2s;margin-bottom:1rem}
+.f-input:focus{border-color:var(--cyan)}
+.f-input::placeholder{color:var(--dim)}
 
-/* ── DataTables ── */
-.dataTables_wrapper .dataTables_length label,
-.dataTables_wrapper .dataTables_filter label,
-.dataTables_wrapper .dataTables_info,
-.dataTables_wrapper .dataTables_paginate{color:var(--text)!important}
-.dataTables_wrapper .dataTables_filter input,
-.dataTables_wrapper .dataTables_length select{background:rgba(0,180,255,.04)!important;border:1px solid var(--bdr)!important;color:var(--text)!important;border-radius:4px;padding:.2rem .5rem;}
-.paginate_button{color:var(--dim)!important;}
-.paginate_button.current{background:rgba(0,180,255,.15)!important;border-color:var(--cyan)!important;color:var(--cyan)!important;}
-.paginate_button:hover{background:rgba(0,180,255,.08)!important;color:var(--cyan)!important;}
+.btn-cne{width:100%;background:rgba(0,56,147,.5);border:1px solid var(--cyan);color:var(--cyan);font-size:.82rem;letter-spacing:.06em;padding:.65rem;border-radius:5px;cursor:pointer;transition:background .2s}
+.btn-cne:hover{background:rgba(0,56,147,.75)}
+.btn-cne:disabled{opacity:.4;cursor:default}
 
-/* ── Forms ── */
-.form-control,.form-select{background:rgba(0,180,255,.04)!important;border:1px solid var(--bdr)!important;color:var(--text)!important;border-radius:5px;}
-.form-control:focus,.form-select:focus{border-color:var(--cyan)!important;box-shadow:0 0 0 2px rgba(0,200,255,.15)!important;}
-.form-control::placeholder{color:var(--dim)!important}
-.form-label,.col-form-label{color:rgba(252,209,22,.75)!important;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;}
-.input-group-text{background:rgba(0,180,255,.06)!important;border-color:var(--bdr)!important;color:var(--dim)!important}
+.msg-err{font-size:.78rem;color:#ef5350;margin-top:.7rem;text-align:center;min-height:1.1rem}
+.msg-ok {font-size:.78rem;color:#00e676;margin-top:.7rem;text-align:center;min-height:1.1rem}
 
-/* ── Botones ── */
-.btn-primary{background:rgba(0,56,147,.5)!important;border-color:var(--cyan)!important;color:var(--cyan)!important}
-.btn-primary:hover{background:rgba(0,56,147,.75)!important}
-.btn-secondary{background:rgba(0,180,255,.08)!important;border-color:var(--bdr)!important;color:var(--text)!important}
-.btn-success{background:rgba(0,230,118,.1)!important;border-color:#00e676!important;color:#00e676!important}
-.btn-warning{background:rgba(252,209,22,.1)!important;border-color:var(--gold)!important;color:var(--gold)!important}
-.btn-danger{background:rgba(239,83,80,.1)!important;border-color:#ef5350!important;color:#ef5350!important}
-.btn-info{background:rgba(0,180,255,.1)!important;border-color:var(--cyan)!important;color:var(--cyan)!important}
-.btn-sm{font-size:.72rem;}
+/* ── Header ───────────────────────────────────────────────────── */
+.top{background:linear-gradient(90deg,#00112e,#001d52);border-bottom:1px solid var(--bdr);padding:.55rem 1.2rem;display:flex;align-items:center;gap:.8rem;flex-shrink:0}
+.top-logo img{height:32px;filter:brightness(1.05)}
+.top-title{font-weight:700;font-size:.93rem;color:#ddeeff;letter-spacing:.02em}
+.top-sub{font-size:.7rem;color:var(--dim)}
+.sp{margin-left:auto;font-size:.68rem;padding:.18rem .65rem;border-radius:20px;border:1px solid;display:flex;align-items:center;gap:.35rem;white-space:nowrap}
+.sp.idle{border-color:rgba(200,200,200,.2);color:rgba(200,200,200,.35)}
+.sp.ok{border-color:#00e676;color:#00e676}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.sp-dot{animation:blink 1.2s infinite}
+.user-chip{font-size:.68rem;padding:.15rem .5rem;border-radius:10px;background:rgba(252,209,22,.06);border:1px solid rgba(252,209,22,.2);color:rgba(252,209,22,.7);cursor:pointer}
+.user-chip:hover{border-color:var(--gold);color:var(--gold)}
 
-/* ── Badges ── */
-.badge.bg-primary{background:rgba(0,180,255,.2)!important;color:var(--cyan)!important;border:1px solid rgba(0,180,255,.3)}
-.badge.bg-success{background:rgba(0,230,118,.15)!important;color:#00e676!important;border:1px solid rgba(0,230,118,.3)}
-.badge.bg-warning{background:rgba(252,209,22,.12)!important;color:var(--gold)!important;border:1px solid rgba(252,209,22,.3)}
-.badge.bg-danger{background:rgba(239,83,80,.15)!important;color:#ef5350!important;border:1px solid rgba(239,83,80,.3)}
-.badge.bg-secondary{background:rgba(196,218,240,.08)!important;color:var(--dim)!important;border:1px solid rgba(196,218,240,.15)}
-.badge.bg-dark{background:rgba(0,0,0,.4)!important;border:1px solid rgba(255,255,255,.1)}
+/* ── Layout ───────────────────────────────────────────────────── */
+.split{flex:1;display:flex;min-height:0;overflow:hidden}
+.pnl-left{width:43%;border-right:1px solid var(--bdr);display:flex;flex-direction:column;min-height:0}
+.pnl-right{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 
-/* ── Alerts ── */
-.alert-info{background:rgba(0,180,255,.08)!important;border-color:rgba(0,180,255,.25)!important;color:var(--cyan)!important}
-.alert-success{background:rgba(0,230,118,.08)!important;border-color:rgba(0,230,118,.25)!important;color:#00e676!important}
-.alert-warning{background:rgba(252,209,22,.08)!important;border-color:rgba(252,209,22,.25)!important;color:var(--gold)!important}
-.alert-danger{background:rgba(239,83,80,.08)!important;border-color:rgba(239,83,80,.25)!important;color:#ef5350!important}
+/* ── Panel izquierdo ──────────────────────────────────────────── */
+.srch-bar{padding:.7rem .85rem;border-bottom:1px solid var(--bdr);flex-shrink:0;background:rgba(0,0,0,.15)}
+.q-wrap{position:relative}
+.q-wrap i{position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--dim);pointer-events:none;font-size:.82rem}
+.q-inp{width:100%;background:rgba(0,180,255,.04);border:1px solid var(--bdr);color:var(--text);padding:.48rem .85rem .48rem 2rem;border-radius:5px;font-size:.86rem;outline:none;transition:border-color .2s}
+.q-inp:focus{border-color:var(--cyan)}
+.q-inp::placeholder{color:var(--dim)}
+.filters-grid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-top:.45rem}
+.filters-grid .full{grid-column:1/-1}
+.f-sel{width:100%;background:rgba(0,180,255,.04);border:1px solid var(--bdr);color:var(--text);padding:.38rem .6rem;border-radius:4px;font-size:.78rem;outline:none;cursor:pointer;transition:border-color .2s}
+.f-sel:focus{border-color:var(--cyan)}
+.f-sel option{background:#0d1628;color:var(--text)}
+.btn-clear{font-size:.65rem;padding:.18rem .5rem;border-radius:4px;border:1px solid rgba(255,100,100,.25);background:transparent;color:rgba(255,100,100,.6);cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-clear:hover{border-color:rgba(255,100,100,.6);color:rgba(255,100,100,.9)}
 
-/* ── Misc ── */
-.text-muted{color:var(--dim)!important}
-.border,.border-bottom,.border-top{border-color:var(--bdr)!important}
-hr{border-color:var(--bdr)!important}
-a{color:var(--cyan)}
-a:hover{color:#7de8ff}
+.res-list{flex:1;overflow-y:auto;padding:.35rem .55rem}
+.res-list::-webkit-scrollbar{width:3px}
+.res-list::-webkit-scrollbar-thumb{background:rgba(0,180,255,.18);border-radius:2px}
+.res-count{font-size:.66rem;color:var(--dim);padding:.25rem .25rem .1rem}
 
-/* ── Pasos — estados chips ── */
-.seccion{display:none;}
-.seccion.activa{display:block;}
-.estado-chip{display:inline-block;padding:.15rem .5rem;border-radius:2rem;font-size:.7rem;font-weight:600;}
-.chip-renuncia{background:rgba(255,190,0,.1);color:#ffbe00;border:1px solid rgba(255,190,0,.3)}
-.chip-no-presento{background:rgba(239,83,80,.1);color:#ef5350;border:1px solid rgba(239,83,80,.3)}
-.chip-extempor{background:rgba(252,209,22,.1);color:var(--gold);border:1px solid rgba(252,209,22,.3)}
-.chip-revocado{background:rgba(239,83,80,.1);color:#ef5350;border:1px solid rgba(239,83,80,.3)}
-.tabla-obs td{font-size:.8rem;}
-.url-preview-btn{font-size:.75rem;}
+.rc{background:var(--panel);border:1px solid var(--bdr);border-left:3px solid rgba(0,180,255,.2);border-radius:4px;padding:.52rem .72rem;margin-bottom:.28rem;cursor:pointer;transition:all .15s}
+.rc:hover{border-left-color:var(--cyan);background:#111f36}
+.rc.sel{border-left-color:var(--gold);background:#12203a}
+.rc-nom{font-weight:600;color:#ddeeff;font-size:.88rem}
+.rc-cc{font-size:.68rem;color:var(--dim);margin-left:.3rem}
+.rc-info{font-size:.74rem;color:rgba(196,218,240,.6);margin-top:.1rem}
+.rc-lugar{font-size:.68rem;color:var(--dim)}
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:rgba(0,180,255,.2);border-radius:2px}
+mark{background:rgba(252,209,22,.15);color:var(--gold);border-radius:2px;padding:0 1px}
+
+/* ── Panel derecho ────────────────────────────────────────────── */
+.pdf-hdr{padding:.65rem 1.1rem;border-bottom:1px solid var(--bdr);background:rgba(0,0,0,.15);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.pdf-title{font-size:.87rem;font-weight:600;color:var(--cyan)}
+.pdf-sub{font-size:.68rem;color:var(--dim);margin-top:.1rem}
+.chip{font-size:.65rem;padding:.1rem .42rem;border-radius:10px;background:rgba(0,180,255,.07);border:1px solid rgba(0,180,255,.18);color:rgba(196,218,240,.7)}
+
+.right-scroll{flex:1;overflow-y:auto}
+.right-scroll::-webkit-scrollbar{width:3px}
+.right-scroll::-webkit-scrollbar-thumb{background:rgba(0,180,255,.18);border-radius:2px}
+.pdf-list{padding:.45rem .85rem}
+
+.pi{display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;border-radius:4px;border:1px solid rgba(0,180,255,.09);margin-bottom:.25rem;transition:background .15s}
+.pi:hover{background:rgba(0,180,255,.05)}
+.pi-ico{color:#e53935;font-size:.95rem;flex-shrink:0}
+.pi-info{flex:1;min-width:0}
+.pi-nom{font-size:.75rem;color:#c4daf0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi-meta{font-size:.65rem;color:var(--dim);margin-top:.03rem}
+.pi-btn{font-size:.64rem;padding:.11rem .38rem;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,180,255,.26);background:transparent;color:var(--cyan);cursor:pointer;white-space:nowrap;transition:background .15s;text-decoration:none;display:inline-flex;align-items:center}
+.pi-btn:hover{background:rgba(0,180,255,.1)}
+
+.empty{text-align:center;padding:2.5rem 1rem;color:rgba(196,218,240,.22)}
+.empty i{font-size:1.8rem;margin-bottom:.6rem;display:block}
+.empty p{font-size:.8rem}
+
+/* ── CC data card ─────────────────────────────────────────────── */
+.cc-card{padding:.65rem 1.1rem;border-bottom:1px solid var(--bdr);background:rgba(252,209,22,.025)}
+.cc-sec-title{font-size:.68rem;font-weight:700;color:var(--gold);letter-spacing:.05em;text-transform:uppercase;margin-bottom:.4rem;display:flex;align-items:center;gap:.35rem}
+
+/* ── Perfil candidato ───────────────────────────────────────── */
+.perfil-wrap{padding:.55rem .85rem;display:flex;flex-direction:column;gap:.5rem}
+.perfil-header{background:linear-gradient(135deg,rgba(0,56,147,.3),rgba(0,180,255,.08));border:1px solid rgba(0,180,255,.2);border-radius:8px;padding:.65rem .85rem}
+.perfil-nombre{font-size:1rem;font-weight:700;color:#ddeeff;margin-bottom:.15rem}
+.perfil-meta{font-size:.72rem;color:var(--dim);display:flex;flex-wrap:wrap;gap:.4rem .8rem;margin-top:.2rem}
+.perfil-meta span{display:flex;align-items:center;gap:.25rem}
+
+.perfil-section{background:var(--panel);border:1px solid var(--bdr);border-radius:6px;padding:.5rem .7rem}
+.perfil-sec-title{font-size:.62rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;display:flex;align-items:center;gap:.3rem}
+
+/* Financiero */
+.fin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.3rem;margin-bottom:.4rem}
+.fin-cell{text-align:center;padding:.3rem .2rem;background:rgba(0,0,0,.2);border-radius:4px}
+.fin-lbl{font-size:.58rem;color:var(--dim);text-transform:uppercase;letter-spacing:.04em}
+.fin-val{font-size:.82rem;font-weight:700;margin-top:.1rem}
+.fin-verde{color:#00e676}.fin-rojo{color:#ef5350}.fin-azul{color:#00c8ff}
+
+/* Estado badge */
+.estado-cert{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:6px;border:1px solid rgba(0,230,118,.5);background:rgba(0,230,118,.1);color:#00e676}
+.estado-ofic{border-color:rgba(255,190,0,.5);background:rgba(255,190,0,.1);color:#ffbe00;display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:6px;border:1px solid}
+.estado-pend{border-color:rgba(200,200,200,.2);background:transparent;color:rgba(200,200,200,.4);display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:6px;border:1px solid}
+
+/* Docs grid */
+.docs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
+.doc-btn{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.45rem .3rem;border-radius:5px;border:1px solid;background:rgba(0,0,0,.25);cursor:pointer;text-decoration:none;transition:all .18s}
+.doc-btn:hover{transform:translateY(-1px)}
+.doc-btn-ico{font-size:.9rem}
+.doc-btn-lbl{font-size:.63rem;font-weight:700;text-align:center;line-height:1.1}
+.doc-btn-sub{font-size:.55rem;opacity:.65;text-align:center}
+.db-8b{border-color:rgba(0,230,118,.3);color:#00e676}.db-8b:hover{border-color:#00e676;box-shadow:0 0 10px rgba(0,230,118,.15)}
+.db-9b{border-color:rgba(0,200,255,.3);color:#00c8ff}.db-9b:hover{border-color:#00c8ff;box-shadow:0 0 10px rgba(0,200,255,.15)}
+.db-dict{border-color:rgba(252,209,22,.3);color:#fcd116}.db-dict:hover{border-color:#fcd116;box-shadow:0 0 10px rgba(252,209,22,.12)}
+.db-lib{border-color:rgba(180,130,255,.3);color:#b482ff}.db-lib:hover{border-color:#b482ff;box-shadow:0 0 10px rgba(180,130,255,.15)}
+.db-hist{border-color:rgba(100,200,100,.3);color:#64c864}.db-hist:hover{border-color:#64c864;box-shadow:0 0 10px rgba(100,200,100,.12)}
+.db-coal{border-color:rgba(255,150,50,.3);color:#ff9632}.db-coal:hover{border-color:#ff9632;box-shadow:0 0 10px rgba(255,150,50,.12)}
+
+/* Docs generados */
+.docs-gen-grid{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
+.doc-gen-btn{display:inline-flex;align-items:center;gap:.35rem;font-size:.68rem;padding:.3rem .65rem;border-radius:5px;border:1px solid;background:rgba(0,0,0,.15);cursor:pointer;text-decoration:none;transition:all .18s;font-weight:600;white-space:nowrap}
+.doc-gen-btn:hover{filter:brightness(1.25);box-shadow:0 0 8px rgba(255,255,255,.08)}
+
+/* Tabla resumen */
+.resumen-tabla-wrap{padding:.5rem .85rem}
+.resumen-tabla-title{font-size:.68rem;font-weight:700;color:var(--gold);margin-bottom:.4rem;display:flex;align-items:center;justify-content:space-between}
+.resumen-tabla{width:100%;border-collapse:collapse;font-size:.68rem}
+.resumen-tabla th{color:var(--dim);font-weight:600;text-transform:uppercase;font-size:.58rem;letter-spacing:.04em;padding:.25rem .4rem;border-bottom:1px solid var(--bdr);text-align:left}
+.resumen-tabla td{padding:.28rem .4rem;border-bottom:1px solid rgba(0,180,255,.06);color:#c4daf0;vertical-align:middle}
+.resumen-tabla tr:hover td{background:rgba(0,180,255,.04)}
+.btn-volver{font-size:.65rem;color:var(--dim);background:none;border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:.18rem .5rem;cursor:pointer;transition:all .15s}
+.btn-volver:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
+.doc-mini{display:inline-flex;align-items:center;gap:.2rem;font-size:.6rem;padding:.1rem .3rem;border-radius:3px;border:1px solid rgba(0,180,255,.3);color:rgba(0,180,255,.7);text-decoration:none;margin-right:.2rem;transition:all .15s}
+.doc-mini:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,180,255,.08)}
+
+/* Badges ANI */
+.ani-badge{display:inline-flex;align-items:center;gap:.25rem;font-size:.72rem;font-weight:700;padding:.18rem .55rem;border-radius:6px;border:1px solid}
+.ani-vig  {border-color:rgba(0,230,118,.5);background:rgba(0,230,118,.1);color:#00e676}
+.ani-novig{border-color:rgba(255,100,100,.5);background:rgba(255,100,100,.1);color:#ef5350}
+.ani-nreg {border-color:rgba(255,190,0,.4);background:rgba(255,190,0,.07);color:#ffbe00}
+.ani-pend {border-color:rgba(200,200,200,.2);background:transparent;color:rgba(200,200,200,.35)}
+
+/* Panel ANI */
+.ani-panel{margin-top:.4rem;padding:.45rem .65rem;border-radius:5px;background:rgba(0,0,0,.2);border:1px solid rgba(0,180,255,.1)}
+.ani-panel-title{font-size:.59rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(196,218,240,.28);margin-bottom:.4rem;display:flex;align-items:center;gap:.35rem}
+.ani-ced-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem}
+.ani-ced-num{font-size:.95rem;font-weight:700;color:#ddeeff;letter-spacing:.04em;font-family:'Courier New',monospace}
+.ani-copy{font-size:.62rem;padding:.08rem .38rem;border-radius:4px;border:1px solid rgba(0,180,255,.25);background:transparent;color:rgba(0,180,255,.5);cursor:pointer;transition:all .15s;flex-shrink:0}
+.ani-copy:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,180,255,.08)}
+.ani-copy.copiado{border-color:rgba(0,230,118,.5);color:#00e676}
+
+/* Modal */
+.inf-modal{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;background:rgba(4,8,20,.97);backdrop-filter:blur(6px)}
+.inf-modal.hidden{display:none}
+.inf-topbar{background:linear-gradient(90deg,#00112e,#001d52);border-bottom:1px solid rgba(0,180,255,.2);padding:.5rem 1rem;display:flex;align-items:center;gap:.8rem;flex-shrink:0}
+.inf-topbar-title{font-weight:700;font-size:.9rem;color:#ddeeff;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inf-close{background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);border-radius:4px;padding:.2rem .6rem;cursor:pointer;font-size:.8rem;transition:all .15s}
+.inf-close:hover{border-color:#ef5350;color:#ef5350}
+.inf-content{flex:1;overflow:auto;padding:.8rem 1rem}
+.inf-loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--dim);font-size:.85rem;gap:.6rem}
 </style>
-
-<!-- PDF.js para lector de dictamen sin Python -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
-
 </head>
 <body>
 
-<!-- ══ OVERLAY LOGIN CNE — bloquea portal hasta autenticarse ══ -->
-<style>
-#cneLoginOverlay{position:fixed;inset:0;background:rgba(7,12,26,.97);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-#cneLoginCard{background:#0d1628;border:1px solid rgba(0,180,255,.18);border-radius:10px;padding:2.5rem;width:100%;max-width:400px;position:relative;overflow:hidden;box-sizing:border-box}
-#cneLoginCard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00c8ff,transparent);animation:_lscan 3s ease-in-out infinite}
-@keyframes _lscan{0%,100%{opacity:.3}50%{opacity:1}}
-.cne-lbl{font-size:.7rem;color:rgba(252,209,22,.75);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.3rem;display:block}
-.cne-inp{width:100%;background:rgba(0,180,255,.04);border:1px solid rgba(0,180,255,.16);color:#c4daf0;padding:.55rem .9rem;border-radius:5px;font-size:.88rem;outline:none;transition:border-color .2s;margin-bottom:1rem;box-sizing:border-box}
-.cne-inp:focus{border-color:#00c8ff}
-.cne-inp::placeholder{color:rgba(196,218,240,.35)}
-.cne-btn-main{width:100%;background:rgba(0,56,147,.5);border:1px solid #00c8ff;color:#00c8ff;font-size:.82rem;letter-spacing:.06em;padding:.65rem;border-radius:5px;cursor:pointer;transition:background .2s}
-.cne-btn-main:hover{background:rgba(0,56,147,.75)}
-.cne-btn-main:disabled{opacity:.4;cursor:default}
-#cneLoginOverlayMsg{font-size:.78rem;min-height:1.1rem;text-align:center;margin-top:.7rem}
-</style>
-<div id="cneLoginOverlay">
-  <div id="cneLoginCard">
-    <div style="text-align:center;margin-bottom:1.2rem">
-      <img src="/logo.jpg" alt="CNE" style="height:52px;filter:brightness(1.05)">
-    </div>
-    <div style="font-size:1rem;font-weight:700;color:#00c8ff;text-align:center;letter-spacing:.04em;margin-bottom:.2rem">Portal Cuentas Claras — CNE</div>
-    <div style="font-size:.75rem;color:rgba(196,218,240,.4);text-align:center;margin-bottom:1.8rem">Congreso 2026 · Ingrese sus credenciales del portal CNE</div>
-    <label class="cne-lbl">Usuario CNE</label>
-    <input type="text" id="cneLoginUser" class="cne-inp" placeholder="Número de documento" autocomplete="username">
-    <label class="cne-lbl">Contraseña</label>
-    <input type="password" id="cneLoginPass" class="cne-inp" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')_cneLoginManual();">
-    <button id="cneLoginBtn" class="cne-btn-main" onclick="_cneLoginManual()">
-      <i class="fa fa-sign-in-alt me-1"></i> Iniciar sesión
+<!-- ══════════════ OVERLAY: LOGIN ══════════════════════════════════════════════ -->
+<div class="overlay" id="ov-login">
+  <div class="card-cnt">
+    <span class="card-logo"><img src="/logo.jpg" alt="CNE" onerror="this.style.display='none'"></span>
+    <div class="card-title">Portal Cuentas Claras — Congreso 2026</div>
+    <div class="card-sub">Ingrese sus credenciales del portal CNE</div>
+    <label class="f-label">Usuario CNE</label>
+    <input type="text" class="f-input" id="ln-user" placeholder="usuario@cne.gov.co" autocomplete="username">
+    <label class="f-label">Contraseña</label>
+    <input type="password" class="f-input" id="ln-pass" placeholder="••••••••" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-cne" id="ln-btn" onclick="doLogin()">
+      <i class="fa fa-sign-in-alt me-2"></i>Iniciar sesión
     </button>
-    <div id="cneLoginOverlayMsg" style="color:#ef5350"></div>
+    <div class="msg-err" id="ln-msg"></div>
   </div>
 </div>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="#">
-      🏛 CNE · Análisis Previo Certificador · Territoriales 2023
-    </a>
-    <span class="navbar-text text-warning fw-bold" id="resumenStats">128.398 candidatos  |  Art.23: <span class="text-danger fw-bold">150</span>  |  Art.27: <span class="text-danger fw-bold">101.120</span>  |  Art.34: <span class="text-danger fw-bold">16.691</span>  |  2.014 no presentaron  |  0 extemporáneos  |  2.014 revocados</span>
-    <button class="btn btn-sm btn-outline-light ms-3" onclick="_cneRequireLogin()" title="Cerrar sesión CNE">
-      <i class="fa fa-sign-out-alt me-1"></i>Cerrar Sesión
-    </button>
+<!-- ══════════════ INTERFAZ PRINCIPAL ══════════════════════════════════════════ -->
+<div class="top">
+  <div class="top-logo"><img src="/logo.jpg" alt="CNE" onerror="this.style.display='none'"></div>
+  <div>
+    <div class="top-title">Portal Cuentas Claras — Congreso 2026</div>
+    <div class="top-sub">SENADO · CÁMARA · Candidatos · Expedientes</div>
   </div>
-</nav>
-
-<div class="container-fluid">
-<div class="row">
-
-<!-- SIDEBAR -->
-<div class="col-lg-2 sidebar p-3">
-  <div class="fw-bold text-uppercase text-muted small mb-3">Flujo de análisis</div>
-
-  <div class="paso activo" onclick="irPaso(1)" id="step1">
-    <span class="paso-num">1</span>
-    <span class="ms-2 fw-semibold">Análisis Global y Soportes</span>
-    <div class="small text-muted mt-1">Corp / Dpto / Mun / Partido</div>
+  <div class="d-flex align-items-center gap-2 ms-auto">
+    <div class="sp idle" id="sp">
+      <span class="sp-dot" id="sp-dot">●</span>
+      <span id="sp-txt">—</span>
+    </div>
+    <span class="user-chip" id="user-chip" onclick="doLogout()" title="Cerrar sesión" style="display:none">
+      <i class="fa fa-user me-1"></i><span id="user-name"></span>
+    </span>
   </div>
+</div>
 
-  <div class="paso" onclick="irPaso(2)" id="step2">
-    <span class="paso-num">2</span>
-    <span class="ms-2 fw-semibold">Dictamen</span>
-    <div class="small text-muted mt-1">Criterios legales · JCC auditor</div>
-  </div>
-
-  <div class="paso" onclick="irPaso(3)" id="step3">
-    <span class="paso-num">3</span>
-    <span class="ms-2 fw-semibold">9B y Anexos</span>
-    <div class="small text-muted mt-1">Formato 9B · Fechas · MAI/SAI</div>
-  </div>
-
-  <div class="paso" onclick="irPaso(4)" id="step4">
-    <span class="paso-num">4</span>
-    <span class="ms-2 fw-semibold">Estado · Alertas · Financiero</span>
-    <div class="small text-muted mt-1">Renuncias · Informe · Artículos · Votos</div>
-  </div>
-
-  <div class="paso" onclick="irPaso(5)" id="step5">
-    <span class="paso-num">5</span>
-    <span class="ms-2 fw-semibold">Candidatos</span>
-    <div class="small text-muted mt-1">8B · Transacciones · Por candidato</div>
-  </div>
-
-  <div class="paso" onclick="irPaso(7)" id="step7">
-    <span class="paso-num">7</span>
-    <span class="ms-2 fw-semibold">OBSERVACIONES</span>
-    <div class="small text-muted mt-1">Resumen y hallazgos finales</div>
-  </div>
-
-  <div class="paso" onclick="irPaso(8)" id="step8">
-    <span class="paso-num">8</span>
-    <span class="ms-2 fw-semibold">Respuesta al Oficio</span>
-    <div class="small text-muted mt-1">Proyecto de respuesta oficial</div>
-  </div>
-
-  <div class="paso" onclick="irPaso(9)" id="step9">
-    <span class="paso-num">9</span>
-    <span class="ms-2 fw-semibold">Investigaciones</span>
-    <div class="small text-muted mt-1">Causales · Artículos · Oficios</div>
-  </div>
-
-  <div class="paso" onclick="irPaso(10)" id="step10">
-    <span class="paso-num">10</span>
-    <span class="ms-2 fw-semibold">Certificado</span>
-    <div class="small text-muted mt-1">Datos · Resumen · Plantilla</div>
-  </div>
-
-  <div class="paso" onclick="irPaso(11)" id="step11">
-    <span class="paso-num">11</span>
-    <span class="ms-2 fw-semibold">Liquidación</span>
-    <div class="small text-muted mt-1">Primera · Segunda · MI Informe</div>
-  </div>
-
-  <hr>
-  <div class="paso" onclick="irPaso(12)" id="step12">
-    <span class="paso-num"><i class="fa fa-table" style="font-size:.7rem"></i></span>
-    <span class="ms-2 fw-semibold">Todos</span>
-    <div class="small text-muted mt-1">Vista completa + exportar</div>
-  </div>
-
-  <hr>
-  <div class="paso" onclick="irPaso(13)" id="step13">
-    <span class="paso-num"><i class="fa fa-cloud-download-alt" style="font-size:.7rem"></i></span>
-    <span class="ms-2 fw-semibold">Cuentas Claras</span>
-    <div class="small text-muted mt-1">8B · 9B · IG · Libro Contable</div>
-  </div>
-</div><!-- /sidebar -->
-
-
-<!-- MAIN -->
-<div class="col-lg-10 p-3">
-
-  <!-- PASO 1: BUSCAR -->
-  <div class="seccion activa" id="sec1">
-    <h5 class="fw-bold mb-2"><i class="fa fa-search me-2 text-primary"></i>Paso 1 · Análisis Global y Soportes</h5>
-    <div id="sec1CandBanner" style="display:none" class="mb-3"></div>
-    <div class="card mb-3">
-      <div class="card-body">
-        <div class="row g-2">
-          <div class="col-md-12 mb-1">
-            <label class="form-label fw-semibold small">Proceso Electoral</label>
-            <select id="selProceso" class="form-select form-select-sm" onchange="cambiarProceso()"><option value="1">ELECCIONES CONGRESO DE LA REPUBLICA - 2022 (2022-03-13)</option><option value="2">CONSULTAS INTERNAS DE PRESIDENCIA - 2022 (2022-03-13)</option><option value="3">ELECCIONES PRESIDENCIA DE LA REPUBLICA - 2022 (PRIMERA VUELTA) (2022-05-29)</option><option value="4">ELECCIONES PRESIDENCIA DE LA REPUBLICA - 2022 (SEGUNDA VUELTA) (2022-06-19)</option><option value="5">COMITE DE RECOLECCION DE FIRMAS ELECCIONES TERRITORIALES - 2023 (2023-07-29)</option><option value="6">Consultas Internas, interpartidistas 2023 - 2023 (2023-06-04)</option><option value="7">ELECCIONES TERRITORIALES 2023 (2023-10-29)</option><option value="8">ELECCIONES TERRITORIALES 2023 GAMARRA (2023-12-24) (2023-12-24)</option><option value="41">ELECCIONES ATIPICAS NUEVO BELEN - 2024 (2024-06-09)</option><option value="42">ELECCIONES ATIPICAS ILES (NARIÑO) - 2024 (2024-11-03)</option><option value="64">ELECCIONES ATIPICAS MELGAR TOLIMA - 2025 (2025-08-17)</option><option value="43">ELECCIONES ATÍPICAS JAL - 2024 (2024-11-17)</option><option value="44">ELECCION ATÍPICA AGUACHICA - CESAR - 2024 (2024-11-24)</option><option value="45">ELECCION ATÍPICA VENECIA - ANTIOQUIA - 2024 (2024-12-29)</option><option value="46">ELECCIONES ATIPICAS GOBERNACION PUTUMAYO 2025 - 2025 (2025-02-23)</option><option value="47">ELECCIONES ATIPICAS ALCALDIA PTO GUZMAN PUTUMAYO - 2025 (2025-02-23)</option><option value="48">ELECCIONES ATIPICAS ALCALDIA ROSARIO - NARIÑO - 2025 (2025-03-09)</option><option value="65">ELECCIONES ATIPICAS ALCALDIA VILLETA - CUNDINAMARCA- 2025 - 2025 (2025-11-09)</option><option value="49">ELECCIONES ATIPICAS ALCALDIA PAMPLONITA - NORTE DE SANTANDER - 2025 (2025-03-09)</option><option value="50">ELECCIONES ATIPICAS ALCALDIA CHIRIGUANA - CESAR - 2025 (2025-03-30)</option><option value="66">ELECCIONES ATIPICAS GOBERNACION - MAGDALENA - 2025 (2025-11-23)</option><option value="51">ELECCIONES ATIPICAS ALCALDIA APARTADO - ANTIOQUIA - 2025 (2025-04-06)</option><option value="52">ELECCIONES ATIPICAS ALCALDIA DUITAMA - BOYACA - 2025 (2025-05-04)</option><option value="53">ELECCIONES ATIPICAS ALCALDIA NUEVO COLON - BOYACA - 2025 (2025-05-04)</option><option value="54">ELECCIONES ATIPICAS ALCALDIA LA VICTORIA - BOYACA - 2025 (2025-05-04)</option><option value="55">ELECCIONES ATIPICAS ALCALDIA COYAIMA - TOLIMA - 2025 (2025-05-18)</option><option value="56">ELECCIONES ATIPICAS ALCALDIA OIBA - SANTANDER - 2025 (2025-05-18)</option><option value="57">ELECCIONES ATIPICAS ALCALDIA LA JAGUA DEL PILAR - LA GUAJIRA - 2025 (2025-05-18)</option><option value="58">ELECCIONES ATIPICAS GOBERNACION - VICHADA - 2025 (2025-06-15)</option><option value="67">ELECCIONES ATIPICAS ALCALDIA - BUCARAMANGA - 2025 (2025-12-14)</option><option value="60">ELECCIONES ATIPICAS ALCALDIA CHITARAQUE - BOYACA - 2025 (2025-06-29)</option><option value="61">ELECCIONES ATIPICAS ALCALDIA INZA - CAUCA - 2025 (2025-06-29)</option><option value="68">ELECCIONES ATIPICAS ALCALDIA - GIRON- 2026 (2026-01-18)</option><option value="69">ELECCIONES ATIPICAS ALCALDIA - PONEDERA ATLANTICO - 2026 (2026-02-01)</option><option value="63">Consejo Municipal de Juventudes 2025 - 2025 (2025-10-19)</option><option value="62">COMITE RECOLECTOR DE FIRMAS PARA JUVENTUDES - 2025 (2025-10-19)</option></select>
-          </div>
-        </div>
-        <div class="row g-2">
-          <div class="col-md-3">
-            <label class="form-label fw-semibold small">Corporación</label>
-            <select id="selCorp" class="form-select form-select-sm" onchange="filtrarDpto()"><option value="">-- Seleccione --</option><option value="ALCALDIA">Alcaldia</option><option value="ASAMBLEA">Asamblea</option><option value="CONCEJO">Concejo</option><option value="GOBERNACION">Gobernacion</option><option value="JUNTA ADMINISTRADORAS LOCALES">Junta Administradoras Locales</option></select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold small">Departamento</label>
-            <select id="selDpto" class="form-select form-select-sm" onchange="filtrarMun()">
-              <option value="">-- Seleccione --</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold small">Municipio</label>
-            <select id="selMun" class="form-select form-select-sm" onchange="filtrarPartido()">
-              <option value="">-- Seleccione --</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold small">Partido</label>
-            <select id="selPartido" class="form-select form-select-sm" onchange="buscarCandidatos()">
-              <option value="">-- Todos --</option>
-            </select>
-          </div>
-        </div>
-        <div class="row g-2 mt-1">
-          <div class="col-md-6">
-            <label class="form-label fw-semibold small">Nombre o cédula</label>
-            <input type="text" id="txtBuscar" class="form-control form-control-sm" placeholder="Nombre completo o número de cédula..." oninput="buscarCandidatos()">
-          </div>
-          <div class="col-md-2 d-flex align-items-end">
-            <button class="btn btn-sm btn-outline-secondary w-100" onclick="limpiarFiltros()">
-              <i class="fa fa-times me-1"></i>Limpiar
-            </button>
-          </div>
-          <div class="col-md-2 d-flex align-items-end">
-            <button class="btn btn-sm btn-primary w-100" onclick="buscarCandidatos()">
-              <i class="fa fa-search me-1"></i>Buscar
-            </button>
-          </div>
+<div class="split">
+  <!-- Panel izquierdo -->
+  <div class="pnl-left">
+    <div class="srch-bar">
+      <div class="q-wrap">
+        <i class="fa fa-search"></i>
+        <input type="text" class="q-inp" id="qinp" placeholder="Buscar nombre, cédula..."
+               autofocus oninput="debBuscar()" onkeydown="if(event.key==='Enter')buscar()">
+      </div>
+      <div class="filters-grid" style="margin-top:.45rem">
+        <select class="f-sel" id="f-corp" onchange="buscar()">
+          <option value="">Todas las corporaciones</option>
+          <option>SENADO</option>
+          <option>CÁMARA</option>
+        </select>
+        <select class="f-sel" id="f-dpto" onchange="buscar()">
+          <option value="">Todos los departamentos</option>
+        </select>
+        <select class="f-sel full" id="f-part" onchange="buscar()">
+          <option value="">Todos los partidos</option>
+        </select>
+        <div class="full d-flex justify-content-end">
+          <button class="btn-clear" onclick="limpiarFiltros()"><i class="fa fa-times me-1"></i>Limpiar filtros</button>
         </div>
       </div>
     </div>
-
-    <!-- Indexación financiera CC -->
-    <div class="card mb-2 border-success">
-      <div class="card-body py-2 px-3">
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-          <div>
-            <span class="fw-semibold small"><i class="fa fa-money-bill-wave me-1 text-success"></i>Indexar Ingresos &amp; Gastos ET2023</span>
-            <div class="small text-muted">Descarga datos financieros CC desde el API del CNE y genera el índice local</div>
-          </div>
-          <button class="btn btn-sm btn-success ms-auto" onclick="_iniciarIndexacionFinanciera()" id="btnIndexFinanciero">
-            <i class="fa fa-play me-1"></i>Iniciar Indexación
-          </button>
-        </div>
-        <div id="finStatusBox" style="display:none" class="mt-2">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span id="finStatusMsg" class="small text-muted">–</span>
-            <span id="finStatusPct" class="small fw-bold">0%</span>
-          </div>
-          <div class="progress" style="height:6px">
-            <div class="progress-bar bg-success" id="finProgressBar" style="width:0%"></div>
-          </div>
-        </div>
-      </div>
+    <div class="res-list" id="res-area">
+      <div class="empty"><i class="fa fa-spinner fa-spin"></i><p>Cargando candidatos...</p></div>
     </div>
-
-    <!-- Indexación Congreso 2026 -->
-    <div class="card mb-2 border-primary">
-      <div class="card-body py-2 px-3">
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-          <div>
-            <span class="fw-semibold small"><i class="fa fa-landmark me-1 text-primary"></i>Indexar Candidatos Congreso 2026</span>
-            <div class="small text-muted">Descarga SENADO y CÁMARA desde 2026.cne.gov.co (requiere red CNE)</div>
-          </div>
-          <button class="btn btn-sm btn-primary ms-auto" onclick="_iniciarIndexacion2026()" id="btnIdx2026">
-            <i class="fa fa-play me-1"></i>Indexar
-          </button>
-        </div>
-        <div id="idx26Box" style="display:none" class="mt-2">
-          <div class="row g-2 mb-2" id="idx26CredBox">
-            <div class="col-6">
-              <input type="text" id="idx26User" class="form-control form-control-sm" placeholder="Cédula CNE 2026" value="80115895">
-            </div>
-            <div class="col-6">
-              <input type="password" id="idx26Pass" class="form-control form-control-sm" placeholder="Contraseña">
-            </div>
-          </div>
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span id="idx26Msg" class="small text-muted">–</span>
-            <span id="idx26Pct" class="small fw-bold">0%</span>
-          </div>
-          <div class="progress" style="height:6px">
-            <div class="progress-bar bg-primary" id="idx26Bar" style="width:0%"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Indexación financiera Congreso 2026 -->
-    <div class="card mb-2 border-warning">
-      <div class="card-body py-2 px-3">
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-          <div>
-            <span class="fw-semibold small"><i class="fa fa-dollar-sign me-1 text-warning"></i>Actualizar Ingresos &amp; Gastos Congreso 2026</span>
-            <div class="small text-muted">Descarga todas las páginas de ingresos/gastos para cada candidato (requiere CNE Conectado)</div>
-          </div>
-          <button class="btn btn-sm btn-warning ms-auto" onclick="_iniciarFin2026()" id="btnFin2026">
-            <i class="fa fa-play me-1"></i>Actualizar
-          </button>
-        </div>
-        <div id="fin2026Box" style="display:none" class="mt-2">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <span id="fin2026Msg" class="small text-muted">–</span>
-            <span id="fin2026Pct" class="small fw-bold">0%</span>
-          </div>
-          <div class="progress" style="height:6px">
-            <div class="progress-bar bg-warning" id="fin2026Bar" style="width:0%"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PANEL RESUMEN FILTRO ACTUAL -->
-    <div id="panelResumen" style="display:none" class="my-2">
-      <!-- Fila 1: Financiero -->
-      <div class="d-flex gap-1 mb-1">
-        <div class="card text-center border-success" style="flex:1;min-width:100px">
-          <div class="card-body py-1 px-1">
-            <div style="font-size:.7rem" class="text-muted fw-semibold">Total Ingresos</div>
-            <div class="fw-bold text-success" id="resIngTotal" style="font-size:.78rem">$0</div>
-          </div>
-        </div>
-        <div class="card text-center border-primary" style="flex:1;min-width:100px">
-          <div class="card-body py-1 px-1">
-            <div style="font-size:.7rem" class="text-muted fw-semibold">Total Gastos</div>
-            <div class="fw-bold text-primary" id="resGasTotal" style="font-size:.78rem">$0</div>
-          </div>
-        </div>
-        <div class="card text-center" style="flex:1;min-width:70px">
-          <div class="card-body py-1 px-1">
-            <div style="font-size:.7rem" class="text-muted fw-semibold">Censo</div>
-            <div class="fw-bold text-dark" id="resCenso" style="font-size:.78rem">—</div>
-          </div>
-        </div>
-        <div class="card text-center border-info" style="flex:1;min-width:100px">
-          <div class="card-body py-1 px-1">
-            <div style="font-size:.7rem" class="text-muted fw-semibold">Tope General</div>
-            <div class="fw-bold text-info" id="resTopeGeneral" style="font-size:.78rem">—</div>
-          </div>
-        </div>
-      </div>
-      <!-- Fila 2: Votos -->
-      <div class="d-flex gap-1 mb-1">
-        <div class="card text-center" style="flex:1;min-width:80px">
-          <div class="card-body py-1 px-1">
-            <div style="font-size:.7rem" class="text-muted fw-semibold">Votos Cand.</div>
-            <div class="fw-bold text-dark" id="resVotos" style="font-size:.78rem">0</div>
-          </div>
-        </div>
-        <div class="card text-center border-warning" style="flex:1;min-width:90px">
-          <div class="card-body py-1 px-1">
-            <div style="font-size:.7rem" class="text-muted fw-semibold">Votos Partido</div>
-            <input type="number" id="resVotosPartido" class="form-control form-control-sm text-center fw-bold p-0" placeholder="0" style="font-size:.78rem;height:22px" oninput="actualizarTotalVotos()">
-          </div>
-        </div>
-        <div class="card text-center" style="flex:1;min-width:80px">
-          <div class="card-body py-1 px-1">
-            <div style="font-size:.7rem" class="text-muted fw-semibold">Total Votos</div>
-            <div class="fw-bold text-dark" id="resTotalVotos" style="font-size:.78rem">0</div>
-          </div>
-        </div>
-        <div class="card text-center border-secondary" style="flex:1;min-width:100px">
-          <div class="card-body py-1 px-1">
-            <div style="font-size:.7rem" class="text-muted fw-semibold">Valor x Voto</div>
-            <div class="fw-bold text-dark" id="resValorVoto" style="font-size:.78rem">—</div>
-          </div>
-        </div>
-      </div>
-      <!-- Vista Global -->
-      <div class="bg-primary bg-gradient text-white rounded-top px-3 py-1 small fw-semibold">
-        <i class="fa fa-globe me-1"></i>Vista Global — <span id="resVistaLabel">—</span>
-      </div>
-      <div class="d-flex gap-0 flex-wrap border border-primary rounded-bottom mb-1" style="background:#f0f6ff">
-        <div class="text-center px-2 py-2 border-end" style="flex:1;min-width:70px">
-          <div class="fw-bold text-dark" id="resCandCount" style="font-size:.95rem">0</div>
-          <div style="font-size:.65rem" class="text-muted">Candidatos</div>
-        </div>
-        <div class="text-center px-2 py-2 border-end" style="flex:1;min-width:100px">
-          <div class="fw-bold text-info" id="resTopeGeneral2" style="font-size:.95rem">—</div>
-          <div style="font-size:.65rem" class="text-muted">Tope General</div>
-        </div>
-        <div class="text-center px-2 py-2" style="flex:1;min-width:120px">
-          <div class="fw-bold text-warning" id="resTopeCand" style="font-size:.95rem">—</div>
-          <div style="font-size:.65rem" class="text-muted">Tope x Candidato</div>
-        </div>
-      </div>
-      <!-- Cuadro comparativo: Gastos vs Valor del Voto × Votos -->
-      <div id="resComparativoWrap" class="mb-1" style="display:none">
-        <div class="card border-success">
-          <div class="card-body py-2 px-3">
-            <div class="row align-items-center g-1">
-              <div class="col-md-4 text-center">
-                <div style="font-size:.7rem" class="text-muted fw-semibold">Total Gastos</div>
-                <div class="fw-bold" id="resCompGastos" style="font-size:.85rem">$0</div>
-              </div>
-              <div class="col-md-1 text-center fw-bold text-muted">vs</div>
-              <div class="col-md-4 text-center">
-                <div style="font-size:.7rem" class="text-muted fw-semibold">Valor Voto × Votos</div>
-                <div class="fw-bold" id="resCompVxV" style="font-size:.85rem">$0</div>
-              </div>
-              <div class="col-md-3 text-center">
-                <div id="resCompResultado" class="fw-bold" style="font-size:.85rem"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Elementos ocultos para compatibilidad con JS -->
-      <div id="resDerechoWrap" style="display:none">
-        <input type="hidden" id="resDerUmbralInput" value="0">
-        <span id="resDerVotosPartido" style="display:none">0</span>
-        <span id="resDerPctLabel" style="display:none"></span>
-        <span id="resDerUmbral50" style="display:none"></span>
-        <span id="resDerResultado" style="display:none"></span>
-        <span id="resDerechoCard" style="display:none"></span>
-      </div>
-      <!-- Partidos del certificado electoral (auto-llenado desde cert_umbrales.json) -->
-      <div id="resCertPartidosWrap" class="mb-2"></div>
-      <!-- SOPORTES — card único con todo adentro -->
-      <div id="resDocVisor" class="card mt-3" style="display:none">
-        <div class="card-header bg-dark text-white fw-bold"><i class="fa fa-folder-open me-2"></i>SOPORTES</div>
-        <div class="card-body p-2">
-        <!-- Certificado Electoral -->
-        <div class="fw-semibold small mt-1 mb-1"><i class="fa fa-certificate me-1 text-success"></i>Certificado Electoral</div>
-        <div id="resCertificadoWrap"></div>
-        <hr class="my-2">
-        <!-- PDFs del Visor inline: Acuerdo, E6, E7, E8 -->
-        <div class="fw-semibold small mt-1 mb-1"><i class="fa fa-file-pdf me-1 text-danger"></i>Documentos del Visor (PDFs)</div>
-        <div id="resDocVisorPDFs"><span class="text-muted small">Seleccione filtros...</span></div>
-        <hr class="my-2">
-        <!-- Cuentas Claras: Gestión Municipal + Soportes por Candidato (misma presentación módulo 13) -->
-        <div id="resGestionMunP1" style="display:none"></div>
-        <div id="resDocPorCandidato" style="display:none"></div>
-        <!-- Herramientas -->
-        <div class="fw-semibold small mb-1"><i class="fa fa-tools me-1 text-dark"></i>Herramientas</div>
-        <div class="d-flex gap-1 flex-wrap mb-2">
-          <a href="data/resoluciones/resoluciones de topes.xlsx" target="_blank" class="btn btn-sm btn-outline-info flex-fill">
-            <i class="fa fa-file-excel me-1"></i>Resoluciones de Topes
-          </a>
-          <button class="btn btn-sm btn-primary flex-fill" onclick="_ccDescargarTodoMun()" id="ccBtnDescargarTodo">
-            <i class="fa fa-download me-1"></i>Descargar ZIP (Cuentas Claras)
-          </button>
-        </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="text-end mt-3">
-      <button class="btn btn-primary" onclick="irPaso(2)">Siguiente: Dictamen <i class="fa fa-arrow-right ms-1"></i></button>
-    </div>
-
-    <!-- Elementos ocultos para compatibilidad JS -->
-    <span id="contResultados" style="display:none">0</span>
-    <table style="display:none"><tbody id="tbodyResultados"></tbody></table>
-    <button id="btnConsolid" style="display:none" onclick="toggleConsolidacion()"></button>
-    <div id="panelConsolidacion" style="display:none"></div>
   </div>
 
-  <!-- PASO 2: DICTAMEN -->
-  <div class="seccion" id="sec2">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0"><i class="fa fa-file-contract me-2 text-info"></i>Paso 2 · Dictamen</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(1)"><i class="fa fa-arrow-left me-1"></i>Volver</button>
+  <!-- Panel derecho -->
+  <div class="pnl-right">
+    <div class="pdf-hdr">
+      <div>
+        <div class="pdf-title" id="pdf-title"><i class="fa fa-landmark me-2"></i>Congreso 2026</div>
+        <div class="pdf-sub" id="pdf-sub">Selecciona un candidato para ver su perfil</div>
+      </div>
+      <div class="d-flex gap-1 flex-wrap" id="pdf-chips"></div>
     </div>
-    <div id="filtroBarP2" class="mb-2"></div>
-    <div id="panelDictBrowse" class="mb-3"></div>
-    <div id="sec2CandBanner" class="mb-3"></div>
-    <div id="panelDictamen"></div>
+    <div class="right-scroll">
+      <div class="cc-card" id="cc-card" style="display:none">
+        <div class="cc-sec-title"><i class="fa fa-coins"></i>Cuentas Claras — Información Financiera</div>
+        <div id="cc-body"></div>
+      </div>
+      <div class="pdf-list" id="pdf-area">
+        <div class="empty"><i class="fa fa-folder-open"></i><p>Selecciona un candidato<br>para ver su perfil y documentos</p></div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <!-- PASO 3: 9B Y ANEXOS (was 4) -->
-  <div class="seccion" id="sec3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0"><i class="fa fa-clipboard-list me-2 text-warning"></i>Paso 3 · 9B y Anexos</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(2)"><i class="fa fa-arrow-left me-1"></i>Volver</button>
-    </div>
-    <div id="filtroBarP3" class="mb-2"></div>
-    <div id="panel9BAnexos"></div>
-  </div>
-
-  <!-- PASO 4: FINANCIERO + ESTADO Y ALERTAS (was 3) -->
-  <div class="seccion" id="sec4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0"><i class="fa fa-dollar-sign me-2 text-success"></i>Paso 4 · Financiero · Estado y Alertas</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(3)"><i class="fa fa-arrow-left me-1"></i>Volver</button>
-    </div>
-    <div id="filtroBarP4" class="mb-2"></div>
-    <div id="panelCandidato" style="display:none"></div>
-    <div id="panelGlobalP3" class="mb-3"></div>
-    <div id="panelFinanciero"></div>
-    <hr class="my-4">
-    <div class="d-flex align-items-center mb-3">
-      <h5 class="fw-bold mb-0 me-2"><i class="fa fa-exclamation-triangle me-2 text-warning"></i>Estado y Alertas</h5>
-      <span class="badge bg-light text-muted border small">Renuncias · Informe · Artículos · Votos</span>
-    </div>
-    <div id="panelEstado"></div>
-  </div>
-
-  <!-- PASO 5: CANDIDATOS (lista con 8B + Transacciones por candidato) -->
-  <div class="seccion" id="sec5">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0"><i class="fa fa-users me-2 text-primary"></i>Paso 5 · Candidatos</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(4)"><i class="fa fa-arrow-left me-1"></i>Volver</button>
-    </div>
-    <div id="filtroBarP5" class="mb-2"></div>
-    <div id="panelCandidatos5"></div>
-  </div>
-
-  <!-- PASO 6: sub-vista candidato (8B + TX) — NO en sidebar, se abre desde Paso 5 -->
-  <div class="seccion" id="sec6">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0" id="sec6Title"><i class="fa fa-user me-2 text-info"></i>Paso 5 · Candidato</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(5)"><i class="fa fa-arrow-left me-1"></i>Volver a lista</button>
-    </div>
-    <div id="sec6CandBanner" class="mb-3"></div>
-    <div id="panel8B"></div>
-    <hr class="my-3">
-    <div id="panelTransacciones"></div>
-    <hr class="my-3">
-    <div id="panelAccionesCand" class="d-flex gap-2 flex-wrap justify-content-between"></div>
-  </div>
-
-  <!-- PASO 7: OBSERVACIONES -->
-  <div class="seccion" id="sec7">
-    <div class="d-flex justify-content-between align-items-center mb-1">
-      <h5 class="fw-bold mb-0"><i class="fa fa-clipboard-check me-2 text-danger"></i>Paso 7 · OBSERVACIONES</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(5)"><i class="fa fa-arrow-left me-1"></i>Volver</button>
-    </div>
-    <div id="sec7CandBanner" class="mb-3"></div>
-    <div id="panelObservaciones"></div>
-    <div class="d-flex justify-content-between mt-3">
-      <button class="btn btn-success" onclick="irPaso(1)">
-        <i class="fa fa-search me-1"></i>Nuevo candidato
+<!-- ══════════════ MODAL VISOR ════════════════════════════════════════════════ -->
+<div class="inf-modal hidden" id="inf-modal">
+  <div class="inf-topbar">
+    <i class="fa fa-file-alt" id="inf-modal-ico" style="color:#00e676"></i>
+    <div class="inf-topbar-title" id="inf-modal-title">Documento</div>
+    <div style="display:flex;gap:.4rem;margin-left:auto">
+      <button class="inf-close" id="inf-dl-btn" style="display:none;border-color:rgba(0,230,118,.5);color:#00e676"
+              onclick="descargarDesdeModal()">
+        <i class="fa fa-download me-1"></i>Descargar
       </button>
-      <button class="btn btn-primary" onclick="irPaso(8)">
-        <i class="fa fa-arrow-right me-1"></i>Siguiente: Respuesta al Oficio
-      </button>
+      <button class="inf-close" onclick="cerrarModal()"><i class="fa fa-times me-1"></i>Cerrar</button>
     </div>
   </div>
-
-  <!-- PASO 8: RESPUESTA AL OFICIO -->
-  <div class="seccion" id="sec8">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0"><i class="fa fa-reply me-2 text-warning"></i>Paso 8 · Respuesta al Oficio</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(7)"><i class="fa fa-arrow-left me-1"></i>Volver</button>
-    </div>
-    <div id="panelRespOficio"><div class="alert alert-secondary">Seleccione un candidato primero.</div></div>
-    <div class="text-end mt-3">
-      <button class="btn btn-primary" onclick="irPaso(9)">
-        <i class="fa fa-arrow-right me-1"></i>Siguiente: Investigaciones
-      </button>
-    </div>
+  <div class="inf-content" id="inf-content" style="padding:0">
+    <div class="inf-loading"><i class="fa fa-spinner fa-spin"></i>Cargando...</div>
   </div>
-
-  <!-- PASO 9: INVESTIGACIONES -->
-  <div class="seccion" id="sec9">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0"><i class="fa fa-gavel me-2 text-danger"></i>Paso 9 · Investigaciones</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(8)"><i class="fa fa-arrow-left me-1"></i>Volver</button>
-    </div>
-    <div id="panelInvestigaciones"><div class="alert alert-secondary">Seleccione un candidato primero.</div></div>
-    <div class="text-end mt-3">
-      <button class="btn btn-primary" onclick="irPaso(10)">
-        <i class="fa fa-arrow-right me-1"></i>Siguiente: Certificado
-      </button>
-    </div>
-  </div>
-
-  <!-- PASO 10: CERTIFICADO -->
-  <div class="seccion" id="sec10">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0"><i class="fa fa-certificate me-2 text-success"></i>Paso 10 · Certificado</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(9)"><i class="fa fa-arrow-left me-1"></i>Volver</button>
-    </div>
-    <div id="panelCertificado"><div class="alert alert-secondary">Seleccione un candidato primero.</div></div>
-    <div class="text-end mt-3">
-      <button class="btn btn-primary" onclick="irPaso(11)">
-        <i class="fa fa-arrow-right me-1"></i>Siguiente: Liquidación
-      </button>
-    </div>
-  </div>
-
-  <!-- PASO 11: LIQUIDACIÓN -->
-  <div class="seccion" id="sec11">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold mb-0"><i class="fa fa-file-invoice-dollar me-2 text-primary"></i>Paso 11 · Liquidación</h5>
-      <button class="btn btn-sm btn-outline-primary" onclick="irPaso(10)"><i class="fa fa-arrow-left me-1"></i>Volver</button>
-    </div>
-    <div id="panelLiquidacion"><div class="alert alert-secondary">Seleccione un candidato primero.</div></div>
-    <div class="d-flex justify-content-between mt-3">
-      <button class="btn btn-success" onclick="irPaso(1)">
-        <i class="fa fa-search me-1"></i>Nuevo candidato
-      </button>
-      <button class="btn btn-outline-secondary" onclick="irPaso(12)">
-        <i class="fa fa-table me-1"></i>Ver todos
-      </button>
-    </div>
-  </div>
-
-  <!-- PASO 13: CUENTAS CLARAS -->
-  <div class="seccion" id="sec13">
-    <h5 class="fw-bold mb-3"><i class="fa fa-cloud-download-alt me-2 text-info"></i>Cuentas Claras — Consulta en Línea</h5>
-    <div id="ccStatusBar" class="mb-2"></div>
-    <div id="ccFiltroBar" class="mb-2"></div>
-
-    <!-- Búsqueda rápida dentro del municipio -->
-    <div class="mb-3">
-      <input type="text" id="ccBuscar" class="form-control form-control-sm" placeholder="Filtrar candidato por nombre u organización..." oninput="_ccFiltrarCandidatos()">
-    </div>
-
-    <!-- Paneles de gestión a nivel municipio (Dictamen, Acuerdos, Contador, Gerente, Auditor) -->
-    <div id="ccGestionPanel" style="display:none" class="mb-3"></div>
-
-    <!-- Botón descarga ZIP municipal (duplicado removido, ahora está en herramientas arriba) -->
-    <div id="ccZipMunPanel" style="display:none"></div>
-
-    <!-- Tabla de candidatos -->
-    <div id="ccResultados">
-      <div class="alert alert-secondary">Seleccione Corporación / Departamento / Municipio en el <strong>Paso 1</strong> y luego vuelva aquí.</div>
-    </div>
-
-    <!-- Panel de documentos del candidato seleccionado (9B + 8B + Historiales) -->
-    <div id="ccDocPanel" style="display:none" class="mt-3">
-      <div class="card border-info">
-        <div class="card-header bg-info text-white fw-bold" id="ccDocTitle">Documentos</div>
-        <div class="card-body" id="ccDocBody">
-          <div class="text-center"><i class="fa fa-spinner fa-spin"></i> Cargando documentos...</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- PASO 12: TODOS -->
-  <div class="seccion" id="sec12">
-    <h5 class="fw-bold mb-3"><i class="fa fa-table me-2"></i>Todos los candidatos</h5>
-    <div class="card">
-      <div class="card-body p-0">
-        <table id="tblTodos" class="table table-sm table-hover mb-0" style="width:100%">
-          <thead class="table-dark">
-            <tr>
-              <th>Candidato</th><th>Cédula</th><th>Cargo</th>
-              <th>Municipio</th><th>Dpto</th><th>Partido</th>
-              <th>Elegido</th><th>Ingresos</th><th>Gastos</th>
-              <th>Tope</th><th>Votos</th><th>Alertas</th><th>Estado</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyTodos"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /col-lg-10 -->
-</div><!-- /row -->
-</div><!-- /container-fluid -->
-
-<!-- ══ LIBRERÍAS CDN ══ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables.net/1.13.6/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables.net-bs5/1.13.6/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables.net-buttons/2.4.1/dataTables.buttons.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables.net-buttons-bs5/2.4.1/buttons.bootstrap5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables.net-buttons/2.4.1/buttons.html5.min.js"></script>
-
-<!-- ══ MÓDULOS PROPIOS — orden de carga importante ══ -->
-<!-- 1. Estado global (variables compartidas) -->
-<script src="js/estado.js"></script>
-<!-- 2. Utilitarios y helpers -->
-<script src="js/utils.js"></script>
-<!-- 3. Gestión de votos -->
-<script src="js/votos.js"></script>
-<!-- 4. Autenticación CNE -->
-<script src="js/auth.js"></script>
-<!-- 5. Navegación entre pasos -->
-<script src="js/navegacion.js"></script>
-<!-- 6. Paso 1 — Búsqueda y filtros -->
-<script src="js/paso1-busqueda.js"></script>
-<!-- 7. Paso 4 — Estado, alertas y financiero -->
-<script src="js/paso4-estado.js"></script>
-<!-- 8. Paso 2 — Dictamen -->
-<script src="js/paso2-dictamen.js"></script>
-<!-- 9. Paso 3 — 9B y Anexos -->
-<script src="js/paso3-9b.js"></script>
-<!-- 10. Paso 5 — Candidatos (formato 8B) -->
-<script src="js/paso5-candidatos.js"></script>
-<!-- 11. Paso 6 — Transacciones por candidato -->
-<script src="js/paso6-tx.js"></script>
-<!-- 12. Paso 7 — Observaciones -->
-<script src="js/paso7-obs.js"></script>
-<!-- 13. Paso 8 — Respuesta al oficio -->
-<script src="js/paso8-oficio.js"></script>
-<!-- 14. Paso 9 — Investigaciones -->
-<script src="js/paso9-invest.js"></script>
-<!-- 15. Paso 10 — Certificado -->
-<script src="js/paso10-cert.js"></script>
-<!-- 16. Paso 11 — Liquidación -->
-<script src="js/paso11-liq.js"></script>
-<!-- 17. Cuentas Claras (incluye descarga, gestión, CC online) -->
-<script src="js/cuentas_claras.js"></script>
-<!-- 18. Inicialización — debe ir al final (arranca DOMContentLoaded) -->
-<script src="js/init.js"></script>
+</div>
 
 <script>
-// ── Indexación financiera CC ──────────────────────────────────────────────────
-let _finPollTimer = null;
+// ── Rol desde URL (?rol=abogado) ──────────────────────────────────────────────
+const _ROL_ABOGADO = new URLSearchParams(location.search).get('rol') === 'abogado';
 
-async function _iniciarIndexacionFinanciera() {
-  const btn = document.getElementById('btnIndexFinanciero');
-  const box = document.getElementById('finStatusBox');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i>Iniciando…';
-  box.style.display = 'block';
-  try {
-    const r = await fetch('/api/indexar_financiero', { method: 'POST' });
-    const d = await r.json();
-    if (d.ok === false) {
-      alert(d.msg || 'Error al iniciar indexación');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa fa-money-bill-wave me-1"></i>Indexar Ingresos & Gastos';
-      return;
+// ── Estado global ─────────────────────────────────────────────────────────────
+let _timer = null, _lastFilters = '', _lastQ = '';
+let _cands = [];
+let _allPartidos = [];
+let _previewDlUrl = null;
+
+const normCorp = c => {
+  if (!c) return '';
+  const u = (c + '').toUpperCase();
+  if (u.includes('SENADO')) return 'SENADO';
+  if (u.includes('CAMARA') || u.includes('CÁMARA')) return 'CÁMARA';
+  return c;
+};
+const CORP_CLR = {'SENADO':'warning','CÁMARA':'info'};
+const norm = s => (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+const hl   = (t, q) => {
+  if (!t || !q) return t || '';
+  return t.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>');
+};
+const fmt$ = n => {
+  const v = Number(n) || 0;
+  if (v === 0) return '$0';
+  const s = Math.abs(v).toLocaleString('es-CO', {maximumFractionDigits:0});
+  return (v < 0 ? '-$' : '$') + s;
+};
+
+function show(id){ document.getElementById(id).classList.remove('hidden'); }
+function hide(id){ document.getElementById(id).classList.add('hidden'); }
+
+// ── Estado de arranque ────────────────────────────────────────────────────────
+async function checkState() {
+  const sp = document.getElementById('sp');
+  sp.className = 'sp idle';
+  document.getElementById('sp-txt').textContent = 'Conectando...';
+
+  const r = await fetch('/api/cne_status').then(r=>r.json()).catch(()=>null);
+  if (!r) { setTimeout(checkState, 4000); return; }
+
+  if (!r.sesion_activa) {
+    let localSes = null;
+    try { localSes = JSON.parse(localStorage.getItem('cne_portal_session') || 'null'); } catch(e) {}
+    const localOk = localSes && localSes.usuario && (Date.now() - localSes.ts) < 3600000;
+    if (localOk) {
+      document.getElementById('ln-user').value = localSes.usuario;
+      const msg = document.getElementById('ln-msg');
+      msg.style.cssText = 'color:#00c8ff;font-size:.78rem;margin-top:.7rem;text-align:center';
+      msg.innerHTML = '<i class="fa fa-info-circle me-1"></i>Sesión anterior — ingrese contraseña para continuar.';
     }
-    _finPollStatus();
-  } catch(e) {
-    alert('Error: ' + e);
+    show('ov-login'); return;
+  }
+  hide('ov-login');
+  document.getElementById('user-name').textContent = r.usuario || '';
+  document.getElementById('user-chip').style.display = '';
+  sp.className = 'sp ok';
+  document.getElementById('sp-dot').style.animation = 'none';
+  document.getElementById('sp-txt').textContent = 'Sesión CNE activa';
+  cargarFiltros();
+}
+
+// ── Login ─────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const btn = document.getElementById('ln-btn');
+  const msg = document.getElementById('ln-msg');
+  const u   = document.getElementById('ln-user').value.trim();
+  const p   = document.getElementById('ln-pass').value.trim();
+  if (!u || !p) {
+    msg.style.cssText = 'color:#ef5350;font-size:.78rem;margin-top:.7rem;text-align:center';
+    msg.innerHTML = '<i class="fa fa-exclamation-triangle me-1"></i>Ingrese usuario y contraseña.';
+    return;
+  }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i>Conectando con CNE... (~15s)';
+  msg.textContent = '';
+
+  const res = await fetch('/api/cne_login_manual', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({usuario: u, password: p})
+  }).then(r=>r.json()).catch(()=>({ok:false, mensaje:'Error de conexión'}));
+
+  if (res.ok) {
+    try { localStorage.setItem('cne_portal_session', JSON.stringify({usuario:u, ts:Date.now()})); } catch(e) {}
+    hide('ov-login');
+    document.getElementById('user-name').textContent = u;
+    document.getElementById('user-chip').style.display = '';
+    const sp = document.getElementById('sp');
+    sp.className = 'sp ok';
+    document.getElementById('sp-dot').style.animation = 'none';
+    document.getElementById('sp-txt').textContent = 'Sesión CNE activa';
+    cargarFiltros();
+  } else {
+    msg.style.cssText = 'color:#ef5350;font-size:.78rem;margin-top:.7rem;text-align:center';
+    msg.innerHTML = '<i class="fa fa-times-circle me-1"></i>' + (res.mensaje || 'Error al iniciar sesión.');
     btn.disabled = false;
-    btn.innerHTML = '<i class="fa fa-money-bill-wave me-1"></i>Indexar Ingresos & Gastos';
+    btn.innerHTML = '<i class="fa fa-sign-in-alt me-2"></i>Iniciar sesión';
   }
 }
 
-function _finPollStatus() {
-  if (_finPollTimer) clearTimeout(_finPollTimer);
-  fetch('/api/fin_status').then(r => r.json()).then(d => {
-    const msg = document.getElementById('finStatusMsg');
-    const pct = document.getElementById('finStatusPct');
-    const bar = document.getElementById('finProgressBar');
-    const btn = document.getElementById('btnIndexFinanciero');
-    msg.textContent = d.msg || '–';
-    pct.textContent = d.pct + '%';
-    bar.style.width  = d.pct + '%';
-    if (d.fase === 'listo') {
-      bar.className = 'progress-bar bg-success';
-      msg.className = 'text-success fw-semibold';
-      btn.disabled  = false;
-      btn.innerHTML = '<i class="fa fa-check me-1"></i>Completado — volver a indexar';
-    } else if (d.fase === 'error') {
-      bar.className = 'progress-bar bg-danger';
-      msg.className = 'text-danger';
-      btn.disabled  = false;
-      btn.innerHTML = '<i class="fa fa-money-bill-wave me-1"></i>Reintentar Indexar';
-    } else if (d.fase === 'trabajando') {
-      bar.className = 'progress-bar bg-warning progress-bar-striped progress-bar-animated';
-      _finPollTimer = setTimeout(_finPollStatus, 3000);
-    }
-  }).catch(() => {
-    _finPollTimer = setTimeout(_finPollStatus, 5000);
-  });
+// ── Logout ────────────────────────────────────────────────────────────────────
+async function doLogout() {
+  try { localStorage.removeItem('cne_portal_session'); } catch(e) {}
+  await fetch('/api/cne_logout', {method:'POST'}).catch(()=>{});
+  show('ov-login');
+  document.getElementById('ln-pass').value = '';
+  document.getElementById('ln-msg').textContent = '';
+  document.getElementById('ln-btn').disabled = false;
+  document.getElementById('ln-btn').innerHTML = '<i class="fa fa-sign-in-alt me-2"></i>Iniciar sesión';
+  document.getElementById('user-chip').style.display = 'none';
+  const sp = document.getElementById('sp');
+  sp.className = 'sp idle';
+  document.getElementById('sp-dot').style.animation = '';
+  document.getElementById('sp-txt').textContent = '—';
 }
 
-// Verificar estado al cargar
-window.addEventListener('DOMContentLoaded', () => {
-  fetch('/api/fin_status').then(r => r.json()).then(d => {
-    if (d.fase === 'trabajando') {
-      document.getElementById('finStatusBox').style.display = 'block';
-      _finPollStatus();
-    } else if (d.fase === 'listo') {
-      const btn = document.getElementById('btnIndexFinanciero');
-      btn.innerHTML = '<i class="fa fa-check me-1"></i>Completado — volver a indexar';
-    }
-  }).catch(() => {});
-  // Estado inicial indexación 2026
-  fetch('/api/idx26_status').then(r => r.json()).then(d => {
-    if (d.fase === 'trabajando') { document.getElementById('idx26Box').style.display='block'; _poll2026(); }
-    else if (d.fase === 'listo') {
-      document.getElementById('btnIdx2026').innerHTML = '<i class="fa fa-check me-1"></i>Completado — volver a indexar';
-    }
-  }).catch(() => {});
-  // Estado inicial financiero 2026
-  fetch('/api/fin2026_status').then(r => r.json()).then(d => {
-    if (d.fase === 'trabajando') { document.getElementById('fin2026Box').style.display='block'; _pollFin2026(); }
-    else if (d.fase === 'listo') {
-      document.getElementById('btnFin2026').innerHTML = '<i class="fa fa-check me-1"></i>Completado — actualizar de nuevo';
-    }
-  }).catch(() => {});
-});
+// ── Cargar candidatos (cc_index_1.json desde Firebase) ───────────────────────
+async function cargarFiltros() {
+  document.getElementById('res-area').innerHTML =
+    '<div class="empty"><i class="fa fa-spinner fa-spin"></i><p>Cargando índice de candidatos...</p></div>';
 
-// ── Indexación Congreso 2026 ──────────────────────────────────────────────────
-let _poll2026Timer = null;
+  const url = 'https://fnfpce-plataforma.web.app/modules/revision/data/cc_index_1.json';
+  const d = await fetch(url).then(r=>r.json()).catch(()=>null);
+  if (!d) {
+    document.getElementById('res-area').innerHTML =
+      '<div class="empty" style="color:#ef5350"><i class="fa fa-exclamation-triangle"></i><p>Error cargando índice de candidatos</p></div>';
+    return;
+  }
 
-async function _iniciarIndexacion2026() {
-  const btn  = document.getElementById('btnIdx2026');
-  const box  = document.getElementById('idx26Box');
-  const credBox = document.getElementById('idx26CredBox');
-  box.style.display = 'block';
-  // Primera vez: mostrar campos de credenciales
-  const user = (document.getElementById('idx26User').value || '').trim();
-  const pass = (document.getElementById('idx26Pass').value || '').trim();
-  if (!pass) { document.getElementById('idx26Pass').focus(); return; }
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i>Iniciando…';
-  credBox.style.display = 'none';
-  try {
-    const r = await fetch('/api/indexar_congreso_2026', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({usuario: user, password: pass})
+  // Aplanar estructura: { DPTO: { nombre, municipios: { CIRC: { candidatos:[] } } } }
+  _cands = [];
+  Object.values(d).forEach(dptoObj => {
+    const dptoNombre = dptoObj.nombre || '';
+    Object.values(dptoObj.municipios || {}).forEach(circ => {
+      (circ.candidatos || []).forEach(c => {
+        _cands.push({
+          nombre:         c.nombre || '',
+          cedula:         c.cedula || '',
+          cand_id:        c.cand_id,
+          corp:           normCorp(c.corp || ''),
+          dpto:           dptoNombre,
+          partido:        c.org || '',
+          total_ingresos: c.total_ingresos || 0,
+          total_gastos:   c.total_gastos   || 0,
+        });
+      });
     });
-    const d = await r.json();
-    if (d.ok === false) {
-      alert(d.msg || 'Error al iniciar indexación');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa fa-play me-1"></i>Indexar';
-      credBox.style.display = '';
-      return;
-    }
-    _poll2026();
-  } catch(e) {
-    alert('Error: ' + e);
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa fa-play me-1"></i>Indexar';
-    credBox.style.display = '';
+  });
+
+  const dptos = [...new Set(_cands.map(c => c.dpto).filter(Boolean))].sort();
+  _allPartidos = [...new Set(_cands.map(c => c.partido).filter(Boolean))].sort();
+
+  const sel = (id, items, placeholder) => {
+    const el = document.getElementById(id);
+    el.innerHTML = `<option value="">${placeholder}</option>` +
+      items.map(v => `<option value="${v}">${v}</option>`).join('');
+  };
+  sel('f-dpto', dptos,      'Todos los departamentos');
+  sel('f-part', _allPartidos, 'Todos los partidos');
+
+  document.getElementById('res-area').innerHTML =
+    `<div class="empty"><i class="fa fa-search"></i><p>Ingrese una búsqueda o seleccione filtros<br>
+    <small style="font-size:.63rem">${_cands.length.toLocaleString('es-CO')} candidatos cargados</small></p></div>`;
+}
+
+// ── Búsqueda client-side ──────────────────────────────────────────────────────
+function debBuscar() { clearTimeout(_timer); _timer = setTimeout(buscar, 300); }
+
+function buscar() {
+  const q    = document.getElementById('qinp').value.trim();
+  const corp = document.getElementById('f-corp').value;
+  const dpto = document.getElementById('f-dpto').value;
+  const part = document.getElementById('f-part').value;
+  const key  = q + '|' + corp + '|' + dpto + '|' + part;
+
+  if (!q && !corp && !dpto && !part) {
+    document.getElementById('res-area').innerHTML =
+      `<div class="empty"><i class="fa fa-search"></i><p>Ingrese una búsqueda o seleccione filtros<br>
+      <small style="font-size:.63rem">${_cands.length.toLocaleString('es-CO')} candidatos cargados</small></p></div>`;
+    return;
+  }
+  if (key === _lastFilters) return;
+  _lastFilters = key; _lastQ = q;
+  window._selCand = null;
+  document.getElementById('pdf-title').innerHTML = '<i class="fa fa-landmark me-2"></i>Congreso 2026';
+  document.getElementById('pdf-sub').textContent = 'Selecciona un candidato para ver su perfil';
+  document.getElementById('pdf-area').innerHTML =
+    '<div class="empty"><i class="fa fa-folder-open"></i><p>Selecciona un candidato para ver su perfil y documentos</p></div>';
+  document.getElementById('cc-card').style.display = 'none';
+
+  let results = _cands;
+  if (q) {
+    const nq = norm(q);
+    results = results.filter(c => norm(c.nombre).includes(nq) || (c.cedula||'').includes(nq));
+  }
+  if (corp) results = results.filter(c => c.corp === corp);
+  if (dpto) results = results.filter(c => c.dpto === dpto);
+  if (part) results = results.filter(c => c.partido === part);
+
+  renderRes(results.slice(0, 300), q);
+}
+
+function renderRes(res, q) {
+  const area = document.getElementById('res-area');
+  if (!res.length) {
+    area.innerHTML = '<div class="empty"><i class="fa fa-search"></i><p>Sin resultados</p></div>';
+    return;
+  }
+  window._resData = res;
+  area.innerHTML = `<div class="res-count">${res.length} resultado${res.length !== 1 ? 's' : ''}</div>` +
+    res.map((r, i) => {
+      const cc  = CORP_CLR[r.corp] || 'secondary';
+      const ced = r.cedula || '';
+      return `<div class="rc" onclick="selRes(${i},this)">
+        <div class="d-flex justify-content-between align-items-start gap-1">
+          <div style="min-width:0;flex:1">
+            <span class="rc-nom">${hl(r.nombre, q)}</span>
+            ${ced ? `<span class="rc-cc">C.C. ${hl(ced, q)}</span>` : ''}
+            <div class="rc-info">${hl(r.partido || '', q)}
+              <span class="rc-lugar ms-2"><i class="fa fa-map-marker-alt me-1"></i>${r.dpto}</span>
+            </div>
+          </div>
+          <span class="badge bg-${cc}" style="font-size:.6rem;padding:.1rem .35rem">${r.corp || ''}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+  mostrarResumen(res);
+}
+
+function selRes(i, el) {
+  document.querySelectorAll('.rc.sel').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  const r = window._resData[i];
+  window._selCand = r;
+  document.getElementById('pdf-title').innerHTML = `<i class="fa fa-user me-2"></i>${r.nombre}`;
+  document.getElementById('pdf-sub').textContent = `${r.corp || ''} · ${r.dpto || ''}`;
+  const chips = document.getElementById('pdf-chips');
+  if (window._resData.length > 1) {
+    chips.innerHTML = `<button class="btn-volver" onclick="volverResumen()"><i class="fa fa-arrow-left me-1"></i>Resumen (${window._resData.length})</button>`;
+  }
+  cargarCC(r);
+  mostrarDocsCNE(r);
+}
+
+function selResById(candId) {
+  const idx = (window._resData || []).findIndex(r => String(r.cand_id) === String(candId));
+  if (idx < 0) return;
+  const els = document.querySelectorAll('.rc');
+  if (els[idx]) selRes(idx, els[idx]);
+}
+
+function volverResumen() {
+  document.querySelectorAll('.rc.sel').forEach(c => c.classList.remove('sel'));
+  window._selCand = null;
+  document.getElementById('pdf-chips').innerHTML = '';
+  mostrarResumen(window._resData || []);
+}
+
+function limpiarFiltros() {
+  ['f-corp','f-dpto','f-part'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('qinp').value = '';
+  _lastFilters = ''; _lastQ = '';
+  document.getElementById('res-area').innerHTML =
+    `<div class="empty"><i class="fa fa-search"></i><p>Ingrese una búsqueda o seleccione filtros<br>
+    <small style="font-size:.63rem">${_cands.length.toLocaleString('es-CO')} candidatos cargados</small></p></div>`;
+}
+
+// ── Perfil del candidato ──────────────────────────────────────────────────────
+function cargarCC(r) {
+  const card = document.getElementById('cc-card');
+  card.style.display = '';
+  card.innerHTML = '<div style="padding:.6rem .85rem;font-size:.72rem;color:var(--dim)"><i class="fa fa-spinner fa-spin me-1"></i>Cargando perfil...</div>';
+
+  fetch(`/data/candidatos_cong/${encodeURIComponent(r.cand_id)}.json`)
+    .then(res => res.json())
+    .then(p  => renderPerfil(p, r))
+    .catch(() => renderPerfil({}, r));
+}
+
+function renderPerfil(p, base) {
+  const card   = document.getElementById('cc-card');
+  const b      = base || {};
+  const nombre = p.nombre  || b.nombre  || '—';
+  const ced    = p.cedula  || b.cedula  || '';
+  const corp   = normCorp(p.corp || b.corp || '');
+  const dpto   = p.dpto    || b.dpto    || '';
+  const partido = p.partido || p.org || b.partido || 'Sin partido';
+  const cid    = p.cand_id || b.cand_id || '';
+
+  const ing   = Number(p.total_ingresos || p.total_ingreso || b.total_ingresos || 0);
+  const gas   = Number(p.total_gastos   || p.total_gasto   || b.total_gastos   || 0);
+  const saldo = ing - gas;
+
+  const reporta = ing > 0 || gas > 0;
+  const estado  = reporta
+    ? {cls:'estado-cert', ico:'fa-check-circle', txt:'Con actividad financiera'}
+    : {cls:'estado-pend', ico:'fa-clock',        txt:'Sin actividad reportada'};
+
+  const gerente  = p.gerente_nombre  || (p.gerente  && p.gerente.nombre)  || '';
+  const contador = p.contador_nombre || (p.contador && p.contador.nombre) || '';
+
+  card.innerHTML = `
+  <div class="perfil-wrap">
+
+    <div class="perfil-header">
+      <div class="perfil-nombre">${nombre}</div>
+      <div class="perfil-meta">
+        ${ced ? `<span><i class="fa fa-id-card" style="color:var(--cyan)"></i> C.C. ${ced}</span>` : ''}
+        <span><i class="fa fa-landmark" style="color:var(--gold)"></i> ${corp}</span>
+        <span><i class="fa fa-map-marker-alt" style="color:#ef5350"></i> ${dpto}</span>
+        <span><i class="fa fa-flag" style="color:#b482ff"></i> ${partido}</span>
+      </div>
+      <div style="margin-top:.4rem;display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
+        <span class="${estado.cls}"><i class="fa ${estado.ico} me-1"></i>${estado.txt}</span>
+        ${p.envio_informe ? '<span style="font-size:.65rem;color:#00e676"><i class="fa fa-check me-1"></i>Informe enviado</span>' : ''}
+      </div>
+    </div>
+
+    <div class="perfil-section">
+      <div class="perfil-sec-title"><i class="fa fa-coins"></i>Financiero</div>
+      <div class="fin-grid">
+        <div class="fin-cell">
+          <div class="fin-lbl">Ingresos</div>
+          <div class="fin-val fin-verde">${fmt$(ing)}</div>
+        </div>
+        <div class="fin-cell">
+          <div class="fin-lbl">Gastos</div>
+          <div class="fin-val fin-rojo">${fmt$(gas)}</div>
+        </div>
+        <div class="fin-cell">
+          <div class="fin-lbl">Saldo</div>
+          <div class="fin-val" style="color:${saldo>=0?'#00e676':'#ef5350'}">${fmt$(saldo)}</div>
+        </div>
+      </div>
+      ${p.fecha_rad ? `<div style="font-size:.62rem;color:var(--dim);margin-top:.2rem"><i class="fa fa-calendar me-1"></i>Radicado: ${p.fecha_rad}</div>` : ''}
+    </div>
+
+    ${(gerente||contador) ? `
+    <div class="perfil-section">
+      <div class="perfil-sec-title"><i class="fa fa-users"></i>Equipo de campaña</div>
+      ${gerente  ? `<div style="font-size:.72rem;padding:.2rem 0"><span style="font-size:.6rem;text-transform:uppercase;color:rgba(252,209,22,.7);margin-right:.3rem">Gerente</span>${gerente}</div>`  : ''}
+      ${contador ? `<div style="font-size:.72rem;padding:.2rem 0"><span style="font-size:.6rem;text-transform:uppercase;color:rgba(0,180,255,.7);margin-right:.3rem">Contador</span>${contador}</div>` : ''}
+    </div>` : ''}
+
+    <div class="perfil-section">
+      <div class="perfil-sec-title"><i class="fa fa-file-pdf"></i>Documentos CNE — Cuentas Claras</div>
+      <div class="docs-grid">
+        <a class="doc-btn db-dict" href="/api/cc_pdf?cand_id=${cid}&formato=43&nivel=cand" target="_blank">
+          <i class="fa fa-file-alt doc-btn-ico"></i><span class="doc-btn-lbl">Dictamen</span><span class="doc-btn-sub">C100/6B</span>
+        </a>
+        <a class="doc-btn db-9b" href="/api/cc_pdf?cand_id=${cid}&formato=44&nivel=org" target="_blank">
+          <i class="fa fa-balance-scale doc-btn-ico"></i><span class="doc-btn-lbl">9B</span><span class="doc-btn-sub">Balance</span>
+        </a>
+        <a class="doc-btn db-8b" href="/api/cc_pdf?cand_id=${cid}&formato=100&nivel=cand" target="_blank">
+          <i class="fa fa-file-alt doc-btn-ico"></i><span class="doc-btn-lbl">8B</span><span class="doc-btn-sub">Ing. y Gastos</span>
+        </a>
+        <a class="doc-btn db-lib" href="/api/cc_pdf?cand_id=${cid}&formato=45&nivel=cand" target="_blank">
+          <i class="fa fa-book doc-btn-ico"></i><span class="doc-btn-lbl">9.1B</span><span class="doc-btn-sub">Lib. Contable</span>
+        </a>
+        <a class="doc-btn db-hist" href="/api/cc_pdf?cand_id=${cid}&formato=46&nivel=cand" target="_blank">
+          <i class="fa fa-file-invoice doc-btn-ico"></i><span class="doc-btn-lbl">9.2B</span><span class="doc-btn-sub">Obligaciones</span>
+        </a>
+        <a class="doc-btn db-coal" href="/api/cc_pdf?cand_id=${cid}&formato=47&nivel=org" target="_blank">
+          <i class="fa fa-file-pdf doc-btn-ico"></i><span class="doc-btn-lbl">F47</span><span class="doc-btn-sub">Partido</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="perfil-section">
+      <div class="perfil-sec-title"><i class="fa fa-folder-open"></i>Documentos Generados</div>
+      <div class="docs-gen-grid">
+        <button class="doc-gen-btn" style="color:#00e676;border:1px solid rgba(0,230,118,.4);background:rgba(0,230,118,.07)"
+                onclick="generarDoc('certificacion','${cid}',this)">
+          <i class="fa fa-file-word me-1"></i>Certificación
+        </button>
+        <div style="display:flex;gap:0;border-radius:5px;overflow:hidden;border:1px solid rgba(0,200,255,.4)">
+          <button class="doc-gen-btn" style="color:#00c8ff;border:none;border-radius:0;background:rgba(0,200,255,.07)"
+                  onclick="previsualizarDoc('liquidacion','${cid}',this)">
+            <i class="fa fa-eye me-1"></i>Liquidación
+          </button>
+          <button class="doc-gen-btn" style="color:#00c8ff;border:none;border-left:1px solid rgba(0,200,255,.3);border-radius:0;background:rgba(0,200,255,.04);font-size:.62rem;padding:.3rem .45rem"
+                  onclick="generarDoc('liquidacion','${cid}',this)" title="Descargar">
+            <i class="fa fa-download"></i>
+          </button>
+        </div>
+        <button class="doc-gen-btn"
+                style="color:#ff9800;border:1px solid rgba(255,152,0,.4);background:rgba(255,152,0,.07)"
+                onclick="generarOficio('${cid}',this)">
+          <i class="fa fa-exclamation-triangle me-1"></i>Requerimiento
+        </button>
+        ${_ROL_ABOGADO ? `
+        <button class="doc-gen-btn" style="color:#a78bfa;border:1px solid rgba(167,139,250,.4);background:rgba(167,139,250,.07)"
+                onclick="generarProyeccion('${cid}',this)">
+          <i class="fa fa-file-alt me-1"></i>Res. Proyección
+        </button>` : ''}
+      </div>
+    </div>
+
+    ${ced ? `
+    <div class="ani-panel">
+      <div class="ani-panel-title"><i class="fa fa-id-card me-1"></i>ANI — Registraduría Nacional</div>
+      <div class="ani-ced-row">
+        <span style="font-size:.62rem;color:var(--dim)">Cédula:</span>
+        <span class="ani-ced-num">${ced}</span>
+        <button class="ani-copy" onclick="copiarCedula('${ced}',this)">
+          <i class="fa fa-copy me-1"></i>Copiar
+        </button>
+      </div>
+      <div>
+        <a style="font-size:.6rem;padding:.06rem .3rem;border-radius:3px;border:1px solid rgba(0,180,255,.25);text-decoration:none;color:rgba(0,180,255,.7);display:inline-flex;align-items:center;gap:.3rem"
+           href="http://172.20.60.227:8080/ani/searchanihistorico.jsp?idmodulo=1&pag=1&Aninuip=${ced}&Origen=searchanitrabajoview.jsp"
+           target="_blank" rel="noopener" onclick="copiarCedula('${ced}',null)">
+          <i class="fa fa-external-link-alt me-1"></i>Ver en ANI
+        </a>
+      </div>
+    </div>` : ''}
+
+  </div>`;
+}
+
+// ── Documentos CNE en panel derecho ──────────────────────────────────────────
+function mostrarDocsCNE(r) {
+  const area = document.getElementById('pdf-area');
+  const cid  = r.cand_id;
+  const docs = [
+    {href:`/api/cc_pdf?cand_id=${cid}&formato=43&nivel=cand`,  label:'Dictamen C100/6B',     color:'#fcd116'},
+    {href:`/api/cc_pdf?cand_id=${cid}&formato=100&nivel=cand`, label:'8B Ingresos y Gastos',  color:'#00e676'},
+    {href:`/api/cc_pdf?cand_id=${cid}&formato=44&nivel=org`,   label:'9B Balance General',    color:'#00c8ff'},
+    {href:`/api/cc_pdf?cand_id=${cid}&formato=45&nivel=cand`,  label:'9.1B Lib. Contable',    color:'#b482ff'},
+    {href:`/api/cc_pdf?cand_id=${cid}&formato=46&nivel=cand`,  label:'9.2B Obligaciones',     color:'#64c864'},
+    {href:`/api/cc_pdf?cand_id=${cid}&formato=47&nivel=org`,   label:'F47 Rep. Partido',      color:'#ff9632'},
+  ];
+  area.innerHTML = `
+    <div style="padding:.4rem .6rem .2rem;font-size:.6rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(196,218,240,.3)">
+      <i class="fa fa-file-pdf me-1"></i>Acceso directo — Cuentas Claras CNE
+    </div>` +
+    docs.map(d => `
+      <a href="${d.href}" target="_blank" class="pi" style="text-decoration:none">
+        <i class="fa fa-file-pdf pi-ico" style="color:${d.color}"></i>
+        <div class="pi-info">
+          <div class="pi-nom" style="color:${d.color}">${d.label}</div>
+          <div class="pi-meta">Cuentas Claras · CNE</div>
+        </div>
+        <span class="pi-btn"><i class="fa fa-external-link-alt me-1"></i>Abrir</span>
+      </a>`).join('');
+}
+
+// ── Resumen financiero del filtro ─────────────────────────────────────────────
+function mostrarResumen(res) {
+  if (!res || !res.length) return;
+  document.getElementById('pdf-title').innerHTML = `<i class="fa fa-chart-bar me-2"></i>Análisis del Filtro`;
+  document.getElementById('pdf-sub').textContent  = `${res.length} candidato${res.length!==1?'s':''} encontrado${res.length!==1?'s':''}`;
+  document.getElementById('pdf-chips').innerHTML  = '';
+
+  const ccCard  = document.getElementById('cc-card');
+  const pdfArea = document.getElementById('pdf-area');
+  pdfArea.innerHTML = '<div class="empty"><i class="fa fa-folder-open"></i><p>Selecciona un candidato para ver sus documentos</p></div>';
+
+  const total_ing = res.reduce((s, r) => s + (Number(r.total_ingresos)||0), 0);
+  const total_gas = res.reduce((s, r) => s + (Number(r.total_gastos)  ||0), 0);
+
+  ccCard.style.display = '';
+  ccCard.innerHTML = `
+    <div class="resumen-tabla-wrap">
+      <div class="resumen-tabla-title">
+        <span><i class="fa fa-chart-bar me-1"></i>Resumen Financiero</span>
+        <span style="font-size:.58rem;color:var(--dim)">${res.length} cuentas</span>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
+        <div style="flex:1;min-width:80px;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.2);border-radius:6px;padding:.4rem .6rem">
+          <div style="font-size:.57rem;color:rgba(0,230,118,.6);text-transform:uppercase;letter-spacing:.04em">Total Ingresos</div>
+          <div style="font-size:.82rem;font-weight:700;color:#00e676">${fmt$(total_ing)}</div>
+        </div>
+        <div style="flex:1;min-width:80px;background:rgba(255,100,100,.06);border:1px solid rgba(255,100,100,.2);border-radius:6px;padding:.4rem .6rem">
+          <div style="font-size:.57rem;color:rgba(255,100,100,.6);text-transform:uppercase;letter-spacing:.04em">Total Gastos</div>
+          <div style="font-size:.82rem;font-weight:700;color:#ef5350">${fmt$(total_gas)}</div>
+        </div>
+        <div style="flex:1;min-width:80px;background:rgba(0,180,255,.06);border:1px solid rgba(0,180,255,.2);border-radius:6px;padding:.4rem .6rem">
+          <div style="font-size:.57rem;color:rgba(0,180,255,.6);text-transform:uppercase;letter-spacing:.04em">Saldo Global</div>
+          <div style="font-size:.82rem;font-weight:700;color:${(total_ing-total_gas)>=0?'#00e676':'#ef5350'}">${fmt$(total_ing-total_gas)}</div>
+        </div>
+      </div>
+      ${res.length <= 200 ? `
+      <div style="overflow-x:auto">
+        <table class="resumen-tabla">
+          <thead><tr>
+            <th>Candidato</th><th>Corp.</th><th>Dpto.</th>
+            <th>Ingresos</th><th>Gastos</th><th>Saldo</th><th>PDFs</th>
+          </tr></thead>
+          <tbody>
+            ${res.slice(0,200).map(r => {
+              const ing   = Number(r.total_ingresos)||0;
+              const gas   = Number(r.total_gastos)  ||0;
+              const saldo = ing - gas;
+              const cid   = r.cand_id;
+              return `<tr onclick="selResById('${cid}')" style="cursor:pointer">
+                <td>
+                  <div style="font-weight:600;font-size:.67rem;color:#ddeeff;line-height:1.2">${r.nombre}</div>
+                  <div style="font-size:.57rem;color:var(--dim)">${r.partido||''}</div>
+                </td>
+                <td style="font-size:.6rem;white-space:nowrap">${r.corp||''}</td>
+                <td style="font-size:.6rem;white-space:nowrap">${r.dpto||''}</td>
+                <td style="color:#00e676;font-size:.67rem;white-space:nowrap">${fmt$(ing)}</td>
+                <td style="color:#ef5350;font-size:.67rem;white-space:nowrap">${fmt$(gas)}</td>
+                <td style="color:${saldo>=0?'#00e676':'#ef5350'};font-size:.67rem;white-space:nowrap">${fmt$(saldo)}</td>
+                <td style="white-space:nowrap">
+                  <a href="/api/cc_pdf?cand_id=${cid}&formato=100&nivel=cand" target="_blank"
+                     class="doc-mini" onclick="event.stopPropagation()" title="8B Ingresos/Gastos">
+                    <i class="fa fa-chart-bar"></i>8B
+                  </a>
+                  <a href="/api/cc_pdf?cand_id=${cid}&formato=43&nivel=cand" target="_blank"
+                     class="doc-mini" onclick="event.stopPropagation()" title="Dictamen C100/6B">
+                    <i class="fa fa-file-alt"></i>Dict.
+                  </a>
+                </td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>` : `<div style="font-size:.7rem;color:var(--dim);padding:.3rem 0">Refine el filtro para ver la tabla (máx 200 registros).</div>`}
+    </div>`;
+}
+
+// ── Generación de documentos ──────────────────────────────────────────────────
+function generarDoc(tipo, cid, btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Generando...';
+  btn.style.pointerEvents = 'none';
+  const endpoints = {certificacion:'/api/generar_certificacion', liquidacion:'/api/generar_liquidacion'};
+  fetch(`${endpoints[tipo]}?cand_id=${encodeURIComponent(cid)}`)
+    .then(r => {
+      if (!r.ok) return r.text().then(t => { let m='Error '+r.status; try{m=JSON.parse(t).error||m;}catch(e){} throw new Error(m); });
+      return r.blob();
+    })
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${tipo.toUpperCase()}_${cid}.${tipo==='liquidacion'?'xlsx':'docx'}`;
+      a.click();
+    })
+    .catch(err => alert('Error: ' + (err.message || err)))
+    .finally(() => { btn.innerHTML = orig; btn.style.pointerEvents = ''; });
+}
+
+function generarOficio(cid, btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Generando...';
+  btn.style.pointerEvents = 'none';
+  fetch(`/api/generar_oficio?cand_id=${encodeURIComponent(cid)}`)
+    .then(r => {
+      if (r.status !== 200) return r.json().then(j => { throw new Error(j.mensaje||j.error||'Sin novedades'); });
+      return r.blob();
+    })
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `REQUERIMIENTO_${cid}.docx`;
+      a.click();
+    })
+    .catch(err => alert(err.message || String(err)))
+    .finally(() => { btn.innerHTML = orig; btn.style.pointerEvents = ''; });
+}
+
+function generarProyeccion(cid, btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Generando...';
+  btn.style.pointerEvents = 'none';
+  fetch(`/api/generar_proyeccion?cand_id=${encodeURIComponent(cid)}`)
+    .then(r => {
+      if (!r.ok) return r.json().then(j => { throw new Error(j.error||'Error '+r.status); });
+      return r.blob();
+    })
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `PROYECCION_${cid}.docx`;
+      a.click();
+    })
+    .catch(err => alert('Error: ' + (err.message||String(err))))
+    .finally(() => { btn.innerHTML = orig; btn.style.pointerEvents = ''; });
+}
+
+function previsualizarDoc(tipo, cid, btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+  btn.style.pointerEvents = 'none';
+  const previewUrl  = `/api/preview_doc?tipo=${tipo}&cand_id=${encodeURIComponent(cid)}`;
+  const downloadUrl = `/api/generar_${tipo}?cand_id=${encodeURIComponent(cid)}`;
+  btn.innerHTML = orig; btn.style.pointerEvents = '';
+  abrirModal('Liquidación', 'fa-file-excel', '#00c8ff', previewUrl, downloadUrl);
+}
+
+// ── Modal visor ───────────────────────────────────────────────────────────────
+function abrirModal(titulo, ico, color, previewUrl, downloadUrl) {
+  const modal   = document.getElementById('inf-modal');
+  const content = document.getElementById('inf-content');
+  document.getElementById('inf-modal-title').textContent = titulo;
+  const icoEl = document.getElementById('inf-modal-ico');
+  icoEl.className   = 'fa ' + ico;
+  icoEl.style.color = color;
+  _previewDlUrl = downloadUrl;
+  document.getElementById('inf-dl-btn').style.display = downloadUrl ? '' : 'none';
+  modal.classList.remove('hidden');
+  content.style.padding = '0';
+  content.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'width:100%;height:100%;border:none;background:#fff';
+  iframe.src = previewUrl;
+  content.appendChild(iframe);
+}
+
+function descargarDesdeModal() {
+  if (_previewDlUrl) window.open(_previewDlUrl, '_blank');
+}
+
+function cerrarModal() {
+  document.getElementById('inf-modal').classList.add('hidden');
+}
+
+// ── Utilidades ────────────────────────────────────────────────────────────────
+function copiarCedula(cedula, btn) {
+  navigator.clipboard.writeText(cedula).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = cedula; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+  if (btn) {
+    btn.classList.add('copiado');
+    btn.innerHTML = '<i class="fa fa-check me-1"></i>Copiada';
+    setTimeout(() => { btn.classList.remove('copiado'); btn.innerHTML='<i class="fa fa-copy me-1"></i>Copiar'; }, 2000);
   }
 }
 
-// ── Financiero Congreso 2026 ──────────────────────────────────────────────────
-let _fin2026Timer = null;
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModal(); });
 
-async function _iniciarFin2026() {
-  const btn = document.getElementById('btnFin2026');
-  const box = document.getElementById('fin2026Box');
-  box.style.display = 'block';
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i>Iniciando…';
-  try {
-    const r = await fetch('/api/indexar_financiero_2026', { method: 'POST' });
-    const d = await r.json();
-    if (d.ok === false) {
-      alert(d.msg || 'Error al iniciar');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa fa-play me-1"></i>Actualizar';
-      return;
-    }
-    _pollFin2026();
-  } catch(e) {
-    alert('Error: ' + e);
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fa fa-play me-1"></i>Actualizar';
-  }
-}
-
-function _pollFin2026() {
-  if (_fin2026Timer) clearTimeout(_fin2026Timer);
-  fetch('/api/fin2026_status').then(r => r.json()).then(d => {
-    const msg = document.getElementById('fin2026Msg');
-    const pct = document.getElementById('fin2026Pct');
-    const bar = document.getElementById('fin2026Bar');
-    const btn = document.getElementById('btnFin2026');
-    if (msg) msg.textContent = d.msg || '–';
-    if (pct) pct.textContent = d.pct + '%';
-    if (bar) bar.style.width = d.pct + '%';
-    if (d.fase === 'listo') {
-      if (bar) bar.className = 'progress-bar bg-success';
-      if (msg) msg.className = 'small text-success fw-semibold';
-      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-check me-1"></i>Completado — actualizar de nuevo'; }
-    } else if (d.fase === 'error') {
-      if (bar) bar.className = 'progress-bar bg-danger';
-      if (msg) { msg.className = 'small text-danger'; msg.textContent = d.error || d.msg; }
-      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-play me-1"></i>Reintentar'; }
-    } else if (d.fase === 'trabajando') {
-      if (bar) bar.className = 'progress-bar bg-warning progress-bar-striped progress-bar-animated';
-      _fin2026Timer = setTimeout(_pollFin2026, 4000);
-    }
-  }).catch(() => { _fin2026Timer = setTimeout(_pollFin2026, 6000); });
-}
-
-function _poll2026() {
-  if (_poll2026Timer) clearTimeout(_poll2026Timer);
-  fetch('/api/idx26_status').then(r => r.json()).then(d => {
-    const msg = document.getElementById('idx26Msg');
-    const pct = document.getElementById('idx26Pct');
-    const bar = document.getElementById('idx26Bar');
-    const btn = document.getElementById('btnIdx2026');
-    if (msg) msg.textContent = d.msg || '–';
-    if (pct) pct.textContent = d.pct + '%';
-    if (bar) bar.style.width = d.pct + '%';
-    if (d.fase === 'listo') {
-      if (bar) bar.className = 'progress-bar bg-success';
-      if (msg) msg.className = 'small text-success fw-semibold';
-      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-check me-1"></i>Completado — volver a indexar'; }
-    } else if (d.fase === 'error') {
-      if (bar) bar.className = 'progress-bar bg-danger';
-      if (msg) msg.className = 'small text-danger';
-      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa fa-play me-1"></i>Reintentar'; }
-      document.getElementById('idx26CredBox').style.display = '';
-    } else if (d.fase === 'trabajando') {
-      if (bar) bar.className = 'progress-bar bg-primary progress-bar-striped progress-bar-animated';
-      _poll2026Timer = setTimeout(_poll2026, 3000);
-    }
-  }).catch(() => { _poll2026Timer = setTimeout(_poll2026, 5000); });
-}
+// ── Arranque ──────────────────────────────────────────────────────────────────
+checkState();
 </script>
-
 </body>
 </html>
