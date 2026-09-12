@@ -1671,6 +1671,26 @@ class Handler(SimpleHTTPRequestHandler):
         if not formato:
             return self._send_error_json("Parámetro 'formato' requerido.", 400)
 
+        # Look up candidate details from local index to get corp_id, circ_id, org_id
+        corp_id = ""
+        circ_id = ""
+        portal_dir = self.server.portal_dir if hasattr(self.server, "portal_dir") else os.getcwd()
+        idx_path   = os.path.join(portal_dir, "data", "cc_index_1.json")
+        try:
+            with open(idx_path, encoding="utf-8") as f:
+                idx = json.load(f)
+            for sec_data in idx.values():
+                for mun_data in sec_data.get("municipios", {}).values():
+                    for c in mun_data.get("candidatos", []):
+                        if str(c.get("cand_id", "")) == cand_id:
+                            if not org_id:
+                                org_id  = str(c.get("org_id", ""))
+                            corp_id = str(c.get("corp_id", ""))
+                            circ_id = str(c.get("circ_id", ""))
+                            break
+        except Exception:
+            pass
+
         api_base = _cne_api_activo or CNE_API_2026
         xsrf     = _get_xsrf(_cne_session)
         hdrs = {
@@ -1681,46 +1701,62 @@ class Handler(SimpleHTTPRequestHandler):
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         }
 
-        # Build candidate and org-level URL candidates
-        p_cand = f"id={formato}&rol=contador&idcandidato={cand_id}&idproceso=1"
-        p_org  = f"id={formato}&rol=contador&idOrganizacion={org_id}&idproceso=1" if org_id else ""
+        base = f"{api_base}/descargar-consolidado"
+        urls = []
 
-        if nivel == "org" and p_org:
-            urls = [
-                f"{api_base}/descargar-consolidado?{p_org}",
-                f"{api_base}/descargar-consolidado?{p_cand}",
-            ]
-        else:
-            urls = [f"{api_base}/descargar-consolidado?{p_cand}"]
-            if p_org:
-                urls.append(f"{api_base}/descargar-consolidado?{p_org}")
+        # CNE 2026 uses id_candi, id_corporacion, id_circunscripcion, id_proceso (snake_case)
+        if cand_id and corp_id and circ_id:
+            urls.append(f"{base}?id={formato}&rol=contador&id_candi={cand_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
+            if org_id:
+                urls.append(f"{base}?id={formato}&rol=contador&id_org={org_id}&id_candi={cand_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
+        # Also try ET2023-style params (camelCase) as fallback
+        if org_id and cand_id:
+            for tipo in ("1", "2", "3"):
+                urls.append(f"{base}?id={formato}&rol=contador&tipoOrganizacion={tipo}&idOrganizacion={org_id}&idCandidato={cand_id}")
+            urls.append(f"{base}?id={formato}&rol=contador&idOrganizacion={org_id}&idCandidato={cand_id}")
+        # Org-level attempts
+        if nivel == "org" and org_id:
+            for tipo in ("1", "2"):
+                urls.append(f"{base}?id={formato}&rol=contador&tipoOrganizacion={tipo}&idOrganizacion={org_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
+            urls.append(f"{base}?id={formato}&rol=contador&idOrganizacion={org_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
+        # Bare fallback
+        if cand_id:
+            urls.append(f"{base}?id={formato}&rol=contador&idcandidato={cand_id}&idproceso=1")
 
-        debug = []
+        best_pdf  = None  # (content, cdisp)
+        debug     = []
         for url in urls:
             try:
-                r = _cne_session.get(url, headers=hdrs, timeout=45, allow_redirects=False)
+                r      = _cne_session.get(url, headers=hdrs, timeout=45, allow_redirects=False)
                 ct     = r.headers.get("Content-Type", "")
                 status = r.status_code
-                snip   = r.content[:120].decode("utf-8", errors="replace")
-                print(f"[cc_pdf] {status} {ct[:40]} url={url}")
-                debug.append(f"{status} ct={ct[:40]} body={snip}")
+                size   = len(r.content)
+                print(f"[cc_pdf] {status} size={size} ct={ct[:40]} url={url}")
+                debug.append(f"{status} sz={size}")
                 if status in (301, 302):
                     continue
-                if "application/pdf" in ct or (status == 200 and len(r.content) > 500 and b"<!DOCTYPE" not in r.content[:50] and b"<html" not in r.content[:50]):
-                    body = r.content
+                if "application/pdf" in ct:
                     cdisp = r.headers.get("Content-Disposition",
-                                          f'inline; filename="formato_{formato}_cand_{cand_id}.pdf"')
-                    self.send_response(200)
-                    self.send_header("Content-Type", "application/pdf")
-                    self.send_header("Content-Disposition", cdisp)
-                    self.send_header("Content-Length", str(len(body)))
-                    self.send_header("Access-Control-Allow-Origin", "*")
-                    self.end_headers()
-                    self.wfile.write(body)
-                    return
+                                          f'inline; filename="formato_{formato}_{cand_id}.pdf"')
+                    # Prefer the largest PDF (most likely populated with data)
+                    if best_pdf is None or size > len(best_pdf[0]):
+                        best_pdf = (r.content, cdisp)
+                    if size > 60_000:  # clearly populated — stop early
+                        break
             except Exception as e:
-                print(f"[cc_pdf] error en {url}: {e}")
+                print(f"[cc_pdf] error: {e}")
                 debug.append(f"exc:{e}")
+
+        if best_pdf:
+            body, cdisp = best_pdf
+            self.send_response(200)
+            self.send_header("Content-Type", "application/pdf")
+            self.send_header("Content-Disposition", cdisp)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(body)
+            return
 
         self._send_error_json(f"No se pudo obtener el documento. Debug: {' | '.join(debug)}", 502)
 
