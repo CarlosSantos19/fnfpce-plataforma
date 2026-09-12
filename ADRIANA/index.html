@@ -310,6 +310,7 @@ let _timer = null, _lastFilters = '', _lastQ = '';
 let _cands = [];
 let _allPartidos = [];
 let _previewDlUrl = null;
+let _aniMap = {};  // cand_id (string) -> {v, c}
 
 const normCorp = c => {
   if (!c) return '';
@@ -319,6 +320,17 @@ const normCorp = c => {
   return c;
 };
 const CORP_CLR = {'SENADO':'warning','CÁMARA':'info'};
+
+function aniBadge(cand_id) {
+  const entry = _aniMap[String(cand_id)];
+  if (!entry) return '<span class="ani-badge ani-pend"><i class="fa fa-clock"></i>ANI pendiente</span>';
+  const v = (entry.v || '').toLowerCase();
+  if (v.includes('vigente'))       return '<span class="ani-badge ani-vig"><i class="fa fa-check-circle"></i>ANI Vigente</span>';
+  if (v.includes('sin vigencia'))  return '<span class="ani-badge ani-novig"><i class="fa fa-times-circle"></i>Sin vigencia ANI</span>';
+  if (v.includes('no encontrada')) return '<span class="ani-badge ani-nreg"><i class="fa fa-question-circle"></i>No registrada ANI</span>';
+  if (v === 'error' || v === '')   return '<span class="ani-badge ani-pend"><i class="fa fa-clock"></i>ANI pendiente</span>';
+  return `<span class="ani-badge ani-pend"><i class="fa fa-clock"></i>${entry.v}</span>`;
+}
 const norm = s => (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
 const hl   = (t, q) => {
   if (!t || !q) return t || '';
@@ -461,6 +473,11 @@ async function cargarFiltros() {
   };
   sel('f-dpto', dptos,      'Todos los departamentos');
   sel('f-part', _allPartidos, 'Todos los partidos');
+
+  // Cargar ANI summary en paralelo (silencioso si falla)
+  fetch('/api/ani_summary').then(r=>r.json()).then(data => {
+    _aniMap = data || {};
+  }).catch(() => {});
 
   document.getElementById('res-area').innerHTML =
     `<div class="empty"><i class="fa fa-search"></i><p>Ingrese una búsqueda o seleccione filtros<br>
@@ -617,6 +634,7 @@ function renderPerfil(p, base) {
       </div>
       <div style="margin-top:.4rem;display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
         <span class="${estado.cls}"><i class="fa ${estado.ico} me-1"></i>${estado.txt}</span>
+        ${aniBadge(cid)}
         ${p.envio_informe ? '<span style="font-size:.65rem;color:#00e676"><i class="fa fa-check me-1"></i>Informe enviado</span>' : ''}
       </div>
     </div>
@@ -790,7 +808,7 @@ function mostrarResumen(res) {
         <table class="resumen-tabla">
           <thead><tr>
             <th>Candidato</th><th>Corp.</th><th>Dpto.</th>
-            <th>Ingresos</th><th>Gastos</th><th>Saldo</th><th>PDFs</th>
+            <th>Ingresos</th><th>Gastos</th><th>Saldo</th><th>ANI</th><th>PDFs</th>
           </tr></thead>
           <tbody>
             ${res.slice(0,200).map(r => {
@@ -808,6 +826,7 @@ function mostrarResumen(res) {
                 <td style="color:#00e676;font-size:.67rem;white-space:nowrap">${fmt$(ing)}</td>
                 <td style="color:#ef5350;font-size:.67rem;white-space:nowrap">${fmt$(gas)}</td>
                 <td style="color:${saldo>=0?'#00e676':'#ef5350'};font-size:.67rem;white-space:nowrap">${fmt$(saldo)}</td>
+                <td style="white-space:nowrap">${aniBadge(cid)}</td>
                 <td style="white-space:nowrap">
                   <a href="/api/cc_pdf?cand_id=${cid}&formato=100&nivel=cand" target="_blank"
                      class="doc-mini" onclick="event.stopPropagation()" title="8B Ingresos/Gastos">
