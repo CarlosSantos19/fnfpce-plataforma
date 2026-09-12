@@ -1695,13 +1695,18 @@ class Handler(SimpleHTTPRequestHandler):
             if p_org:
                 urls.append(f"{api_base}/descargar-consolidado?{p_org}")
 
+        debug = []
         for url in urls:
             try:
                 r = _cne_session.get(url, headers=hdrs, timeout=45, allow_redirects=False)
-                if r.status_code in (301, 302):
+                ct     = r.headers.get("Content-Type", "")
+                status = r.status_code
+                snip   = r.content[:120].decode("utf-8", errors="replace")
+                print(f"[cc_pdf] {status} {ct[:40]} url={url}")
+                debug.append(f"{status} ct={ct[:40]} body={snip}")
+                if status in (301, 302):
                     continue
-                ct = r.headers.get("Content-Type", "")
-                if "application/pdf" in ct or (r.status_code == 200 and len(r.content) > 500):
+                if "application/pdf" in ct or (status == 200 and len(r.content) > 500 and b"<!DOCTYPE" not in r.content[:50] and b"<html" not in r.content[:50]):
                     body = r.content
                     cdisp = r.headers.get("Content-Disposition",
                                           f'inline; filename="formato_{formato}_cand_{cand_id}.pdf"')
@@ -1715,8 +1720,9 @@ class Handler(SimpleHTTPRequestHandler):
                     return
             except Exception as e:
                 print(f"[cc_pdf] error en {url}: {e}")
+                debug.append(f"exc:{e}")
 
-        self._send_error_json("No se pudo obtener el documento del CNE.", 502)
+        self._send_error_json(f"No se pudo obtener el documento. Debug: {' | '.join(debug)}", 502)
 
     # ── /api/ani_summary ─────────────────────────────────────────────────────
 
