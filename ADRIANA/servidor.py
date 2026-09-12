@@ -1704,44 +1704,48 @@ class Handler(SimpleHTTPRequestHandler):
         base = f"{api_base}/descargar-consolidado"
         urls = []
 
-        # CNE 2026 uses id_candi, id_corporacion, id_circunscripcion, id_proceso (snake_case)
-        if cand_id and corp_id and circ_id:
-            urls.append(f"{base}?id={formato}&rol=contador&id_candi={cand_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
-            if org_id:
+        # CNE 2026 usa parámetros snake_case: id_candi, id_org, id_corporacion, id_circunscripcion, id_proceso
+        if nivel == "org":
+            # Documentos a nivel de organización (7B, F47): id_org sin id_candi
+            if org_id and corp_id and circ_id:
+                urls.append(f"{base}?id={formato}&rol=contador&id_org={org_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
+            # También con id_candi por si el CNE lo requiere para filtrar
+            if org_id and cand_id and corp_id and circ_id:
                 urls.append(f"{base}?id={formato}&rol=contador&id_org={org_id}&id_candi={cand_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
-        # Also try ET2023-style params (camelCase) as fallback
-        if org_id and cand_id:
-            for tipo in ("1", "2", "3"):
-                urls.append(f"{base}?id={formato}&rol=contador&tipoOrganizacion={tipo}&idOrganizacion={org_id}&idCandidato={cand_id}")
-            urls.append(f"{base}?id={formato}&rol=contador&idOrganizacion={org_id}&idCandidato={cand_id}")
-        # Org-level attempts
-        if nivel == "org" and org_id:
-            for tipo in ("1", "2"):
-                urls.append(f"{base}?id={formato}&rol=contador&tipoOrganizacion={tipo}&idOrganizacion={org_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
-            urls.append(f"{base}?id={formato}&rol=contador&idOrganizacion={org_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
-        # Bare fallback
-        if cand_id:
-            urls.append(f"{base}?id={formato}&rol=contador&idcandidato={cand_id}&idproceso=1")
+            # Solo org_id sin circunscripción (algunos formatos de partido no tienen circ)
+            if org_id:
+                urls.append(f"{base}?id={formato}&rol=contador&id_org={org_id}&id_proceso=1")
+        else:
+            # Documentos a nivel de candidato (Dictamen, 6B, 7.1B, 7.2B)
+            if cand_id and corp_id and circ_id:
+                urls.append(f"{base}?id={formato}&rol=contador&id_candi={cand_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
+                if org_id:
+                    urls.append(f"{base}?id={formato}&rol=contador&id_candi={cand_id}&id_org={org_id}&id_corporacion={corp_id}&id_circunscripcion={circ_id}&id_proceso=1")
+            # Sin circunscripción como fallback
+            if cand_id and corp_id:
+                urls.append(f"{base}?id={formato}&rol=contador&id_candi={cand_id}&id_corporacion={corp_id}&id_proceso=1")
 
         best_pdf  = None  # (content, cdisp)
         debug     = []
+        print(f"[cc_pdf] formato={formato} cand_id={cand_id} org_id={org_id} corp_id={corp_id} circ_id={circ_id} nivel={nivel}")
         for url in urls:
             try:
                 r      = _cne_session.get(url, headers=hdrs, timeout=45, allow_redirects=False)
                 ct     = r.headers.get("Content-Type", "")
                 status = r.status_code
                 size   = len(r.content)
-                print(f"[cc_pdf] {status} size={size} ct={ct[:40]} url={url}")
-                debug.append(f"{status} sz={size}")
+                # Extraer solo los params clave para el debug visible al usuario
+                url_short = url.split("?", 1)[1][:120] if "?" in url else url[-60:]
+                print(f"[cc_pdf] {status} sz={size} ct={ct[:30]} | {url_short}")
+                debug.append(f"{status} sz={size} [{url_short[:80]}]")
                 if status in (301, 302):
                     continue
                 if "application/pdf" in ct:
                     cdisp = r.headers.get("Content-Disposition",
                                           f'inline; filename="formato_{formato}_{cand_id}.pdf"')
-                    # Prefer the largest PDF (most likely populated with data)
                     if best_pdf is None or size > len(best_pdf[0]):
                         best_pdf = (r.content, cdisp)
-                    if size > 60_000:  # clearly populated — stop early
+                    if size > 60_000:
                         break
             except Exception as e:
                 print(f"[cc_pdf] error: {e}")
@@ -1758,7 +1762,11 @@ class Handler(SimpleHTTPRequestHandler):
             self.wfile.write(body)
             return
 
-        self._send_error_json(f"No se pudo obtener el documento. Debug: {' | '.join(debug)}", 502)
+        self._send_error_json(
+            f"No se pudo obtener el documento (formato={formato} corp={corp_id} circ={circ_id}).\n"
+            f"URLs intentadas:\n" + "\n".join(debug),
+            502
+        )
 
     # ── /api/ani_summary ─────────────────────────────────────────────────────
 
