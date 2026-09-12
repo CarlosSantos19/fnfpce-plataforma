@@ -359,6 +359,10 @@ const fmt$ig = n => { const v=Number(n)||0; if(!v)return ''; return(v<0?'-$':'$'
 function renderIG(cid, ing, gas) {
   const wrap = document.getElementById(`cc-ig-${cid}`);
   if (!wrap) return;
+  if (!ing.length && !gas.length) {
+    wrap.innerHTML = '<div style="font-size:.7rem;color:var(--dim);padding:.2rem 0"><i class="fa fa-info-circle me-1"></i>Sin transacciones registradas en este período.</div>';
+    return;
+  }
   window[`_ig_${cid}`] = {ing, gas};
   wrap.innerHTML = `
     <div class="cc-ig-tabs">
@@ -677,14 +681,16 @@ function cargarCC(r) {
   card.innerHTML = '<div style="padding:.6rem .85rem;font-size:.72rem;color:var(--dim)"><i class="fa fa-spinner fa-spin me-1"></i>Cargando perfil...</div>';
 
   fetch(`/data/candidatos_cong/${encodeURIComponent(r.cand_id)}.json`)
-    .then(res => res.json())
+    .then(res => { if (!res.ok) throw new Error('404'); return res.json(); })
     .then(p => {
       renderPerfil(p, r);
-      const ing = p.ingresos || [];
-      const gas = p.gastos   || [];
-      if (ing.length || gas.length) renderIG(r.cand_id, ing, gas);
+      renderIG(r.cand_id, p.ingresos || [], p.gastos || []);
     })
-    .catch(() => renderPerfil({}, r));
+    .catch(() => {
+      renderPerfil({}, r);
+      const el = document.getElementById(`cc-ig-${r.cand_id}`);
+      if (el) el.innerHTML = '<div style="font-size:.7rem;color:var(--dim)">Perfil detallado no disponible.</div>';
+    });
 }
 
 function renderPerfil(p, base) {
@@ -746,11 +752,12 @@ function renderPerfil(p, base) {
       ${p.fecha_rad ? `<div style="font-size:.62rem;color:var(--dim);margin-top:.2rem"><i class="fa fa-calendar me-1"></i>Radicado: ${p.fecha_rad}</div>` : ''}
     </div>
 
-    ${((p.ingresos&&p.ingresos.length)||(p.gastos&&p.gastos.length)) ? `
     <div class="perfil-section">
       <div class="perfil-sec-title"><i class="fa fa-exchange-alt"></i>Transacciones</div>
-      <div id="cc-ig-${cid}"></div>
-    </div>` : ''}
+      <div id="cc-ig-${cid}">
+        <div style="font-size:.7rem;color:var(--dim);padding:.2rem 0"><i class="fa fa-spinner fa-spin me-1"></i>Cargando...</div>
+      </div>
+    </div>
 
     ${(gerente||contador) ? `
     <div class="perfil-section">
