@@ -423,7 +423,7 @@ async function cargarFiltros() {
   document.getElementById('res-area').innerHTML =
     '<div class="empty"><i class="fa fa-spinner fa-spin"></i><p>Cargando índice de candidatos...</p></div>';
 
-  const url = 'https://fnfpce-plataforma.web.app/modules/revision/data/cc_index_1.json';
+  const url = '/api/cc_index';
   const d = await fetch(url).then(r=>r.json()).catch(()=>null);
   if (!d) {
     document.getElementById('res-area').innerHTML =

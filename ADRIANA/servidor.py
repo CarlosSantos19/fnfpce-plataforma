@@ -748,6 +748,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self._handle_cc_stats()
             elif path == "/api/cc_candidatos":
                 self._handle_cc_candidatos()
+            elif path == "/api/cc_index":
+                self._handle_cc_index()
             else:
                 self.directory = getattr(self.server, 'portal_dir', os.getcwd())
                 super().do_GET()
@@ -1591,6 +1593,35 @@ class Handler(SimpleHTTPRequestHandler):
             except Exception:
                 pass
         self._send_json(data)
+
+    # ── /api/cc_index ────────────────────────────────────────────────────────
+
+    def _handle_cc_index(self):
+        """Sirve cc_index_1.json (índice Congreso 2026).
+        Usa el archivo local si existe; si no, lo descarga de Firebase y lo cachea."""
+        portal_dir = self.server.portal_dir if hasattr(self.server, "portal_dir") else os.getcwd()
+        idx_path   = os.path.join(portal_dir, "data", "cc_index_1.json")
+        if os.path.exists(idx_path):
+            with open(idx_path, "rb") as f:
+                body = f.read()
+        else:
+            try:
+                r = requests.get(
+                    "https://fnfpce-plataforma.web.app/modules/revision/data/cc_index_1.json",
+                    timeout=60
+                )
+                body = r.content
+                os.makedirs(os.path.join(portal_dir, "data"), exist_ok=True)
+                with open(idx_path, "wb") as f:
+                    f.write(body)
+            except Exception as e:
+                return self._send_error_json(f"Error descargando índice: {e}")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(body)
 
     def _handle_cc_candidatos(self):
         """
