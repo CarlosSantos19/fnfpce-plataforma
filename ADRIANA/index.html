@@ -182,6 +182,28 @@ mark{background:rgba(252,209,22,.15);color:var(--gold);border-radius:2px;padding
 .ani-copy:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,180,255,.08)}
 .ani-copy.copiado{border-color:rgba(0,230,118,.5);color:#00e676}
 
+/* Transacciones Ingresos/Gastos */
+.cc-ig-tabs{display:flex;gap:.25rem;margin-bottom:.35rem}
+.cc-ig-tab{font-size:.65rem;padding:.18rem .55rem;border-radius:4px;border:1px solid;cursor:pointer;transition:all .15s;background:transparent}
+.cc-ig-tab.ing{border-color:rgba(0,230,118,.3);color:rgba(0,230,118,.6)}
+.cc-ig-tab.ing.on,.cc-ig-tab.ing:hover{background:rgba(0,230,118,.1);border-color:#00e676;color:#00e676}
+.cc-ig-tab.gas{border-color:rgba(239,83,80,.3);color:rgba(239,83,80,.6)}
+.cc-ig-tab.gas.on,.cc-ig-tab.gas:hover{background:rgba(239,83,80,.1);border-color:#ef5350;color:#ef5350}
+.cc-ig-list{max-height:220px;overflow-y:auto;font-size:.7rem}
+.cc-ig-list::-webkit-scrollbar{width:3px}
+.cc-ig-list::-webkit-scrollbar-thumb{background:rgba(0,180,255,.18);border-radius:2px}
+.cc-ig-row{display:flex;align-items:flex-start;justify-content:space-between;padding:.25rem .4rem;border-bottom:1px solid rgba(0,180,255,.06);gap:.4rem}
+.cc-ig-row:last-child{border-bottom:none}
+.cc-ig-row:hover{background:rgba(0,180,255,.04)}
+.cc-ig-cod{font-size:.6rem;color:var(--dim);flex-shrink:0;min-width:2rem;padding-top:.05rem}
+.cc-ig-info{flex:1;min-width:0}
+.cc-ig-nom{color:#c4daf0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.69rem}
+.cc-ig-sub{font-size:.58rem;color:var(--dim);margin-top:.05rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-ig-right{display:flex;align-items:center;gap:.3rem;flex-shrink:0}
+.cc-ig-val{font-weight:700;font-size:.72rem;white-space:nowrap}
+.cc-ig-pdf{font-size:.68rem;padding:.04rem .3rem;border-radius:3px;border:1px solid rgba(255,100,100,.3);color:rgba(255,100,100,.6);text-decoration:none;cursor:pointer;transition:all .15s}
+.cc-ig-pdf:hover{border-color:#ef5350;color:#ef5350;background:rgba(239,83,80,.07)}
+
 /* Modal */
 .inf-modal{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;background:rgba(4,8,20,.97);backdrop-filter:blur(6px)}
 .inf-modal.hidden{display:none}
@@ -331,6 +353,67 @@ function aniBadge(cand_id) {
   if (v === 'error' || v === '')   return '<span class="ani-badge ani-pend"><i class="fa fa-clock"></i>ANI pendiente</span>';
   return `<span class="ani-badge ani-pend"><i class="fa fa-clock"></i>${entry.v}</span>`;
 }
+// ── Transacciones Ingresos/Gastos ─────────────────────────────────────────────
+const fmt$ig = n => { const v=Number(n)||0; if(!v)return ''; return(v<0?'-$':'$')+Math.abs(v).toLocaleString('es-CO',{maximumFractionDigits:0}); };
+
+function renderIG(cid, ing, gas) {
+  const wrap = document.getElementById(`cc-ig-${cid}`);
+  if (!wrap) return;
+  window[`_ig_${cid}`] = {ing, gas};
+  wrap.innerHTML = `
+    <div class="cc-ig-tabs">
+      <button class="cc-ig-tab ing on" onclick="igTab('${cid}','ing')"><i class="fa fa-arrow-down me-1"></i>Ingresos <strong>(${ing.length})</strong></button>
+      <button class="cc-ig-tab gas"     onclick="igTab('${cid}','gas')"><i class="fa fa-arrow-up me-1"></i>Gastos <strong>(${gas.length})</strong></button>
+    </div>
+    <div id="cc-ig-list-${cid}" class="cc-ig-list"></div>`;
+  igTab(cid, 'ing');
+}
+
+function igTab(cid, tipo) {
+  const data = window[`_ig_${cid}`];
+  if (!data) return;
+  document.querySelectorAll(`#cc-ig-${cid} .cc-ig-tab`).forEach(b => b.classList.toggle('on', b.classList.contains(tipo)));
+  const items  = tipo === 'ing' ? data.ing : data.gas;
+  const isIng  = tipo === 'ing';
+  const list   = document.getElementById(`cc-ig-list-${cid}`);
+  if (!list) return;
+  if (!items.length) { list.innerHTML = '<div style="font-size:.7rem;color:var(--dim);padding:.3rem .4rem">Sin registros.</div>'; return; }
+  list.innerHTML = items.map(it => {
+    const cod     = it.codigo || '';
+    const nombre  = it.nom_formato || it.nom_ingreso || '—';
+    const valor   = Number(it.total || 0);
+    const persona = it.nombre_persona || '';
+    const fecha   = (it.fecha_registro_movimiento || '').slice(0,10);
+    const arch    = it.archivo || '';
+    const pdfLink = arch
+      ? `<a class="cc-ig-pdf" href="#" onclick="abrirSoporte(event,'${arch.replace(/'/g,"\\'")}');return false" title="Ver soporte"><i class="fa fa-file-pdf"></i></a>`
+      : '';
+    return `<div class="cc-ig-row">
+      <span class="cc-ig-cod">${cod}</span>
+      <span class="cc-ig-info">
+        <div class="cc-ig-nom" title="${nombre}">${nombre}</div>
+        <div class="cc-ig-sub">${persona}${fecha?' · '+fecha:''}</div>
+      </span>
+      <span class="cc-ig-right">
+        <span class="cc-ig-val" style="color:${isIng?'#00e676':'#ef5350'}">${fmt$ig(valor)}</span>
+        ${pdfLink}
+      </span>
+    </div>`;
+  }).join('');
+}
+
+function abrirSoporte(evt, archivo) {
+  const btn = evt.currentTarget;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+  btn.style.pointerEvents = 'none';
+  fetch('/api/cne_file?path=' + encodeURIComponent(archivo))
+    .then(r => { if (!r.ok) return r.json().then(j=>{throw new Error(j.error||'HTTP '+r.status);}); return r.blob(); })
+    .then(blob => window.open(URL.createObjectURL(blob), '_blank'))
+    .catch(err => alert('No se pudo abrir el soporte: ' + (err.message||err)))
+    .finally(() => { btn.innerHTML = orig; btn.style.pointerEvents = ''; });
+}
+
 const norm = s => (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
 const hl   = (t, q) => {
   if (!t || !q) return t || '';
@@ -595,7 +678,12 @@ function cargarCC(r) {
 
   fetch(`/data/candidatos_cong/${encodeURIComponent(r.cand_id)}.json`)
     .then(res => res.json())
-    .then(p  => renderPerfil(p, r))
+    .then(p => {
+      renderPerfil(p, r);
+      const ing = p.ingresos || [];
+      const gas = p.gastos   || [];
+      if (ing.length || gas.length) renderIG(r.cand_id, ing, gas);
+    })
     .catch(() => renderPerfil({}, r));
 }
 
@@ -657,6 +745,12 @@ function renderPerfil(p, base) {
       </div>
       ${p.fecha_rad ? `<div style="font-size:.62rem;color:var(--dim);margin-top:.2rem"><i class="fa fa-calendar me-1"></i>Radicado: ${p.fecha_rad}</div>` : ''}
     </div>
+
+    ${((p.ingresos&&p.ingresos.length)||(p.gastos&&p.gastos.length)) ? `
+    <div class="perfil-section">
+      <div class="perfil-sec-title"><i class="fa fa-exchange-alt"></i>Transacciones</div>
+      <div id="cc-ig-${cid}"></div>
+    </div>` : ''}
 
     ${(gerente||contador) ? `
     <div class="perfil-section">

@@ -752,6 +752,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self._handle_cc_index()
             elif path == "/api/ani_summary":
                 self._handle_ani_summary()
+            elif path == "/api/cne_file":
+                self._handle_cne_file()
             else:
                 self.directory = getattr(self.server, 'portal_dir', os.getcwd())
                 super().do_GET()
@@ -1595,6 +1597,63 @@ class Handler(SimpleHTTPRequestHandler):
             except Exception:
                 pass
         self._send_json(data)
+
+    # ── /api/cne_file  (soporte PDF de ingreso/gasto Congreso 2026) ──────────
+
+    def _handle_cne_file(self):
+        """Descarga un PDF soporte directamente del portal CNE 2026 usando la sesión activa."""
+        if _cne_session is None:
+            return self._send_error_json("Sin sesión CNE activa.", 401)
+        path = self._qs().get("path", "").strip().lstrip("/")
+        if not path:
+            return self._send_error_json("Parámetro 'path' requerido.", 400)
+        api_base = _cne_api_activo or CNE_API_2026
+        candidates = [
+            f"{api_base}/{path}",
+            f"{api_base}/storage/{path}",
+            f"{api_base}/storage/app/{path}",
+        ]
+        hdrs = {
+            "Accept": "application/pdf,application/octet-stream,*/*",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": api_base + "/",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        }
+        xsrf = ""
+        try:
+            for ck in _cne_session.cookies:
+                if "XSRF" in ck.name.upper():
+                    import urllib.parse as _up
+                    xsrf = _up.unquote(ck.value)
+                    break
+            if xsrf:
+                hdrs["X-XSRF-TOKEN"] = xsrf
+        except Exception:
+            pass
+        last_status = 404
+        for url in candidates:
+            try:
+                resp = _cne_session.get(url, headers=hdrs, timeout=45, verify=False, allow_redirects=False)
+                last_status = resp.status_code
+                if resp.status_code in (301, 302):
+                    return self._send_error_json("Sesión CNE expirada.", 401)
+                ct = resp.headers.get("Content-Type", "")
+                is_file = ("pdf" in ct or "octet" in ct or "stream" in ct or
+                           (resp.status_code == 200 and len(resp.content) > 1000 and not ct.startswith("text/")))
+                if resp.status_code == 200 and is_file:
+                    fname = path.rsplit("/", 1)[-1]
+                    body = resp.content
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/pdf")
+                    self.send_header("Content-Disposition", f'inline; filename="{fname}"')
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
+            except Exception as e:
+                last_status = 0
+                print(f"[cne_file] error en {url}: {e}")
+        self._send_error_json(f"Archivo no encontrado (último status: {last_status}).", 404)
 
     # ── /api/ani_summary ─────────────────────────────────────────────────────
 
