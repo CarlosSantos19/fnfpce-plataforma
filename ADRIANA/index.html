@@ -137,7 +137,7 @@ mark{background:rgba(252,209,22,.15);color:var(--gold);border-radius:2px;padding
 
 /* Docs grid */
 .docs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
-.doc-btn{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.45rem .3rem;border-radius:5px;border:1px solid;background:rgba(0,0,0,.25);cursor:pointer;text-decoration:none;transition:all .18s}
+.doc-btn{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.45rem .3rem;border-radius:5px;border:1px solid;background:rgba(0,0,0,.25);cursor:pointer;text-decoration:none;transition:all .18s;font-family:inherit}
 .doc-btn:hover{transform:translateY(-1px)}
 .doc-btn-ico{font-size:.9rem}
 .doc-btn-lbl{font-size:.63rem;font-weight:700;text-align:center;line-height:1.1}
@@ -163,7 +163,7 @@ mark{background:rgba(252,209,22,.15);color:var(--gold);border-radius:2px;padding
 .resumen-tabla tr:hover td{background:rgba(0,180,255,.04)}
 .btn-volver{font-size:.65rem;color:var(--dim);background:none;border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:.18rem .5rem;cursor:pointer;transition:all .15s}
 .btn-volver:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
-.doc-mini{display:inline-flex;align-items:center;gap:.2rem;font-size:.6rem;padding:.1rem .3rem;border-radius:3px;border:1px solid rgba(0,180,255,.3);color:rgba(0,180,255,.7);text-decoration:none;margin-right:.2rem;transition:all .15s}
+.doc-mini{display:inline-flex;align-items:center;gap:.2rem;font-size:.6rem;padding:.1rem .3rem;border-radius:3px;border:1px solid rgba(0,180,255,.3);color:rgba(0,180,255,.7);text-decoration:none;margin-right:.2rem;transition:all .15s;background:transparent;font-family:inherit;cursor:pointer}
 .doc-mini:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,180,255,.08)}
 
 /* Badges ANI */
@@ -410,6 +410,21 @@ function igTab(cid, tipo) {
       </span>
     </div>`;
   }).join('');
+}
+
+function abrirFormatoCNE(btn, formato, cand_id, org_id, nivel) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+  btn.disabled = true;
+  const qs = `formato=${encodeURIComponent(formato)}&cand_id=${encodeURIComponent(cand_id)}&org_id=${encodeURIComponent(org_id||'')}&nivel=${encodeURIComponent(nivel||'cand')}`;
+  fetch('/api/cc_pdf?' + qs)
+    .then(r => {
+      if (!r.ok) return r.json().then(j => { throw new Error(j.error || 'HTTP ' + r.status); });
+      return r.blob();
+    })
+    .then(blob => window.open(URL.createObjectURL(blob), '_blank'))
+    .catch(err => alert('No se pudo abrir el documento CNE: ' + (err.message || err)))
+    .finally(() => { btn.innerHTML = orig; btn.disabled = false; });
 }
 
 function abrirSoporte(evt, archivo) {
@@ -708,6 +723,7 @@ function renderPerfil(p, base) {
   const dpto   = p.dpto    || b.dpto    || '';
   const partido = p.partido || p.org || b.partido || 'Sin partido';
   const cid    = p.cand_id || b.cand_id || '';
+  const oid    = String(p.org_id   || b.org_id   || '');
 
   const ing   = Number(p.total_ingresos || p.total_ingreso || b.total_ingresos || 0);
   const gas   = Number(p.total_gastos   || p.total_gasto   || b.total_gastos   || 0);
@@ -775,24 +791,24 @@ function renderPerfil(p, base) {
     <div class="perfil-section">
       <div class="perfil-sec-title"><i class="fa fa-file-pdf"></i>Documentos CNE — Cuentas Claras</div>
       <div class="docs-grid">
-        <a class="doc-btn db-dict" href="/api/cc_pdf?cand_id=${cid}&formato=43&nivel=cand" target="_blank">
-          <i class="fa fa-file-alt doc-btn-ico"></i><span class="doc-btn-lbl">Dictamen</span><span class="doc-btn-sub">C100/6B</span>
-        </a>
-        <a class="doc-btn db-9b" href="/api/cc_pdf?cand_id=${cid}&formato=44&nivel=org" target="_blank">
-          <i class="fa fa-balance-scale doc-btn-ico"></i><span class="doc-btn-lbl">9B</span><span class="doc-btn-sub">Balance</span>
-        </a>
-        <a class="doc-btn db-8b" href="/api/cc_pdf?cand_id=${cid}&formato=100&nivel=cand" target="_blank">
-          <i class="fa fa-file-alt doc-btn-ico"></i><span class="doc-btn-lbl">8B</span><span class="doc-btn-sub">Ing. y Gastos</span>
-        </a>
-        <a class="doc-btn db-lib" href="/api/cc_pdf?cand_id=${cid}&formato=45&nivel=cand" target="_blank">
-          <i class="fa fa-book doc-btn-ico"></i><span class="doc-btn-lbl">9.1B</span><span class="doc-btn-sub">Lib. Contable</span>
-        </a>
-        <a class="doc-btn db-hist" href="/api/cc_pdf?cand_id=${cid}&formato=46&nivel=cand" target="_blank">
-          <i class="fa fa-file-invoice doc-btn-ico"></i><span class="doc-btn-lbl">9.2B</span><span class="doc-btn-sub">Obligaciones</span>
-        </a>
-        <a class="doc-btn db-coal" href="/api/cc_pdf?cand_id=${cid}&formato=47&nivel=org" target="_blank">
+        <button class="doc-btn db-dict" onclick="abrirFormatoCNE(this,'43','${cid}','${oid}','cand')">
+          <i class="fa fa-file-alt doc-btn-ico"></i><span class="doc-btn-lbl">Dictamen</span><span class="doc-btn-sub">C100</span>
+        </button>
+        <button class="doc-btn db-9b" onclick="abrirFormatoCNE(this,'44','${cid}','${oid}','org')">
+          <i class="fa fa-balance-scale doc-btn-ico"></i><span class="doc-btn-lbl">7B</span><span class="doc-btn-sub">Balance</span>
+        </button>
+        <button class="doc-btn db-8b" onclick="abrirFormatoCNE(this,'100','${cid}','${oid}','cand')">
+          <i class="fa fa-file-alt doc-btn-ico"></i><span class="doc-btn-lbl">6B</span><span class="doc-btn-sub">Ing. y Gastos</span>
+        </button>
+        <button class="doc-btn db-lib" onclick="abrirFormatoCNE(this,'45','${cid}','${oid}','cand')">
+          <i class="fa fa-book doc-btn-ico"></i><span class="doc-btn-lbl">7.1B</span><span class="doc-btn-sub">Lib. Contable</span>
+        </button>
+        <button class="doc-btn db-hist" onclick="abrirFormatoCNE(this,'46','${cid}','${oid}','cand')">
+          <i class="fa fa-file-invoice doc-btn-ico"></i><span class="doc-btn-lbl">7.2B</span><span class="doc-btn-sub">Obligaciones</span>
+        </button>
+        <button class="doc-btn db-coal" onclick="abrirFormatoCNE(this,'47','${cid}','${oid}','org')">
           <i class="fa fa-file-pdf doc-btn-ico"></i><span class="doc-btn-lbl">F47</span><span class="doc-btn-sub">Partido</span>
-        </a>
+        </button>
       </div>
     </div>
 
@@ -851,28 +867,29 @@ function renderPerfil(p, base) {
 // ── Documentos CNE en panel derecho ──────────────────────────────────────────
 function mostrarDocsCNE(r) {
   const area = document.getElementById('pdf-area');
-  const cid  = r.cand_id;
+  const cid  = String(r.cand_id || '');
+  const oid  = String(r.org_id  || '');
   const docs = [
-    {href:`/api/cc_pdf?cand_id=${cid}&formato=43&nivel=cand`,  label:'Dictamen C100/6B',     color:'#fcd116'},
-    {href:`/api/cc_pdf?cand_id=${cid}&formato=100&nivel=cand`, label:'8B Ingresos y Gastos',  color:'#00e676'},
-    {href:`/api/cc_pdf?cand_id=${cid}&formato=44&nivel=org`,   label:'9B Balance General',    color:'#00c8ff'},
-    {href:`/api/cc_pdf?cand_id=${cid}&formato=45&nivel=cand`,  label:'9.1B Lib. Contable',    color:'#b482ff'},
-    {href:`/api/cc_pdf?cand_id=${cid}&formato=46&nivel=cand`,  label:'9.2B Obligaciones',     color:'#64c864'},
-    {href:`/api/cc_pdf?cand_id=${cid}&formato=47&nivel=org`,   label:'F47 Rep. Partido',      color:'#ff9632'},
+    {fmt:'43',  nivel:'cand', label:'Dictamen C100',       color:'#fcd116'},
+    {fmt:'100', nivel:'cand', label:'6B Ingresos y Gastos', color:'#00e676'},
+    {fmt:'44',  nivel:'org',  label:'7B Balance General',   color:'#00c8ff'},
+    {fmt:'45',  nivel:'cand', label:'7.1B Lib. Contable',   color:'#b482ff'},
+    {fmt:'46',  nivel:'cand', label:'7.2B Obligaciones',    color:'#64c864'},
+    {fmt:'47',  nivel:'org',  label:'F47 Rep. Partido',     color:'#ff9632'},
   ];
   area.innerHTML = `
     <div style="padding:.4rem .6rem .2rem;font-size:.6rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:rgba(196,218,240,.3)">
       <i class="fa fa-file-pdf me-1"></i>Acceso directo — Cuentas Claras CNE
     </div>` +
     docs.map(d => `
-      <a href="${d.href}" target="_blank" class="pi" style="text-decoration:none">
+      <div class="pi" style="cursor:pointer" onclick="abrirFormatoCNE(this,'${d.fmt}','${cid}','${oid}','${d.nivel}')">
         <i class="fa fa-file-pdf pi-ico" style="color:${d.color}"></i>
         <div class="pi-info">
           <div class="pi-nom" style="color:${d.color}">${d.label}</div>
           <div class="pi-meta">Cuentas Claras · CNE</div>
         </div>
         <span class="pi-btn"><i class="fa fa-external-link-alt me-1"></i>Abrir</span>
-      </a>`).join('');
+      </div>`).join('');
 }
 
 // ── Resumen financiero del filtro ─────────────────────────────────────────────
@@ -935,14 +952,14 @@ function mostrarResumen(res) {
                 <td style="color:${saldo>=0?'#00e676':'#ef5350'};font-size:.67rem;white-space:nowrap">${fmt$(saldo)}</td>
                 <td style="white-space:nowrap">${aniBadge(cid)}</td>
                 <td style="white-space:nowrap">
-                  <a href="/api/cc_pdf?cand_id=${cid}&formato=100&nivel=cand" target="_blank"
-                     class="doc-mini" onclick="event.stopPropagation()" title="8B Ingresos/Gastos">
-                    <i class="fa fa-chart-bar"></i>8B
-                  </a>
-                  <a href="/api/cc_pdf?cand_id=${cid}&formato=43&nivel=cand" target="_blank"
-                     class="doc-mini" onclick="event.stopPropagation()" title="Dictamen C100/6B">
+                  <button class="doc-mini" title="6B Ingresos/Gastos"
+                          onclick="event.stopPropagation();abrirFormatoCNE(this,'100','${cid}','','cand')">
+                    <i class="fa fa-chart-bar"></i>6B
+                  </button>
+                  <button class="doc-mini" title="Dictamen C100"
+                          onclick="event.stopPropagation();abrirFormatoCNE(this,'43','${cid}','','cand')">
                     <i class="fa fa-file-alt"></i>Dict.
-                  </a>
+                  </button>
                 </td>
               </tr>`;
             }).join('')}

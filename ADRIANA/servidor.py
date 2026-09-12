@@ -754,6 +754,8 @@ class Handler(SimpleHTTPRequestHandler):
                 self._handle_ani_summary()
             elif path == "/api/cne_file":
                 self._handle_cne_file()
+            elif path == "/api/cc_pdf":
+                self._handle_cc_pdf()
             else:
                 self.directory = getattr(self.server, 'portal_dir', os.getcwd())
                 super().do_GET()
@@ -1654,6 +1656,67 @@ class Handler(SimpleHTTPRequestHandler):
                 last_status = 0
                 print(f"[cne_file] error en {url}: {e}")
         self._send_error_json(f"Archivo no encontrado (último status: {last_status}).", 404)
+
+    # ── /api/cc_pdf ───────────────────────────────────────────────────────────
+
+    def _handle_cc_pdf(self):
+        """Descarga un PDF de formato consolidado del CNE 2026 (Dictamen, 6B, 7B, etc.)."""
+        if _cne_session is None:
+            return self._send_error_json("Sin sesión CNE activa.", 401)
+        qs      = self._qs()
+        formato = qs.get("formato", "").strip()
+        cand_id = qs.get("cand_id", "").strip()
+        org_id  = qs.get("org_id", "").strip()
+        nivel   = qs.get("nivel", "cand").strip()
+        if not formato:
+            return self._send_error_json("Parámetro 'formato' requerido.", 400)
+
+        api_base = _cne_api_activo or CNE_API_2026
+        xsrf     = _get_xsrf(_cne_session)
+        hdrs = {
+            "Accept": "application/pdf,application/octet-stream,*/*",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-XSRF-TOKEN": xsrf,
+            "Referer": api_base + "/",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        }
+
+        # Build candidate and org-level URL candidates
+        p_cand = f"id={formato}&rol=contador&idcandidato={cand_id}&idproceso=1"
+        p_org  = f"id={formato}&rol=contador&idOrganizacion={org_id}&idproceso=1" if org_id else ""
+
+        if nivel == "org" and p_org:
+            urls = [
+                f"{api_base}/descargar-consolidado?{p_org}",
+                f"{api_base}/descargar-consolidado?{p_cand}",
+            ]
+        else:
+            urls = [f"{api_base}/descargar-consolidado?{p_cand}"]
+            if p_org:
+                urls.append(f"{api_base}/descargar-consolidado?{p_org}")
+
+        for url in urls:
+            try:
+                r = _cne_session.get(url, headers=hdrs, timeout=45, allow_redirects=False)
+                if r.status_code in (301, 302):
+                    continue
+                ct = r.headers.get("Content-Type", "")
+                if "application/pdf" in ct or (r.status_code == 200 and len(r.content) > 500):
+                    body = r.content
+                    cdisp = r.headers.get("Content-Disposition",
+                                          f'inline; filename="formato_{formato}_cand_{cand_id}.pdf"')
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/pdf")
+                    self.send_header("Content-Disposition", cdisp)
+                    self.send_header("Content-Length", str(len(body)))
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
+            except Exception as e:
+                print(f"[cc_pdf] error en {url}: {e}")
+
+        self._send_error_json("No se pudo obtener el documento del CNE.", 502)
 
     # ── /api/ani_summary ─────────────────────────────────────────────────────
 
