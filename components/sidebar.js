@@ -32,13 +32,15 @@ const ALL_MODULES = [
   { id: 'requerimientos',       label: 'Requerimientos',      icon: '◌', path: '/modules/requerimientos/requerimientos.html',            desc: 'Oficios y requerimientos a partidos' },
   { id: 'auditor-ia',           label: 'Auditor IA',          icon: '⚡', path: '/modules/auditor-ia/auditor-ia.html',                      desc: 'Análisis inteligente de cuentas y generación de requerimientos' },
   { id: 'gestion-partidos',     label: 'Gestión Partidos',    icon: '◈', path: '/modules/gestion-partidos/gestion-partidos.html',            desc: 'Administración de acceso al portal de organizaciones políticas' },
+  { id: 'panel-contador',       label: 'Panel Contador',      icon: '◆', path: '/modules/panel-contador/panel-contador.html',                desc: 'Workspace: mis expedientes, herramientas de revisión financiera' },
+  { id: 'panel-abogado',        label: 'Panel Abogado',       icon: '◎', path: '/modules/panel-abogado/panel-abogado.html',                  desc: 'Workspace: requerimientos, vencimientos y herramientas jurídicas' },
 ];
 
 const MODULES_BY_ROLE = {
-  administrador:  ['noticias', 'usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'sorteo', 'carpetas', 'revision-carpetas', 'analisis', 'consultor', 'consultor-et2019', 'consultor-cg2026', 'consultor-fn2025', 'auditor-ia', 'gestion-partidos', 'chat', 'descarga-pdf', 'horas-extras', 'pagos', 'carlitos', 'reportes', 'calendario', 'dashboard-ejecutivo', 'requerimientos'],
+  administrador:  ['noticias', 'usuarios', 'reparto', 'asignaciones', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'sorteo', 'carpetas', 'revision-carpetas', 'analisis', 'consultor', 'consultor-et2019', 'consultor-cg2026', 'consultor-fn2025', 'auditor-ia', 'gestion-partidos', 'chat', 'descarga-pdf', 'horas-extras', 'pagos', 'carlitos', 'reportes', 'calendario', 'dashboard-ejecutivo', 'requerimientos', 'panel-contador', 'panel-abogado'],
   administrativo: ['noticias', 'reparto', 'asignaciones', 'resumen', 'tablero', 'sorteo', 'revision-carpetas', 'consultor', 'consultor-et2019', 'consultor-cg2026', 'consultor-fn2025', 'auditor-ia', 'chat', 'horas-extras', 'carlitos', 'reportes', 'calendario', 'dashboard-ejecutivo', 'requerimientos'],
-  contador:       ['noticias', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'carpetas', 'analisis', 'consultor-et2019', 'chat', 'descarga-pdf', 'horas-extras', 'carlitos', 'reportes', 'calendario', 'requerimientos'],
-  abogado:        ['noticias', 'revision', 'consultor', 'consultor-et2019', 'consultor-cg2026', 'consultor-fn2025', 'auditor-ia', 'chat', 'horas-extras', 'carlitos'],
+  contador:       ['noticias', 'panel-contador', 'actas', 'cuentas', 'revision', 'resumen', 'tablero', 'carpetas', 'analisis', 'consultor-et2019', 'chat', 'descarga-pdf', 'horas-extras', 'carlitos', 'reportes', 'calendario', 'requerimientos'],
+  abogado:        ['noticias', 'panel-abogado', 'revision', 'consultor', 'consultor-et2019', 'consultor-cg2026', 'consultor-fn2025', 'auditor-ia', 'chat', 'horas-extras', 'carlitos'],
   asistencial:    ['noticias', 'chat', 'horas-extras', 'carlitos'],
   pago:           ['noticias', 'reparto', 'consultor', 'consultor-cg2026', 'consultor-fn2025', 'chat', 'horas-extras', 'pagos', 'carlitos'],
 };

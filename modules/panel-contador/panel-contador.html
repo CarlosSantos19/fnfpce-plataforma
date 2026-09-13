@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Contador — FNFPCE</title>
+  <link rel="stylesheet" href="/core/base.css" />
+  <link rel="stylesheet" href="/core/module-template.css" />
+  <link rel="stylesheet" href="panel-contador.css" />
+</head>
+<body>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; PANEL CONTADOR</div>
+        <h1 class="page-title"><span class="title-icon">◆</span> Panel Contador</h1>
+        <p class="page-desc">Mis expedientes asignados y herramientas de revisión financiera</p>
+      </header>
+
+      <!-- KPIs -->
+      <div class="pc-kpis" id="pc-kpis">
+        <div class="pc-kpi pc-kpi--total">
+          <div class="pc-kpi-val" id="kpi-total">—</div>
+          <div class="pc-kpi-lbl">ASIGNADOS</div>
+        </div>
+        <div class="pc-kpi pc-kpi--termino">
+          <div class="pc-kpi-val" id="kpi-termino">—</div>
+          <div class="pc-kpi-lbl">EN TÉRMINO</div>
+        </div>
+        <div class="pc-kpi pc-kpi--vencido">
+          <div class="pc-kpi-val" id="kpi-vencido">—</div>
+          <div class="pc-kpi-lbl">VENCIDOS</div>
+        </div>
+        <div class="pc-kpi pc-kpi--cert">
+          <div class="pc-kpi-val" id="kpi-cert">—</div>
+          <div class="pc-kpi-lbl">CERTIFICADOS</div>
+        </div>
+        <div class="pc-kpi pc-kpi--pend">
+          <div class="pc-kpi-val" id="kpi-pend">—</div>
+          <div class="pc-kpi-lbl">PENDIENTES</div>
+        </div>
+      </div>
+
+      <div class="pc-layout">
+        <!-- Columna principal: expedientes -->
+        <div class="pc-main">
+          <div class="content-card">
+            <div class="pc-card-header">
+              <span class="card-section-title">// MIS EXPEDIENTES</span>
+              <div class="pc-filtros">
+                <input type="text" id="pc-buscar" class="pc-input" placeholder="Buscar consecutivo, partido…" />
+                <select id="pc-filtro-estado" class="pc-input pc-sel">
+                  <option value="">Todos los estados</option>
+                  <option value="PENDIENTE REVISION">Pendiente</option>
+                  <option value="CERTIFICADO">Certificado</option>
+                  <option value="VENCIDO">Vencido</option>
+                  <option value="OFICIAR">Oficiar</option>
+                  <option value="INVESTIGACION">Investigación</option>
+                  <option value="DEVUELTA CONTADOR">Devuelta</option>
+                </select>
+              </div>
+            </div>
+            <div class="pc-stats" id="pc-stats"></div>
+            <div class="table-wrap">
+              <table class="pc-table">
+                <thead>
+                  <tr>
+                    <th>CONSEC.</th>
+                    <th>PARTIDO / ORGANIZACIÓN</th>
+                    <th>CORP.</th>
+                    <th>DEPTO.</th>
+                    <th>ESTADO</th>
+                    <th>TIEMPO</th>
+                    <th>DÍAS</th>
+                    <th>OBSERVACIÓN</th>
+                  </tr>
+                </thead>
+                <tbody id="pc-tbody">
+                  <tr><td colspan="8" class="table-loading">Cargando expedientes…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna lateral: accesos rápidos + actividad -->
+        <div class="pc-side">
+
+          <!-- Accesos rápidos -->
+          <div class="content-card pc-links-card">
+            <div class="card-section-title">// HERRAMIENTAS</div>
+            <div class="pc-links">
+              <a href="/modules/revision/revision.html" class="pc-link pc-link--revision">
+                <span class="pc-link-ico">◌</span>
+                <div>
+                  <div class="pc-link-label">Revisión</div>
+                  <div class="pc-link-sub">Cuentas Claras CNE</div>
+                </div>
+              </a>
+              <a href="/modules/cuentas/cuentas.html" class="pc-link pc-link--cuentas">
+                <span class="pc-link-ico">◆</span>
+                <div>
+                  <div class="pc-link-label">Cuentas</div>
+                  <div class="pc-link-sub">Control y revisión</div>
+                </div>
+              </a>
+              <a href="/modules/analisis/analisis.html" class="pc-link pc-link--analisis">
+                <span class="pc-link-ico">◫</span>
+                <div>
+                  <div class="pc-link-label">Análisis</div>
+                  <div class="pc-link-sub">Cuentas ET2023</div>
+                </div>
+              </a>
+              <a href="/modules/descarga-pdf/descarga-pdf.html" class="pc-link pc-link--pdf">
+                <span class="pc-link-ico">◧</span>
+                <div>
+                  <div class="pc-link-label">Descarga PDF</div>
+                  <div class="pc-link-sub">Soportes AUTOCASH</div>
+                </div>
+              </a>
+              <a href="/modules/requerimientos/requerimientos.html" class="pc-link pc-link--req">
+                <span class="pc-link-ico">◌</span>
+                <div>
+                  <div class="pc-link-label">Requerimientos</div>
+                  <div class="pc-link-sub">Oficios a partidos</div>
+                </div>
+              </a>
+              <a href="/modules/reportes/reportes.html" class="pc-link pc-link--rep">
+                <span class="pc-link-ico">◫</span>
+                <div>
+                  <div class="pc-link-label">Reportes</div>
+                  <div class="pc-link-sub">Exportar datos</div>
+                </div>
+              </a>
+              <a href="/modules/actas/actas.html" class="pc-link pc-link--actas">
+                <span class="pc-link-ico">◉</span>
+                <div>
+                  <div class="pc-link-label">Actas</div>
+                  <div class="pc-link-sub">Entrega y control</div>
+                </div>
+              </a>
+              <a href="/modules/carlitos/carlitos.html" class="pc-link pc-link--ai">
+                <span class="pc-link-ico">🤖</span>
+                <div>
+                  <div class="pc-link-label">Carlitos IA</div>
+                  <div class="pc-link-sub">Asistente análisis</div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Mis notas -->
+          <div class="content-card pc-notas-card">
+            <div class="card-section-title">// MIS NOTAS</div>
+            <textarea id="pc-notas" class="pc-textarea" placeholder="Apuntes de revisión, recordatorios, observaciones personales…"></textarea>
+            <button class="pc-btn-guardar" onclick="guardarNotas()">Guardar notas</button>
+            <div id="pc-notas-msg" class="pc-notas-msg"></div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/components/sidebar.js"></script>
+  <script src="/core/auth.js"></script>
+  <script type="module" src="panel-contador.js"></script>
+</body>
+</html>

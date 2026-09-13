@@ -32,6 +32,8 @@ const CARDS_CONFIG = {
   requerimientos:       { icon: '◌', titulo: 'Requerimientos',    desc: 'Registro y seguimiento de oficios a partidos y organizaciones', path: '/modules/requerimientos/requerimientos.html' },
   'auditor-ia':         { icon: '⚡', titulo: 'Auditor IA',        desc: 'Análisis inteligente de cuentas y generación automática de requerimientos', path: '/modules/auditor-ia/auditor-ia.html' },
   'gestion-partidos':   { icon: '◈', titulo: 'Gestión Partidos',  desc: 'Administración de acceso al portal de organizaciones políticas',              path: '/modules/gestion-partidos/gestion-partidos.html' },
+  'panel-contador':     { icon: '◆', titulo: 'Panel Contador',    desc: 'Mis expedientes asignados y herramientas de revisión financiera',             path: '/modules/panel-contador/panel-contador.html' },
+  'panel-abogado':      { icon: '◎', titulo: 'Panel Abogado',     desc: 'Requerimientos activos, vencimientos y herramientas jurídicas',               path: '/modules/panel-abogado/panel-abogado.html' },
 };
 
 // MODULES_BY_ROLE se toma de components/sidebar.js (ya cargado en la misma página)

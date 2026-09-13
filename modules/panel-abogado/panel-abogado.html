@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Abogado — FNFPCE</title>
+  <link rel="stylesheet" href="/core/base.css" />
+  <link rel="stylesheet" href="/core/module-template.css" />
+  <link rel="stylesheet" href="panel-abogado.css" />
+</head>
+<body>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="particles" id="particles"></div>
+
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="page-header">
+        <div class="breadcrumb"><a href="/dashboard.html">INICIO</a> &nbsp;/&nbsp; PANEL ABOGADO</div>
+        <h1 class="page-title"><span class="title-icon">◎</span> Panel Abogado</h1>
+        <p class="page-desc">Seguimiento jurídico de requerimientos, vencimientos y herramientas de análisis</p>
+      </header>
+
+      <!-- KPIs -->
+      <div class="pa-kpis" id="pa-kpis">
+        <div class="pa-kpi pa-kpi--total">
+          <div class="pa-kpi-val" id="kpi-total">—</div>
+          <div class="pa-kpi-lbl">TOTAL OFICIOS</div>
+        </div>
+        <div class="pa-kpi pa-kpi--pend">
+          <div class="pa-kpi-val" id="kpi-pend">—</div>
+          <div class="pa-kpi-lbl">PENDIENTES</div>
+        </div>
+        <div class="pa-kpi pa-kpi--venc">
+          <div class="pa-kpi-val" id="kpi-venc">—</div>
+          <div class="pa-kpi-lbl">VENCIDOS</div>
+        </div>
+        <div class="pa-kpi pa-kpi--resp">
+          <div class="pa-kpi-val" id="kpi-resp">—</div>
+          <div class="pa-kpi-lbl">RESPONDIDOS</div>
+        </div>
+      </div>
+
+      <div class="pa-layout">
+        <!-- Columna principal: requerimientos -->
+        <div class="pa-main">
+          <div class="content-card">
+            <div class="pa-card-header">
+              <span class="card-section-title">// REQUERIMIENTOS ACTIVOS</span>
+              <div class="pa-filtros">
+                <input type="text" id="pa-buscar" class="pa-input" placeholder="Buscar partido, asunto, número…" />
+                <select id="pa-filtro-estado" class="pa-input pa-sel">
+                  <option value="">Todos los estados</option>
+                  <option value="PENDIENTE">Pendiente</option>
+                  <option value="RESPONDIDO">Respondido</option>
+                  <option value="VENCIDO">Vencido</option>
+                </select>
+                <select id="pa-filtro-orden" class="pa-input pa-sel">
+                  <option value="venc-asc">Vence primero</option>
+                  <option value="fecha-desc">Más recientes</option>
+                  <option value="partido-asc">A–Z partido</option>
+                </select>
+              </div>
+            </div>
+            <div class="pa-stats" id="pa-stats"></div>
+            <div class="table-wrap">
+              <table class="pa-table">
+                <thead>
+                  <tr>
+                    <th>N° OFICIO</th>
+                    <th>PARTIDO / ORGANIZACIÓN</th>
+                    <th>ASUNTO</th>
+                    <th>ENVIADO</th>
+                    <th>VENCE</th>
+                    <th>DÍAS REST.</th>
+                    <th>ESTADO</th>
+                    <th>RADICADO RESP.</th>
+                  </tr>
+                </thead>
+                <tbody id="pa-tbody">
+                  <tr><td colspan="8" class="table-loading">Cargando requerimientos…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Panel de próximos vencimientos -->
+          <div class="content-card pa-venc-card">
+            <span class="card-section-title">// PRÓXIMOS A VENCER (10 días)</span>
+            <div id="pa-proximos" class="pa-proximos">
+              <div class="table-loading">Cargando…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna lateral -->
+        <div class="pa-side">
+
+          <!-- Accesos rápidos -->
+          <div class="content-card pa-links-card">
+            <div class="card-section-title">// HERRAMIENTAS JURÍDICAS</div>
+            <div class="pa-links">
+              <a href="/modules/revision/revision.html" class="pa-link pa-link--revision">
+                <span class="pa-link-ico">◌</span>
+                <div>
+                  <div class="pa-link-label">Revisión CC</div>
+                  <div class="pa-link-sub">Cuentas Claras CNE</div>
+                </div>
+              </a>
+              <a href="/modules/consultor/consultor.html" class="pa-link pa-link--consultor">
+                <span class="pa-link-ico">⬟</span>
+                <div>
+                  <div class="pa-link-label">Consultas ET2023</div>
+                  <div class="pa-link-sub">Expedientes territoriales</div>
+                </div>
+              </a>
+              <a href="/modules/consultor-cg2026/consultor-cg2026.html" class="pa-link pa-link--cg">
+                <span class="pa-link-ico">⬟</span>
+                <div>
+                  <div class="pa-link-label">Consultas CG2026</div>
+                  <div class="pa-link-sub">Expedientes Congreso</div>
+                </div>
+              </a>
+              <a href="/modules/consultor-fn2025/consultor-fn2025.html" class="pa-link pa-link--fn">
+                <span class="pa-link-ico">⬟</span>
+                <div>
+                  <div class="pa-link-label">Consultas FN2025</div>
+                  <div class="pa-link-sub">Funcionamiento 2025</div>
+                </div>
+              </a>
+              <a href="/modules/auditor-ia/auditor-ia.html" class="pa-link pa-link--auditor">
+                <span class="pa-link-ico">⚡</span>
+                <div>
+                  <div class="pa-link-label">Auditor IA</div>
+                  <div class="pa-link-sub">Análisis y requerimientos</div>
+                </div>
+              </a>
+              <a href="/modules/requerimientos/requerimientos.html" class="pa-link pa-link--req">
+                <span class="pa-link-ico">◌</span>
+                <div>
+                  <div class="pa-link-label">Requerimientos</div>
+                  <div class="pa-link-sub">Gestión de oficios</div>
+                </div>
+              </a>
+              <a href="/modules/carlitos/carlitos.html" class="pa-link pa-link--ai">
+                <span class="pa-link-ico">🤖</span>
+                <div>
+                  <div class="pa-link-label">Carlitos IA</div>
+                  <div class="pa-link-sub">Asistente legal</div>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Checklist jurídico -->
+          <div class="content-card pa-check-card">
+            <div class="card-section-title">// CHECKLIST REVISIÓN JURÍDICA</div>
+            <div class="pa-checklist" id="pa-checklist">
+              <!-- Renderizado por JS -->
+            </div>
+            <button class="pa-btn-reset" onclick="resetChecklist()">Reiniciar checklist</button>
+          </div>
+
+          <!-- Notas -->
+          <div class="content-card pa-notas-card">
+            <div class="card-section-title">// MIS NOTAS</div>
+            <textarea id="pa-notas" class="pa-textarea" placeholder="Conceptos jurídicos, fechas clave, observaciones personales…"></textarea>
+            <button class="pa-btn-guardar" onclick="guardarNotas()">Guardar notas</button>
+            <div id="pa-notas-msg" class="pa-notas-msg"></div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/components/sidebar.js"></script>
+  <script src="/core/auth.js"></script>
+  <script type="module" src="panel-abogado.js"></script>
+</body>
+</html>

@@ -1,0 +1,341 @@
+/**
+ * modules/panel-contador/panel-contador.css
+ */
+
+.main-content {
+  margin-left: var(--sidebar-w);
+  padding: 28px 32px 48px;
+  min-height: 100vh;
+  flex: 1;
+}
+
+/* ── KPIs ────────────────────────────────────────────────────────────────── */
+.pc-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.pc-kpi {
+  background: rgba(3, 12, 35, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 18px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.pc-kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.pc-kpi--total::before   { background: var(--cyan); }
+.pc-kpi--termino::before { background: #00e676; }
+.pc-kpi--vencido::before { background: #ff5252; }
+.pc-kpi--cert::before    { background: #00b0ff; }
+.pc-kpi--pend::before    { background: #ffab40; }
+
+.pc-kpi-val {
+  font-family: 'Orbitron', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.pc-kpi--total   .pc-kpi-val { color: var(--cyan); }
+.pc-kpi--termino .pc-kpi-val { color: #00e676; }
+.pc-kpi--vencido .pc-kpi-val { color: #ff5252; }
+.pc-kpi--cert    .pc-kpi-val { color: #00b0ff; }
+.pc-kpi--pend    .pc-kpi-val { color: #ffab40; }
+
+.pc-kpi-lbl {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+.pc-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+/* ── Card principal ──────────────────────────────────────────────────────── */
+.content-card {
+  background: rgba(3, 12, 35, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.card-section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  display: block;
+}
+
+.pc-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pc-card-header .card-section-title {
+  margin-bottom: 0;
+}
+
+.pc-filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pc-input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(252, 209, 22, 0.2);
+  border-radius: 3px;
+  color: var(--text-main);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  padding: 6px 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.pc-input:focus { border-color: rgba(252, 209, 22, 0.5); }
+.pc-input::placeholder { color: rgba(237, 240, 247, 0.3); }
+
+.pc-sel {
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.pc-sel option { background: #04101e; }
+
+/* ── Stats ───────────────────────────────────────────────────────────────── */
+.pc-stats {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* ── Tabla ───────────────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+
+.pc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.pc-table th {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: rgba(252, 209, 22, 0.45);
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.pc-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(252, 209, 22, 0.07);
+  vertical-align: middle;
+  color: var(--text-main);
+}
+
+.pc-table tbody tr:hover td {
+  background: rgba(252, 209, 22, 0.03);
+}
+
+.pc-table .table-loading {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 32px;
+  font-size: 13px;
+}
+
+/* Consecutivo destacado */
+.pc-consec {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--cyan);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Badges estado ───────────────────────────────────────────────────────── */
+.pc-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-family: 'Orbitron', monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pc-badge--pend   { background: rgba(255, 171, 64, 0.15); color: #ffab40; border: 1px solid rgba(255,171,64,0.3); }
+.pc-badge--cert   { background: rgba(0, 176, 255, 0.12); color: #00b0ff; border: 1px solid rgba(0,176,255,0.3); }
+.pc-badge--venc   { background: rgba(255, 82, 82, 0.12); color: #ff5252; border: 1px solid rgba(255,82,82,0.3); }
+.pc-badge--ofic   { background: rgba(252, 209, 22, 0.1); color: var(--cyan); border: 1px solid rgba(252,209,22,0.3); }
+.pc-badge--inv    { background: rgba(156, 39, 176, 0.15); color: #ce93d8; border: 1px solid rgba(156,39,176,0.3); }
+.pc-badge--dev    { background: rgba(255, 255, 255, 0.06); color: rgba(237,240,247,0.5); border: 1px solid rgba(255,255,255,0.1); }
+.pc-badge--reas   { background: rgba(0, 230, 118, 0.1); color: #00e676; border: 1px solid rgba(0,230,118,0.25); }
+.pc-badge--other  { background: rgba(255,255,255,0.05); color: rgba(237,240,247,0.45); border: 1px solid rgba(255,255,255,0.08); }
+
+/* Tiempo */
+.pc-tiempo { font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pc-tiempo--ok   { color: #00e676; }
+.pc-tiempo--venc { color: #ff5252; }
+.pc-tiempo--nd   { color: var(--text-muted); }
+
+/* Días */
+.pc-dias { font-family: 'Orbitron', monospace; font-size: 11px; font-variant-numeric: tabular-nums; }
+
+/* Observación */
+.pc-obs { font-size: 12px; color: rgba(237,240,247,0.5); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Columna lateral ─────────────────────────────────────────────────────── */
+.pc-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Links herramientas ──────────────────────────────────────────────────── */
+.pc-links-card { padding: 18px; }
+
+.pc-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pc-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(252, 209, 22, 0.12);
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+  color: var(--text-main);
+}
+
+.pc-link:hover {
+  background: rgba(252, 209, 22, 0.06);
+  border-color: rgba(252, 209, 22, 0.3);
+}
+
+.pc-link-ico {
+  font-size: 16px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--cyan);
+}
+
+.pc-link--revision .pc-link-ico { color: #00e5d4; }
+.pc-link--cuentas  .pc-link-ico { color: #00b0ff; }
+.pc-link--analisis .pc-link-ico { color: #b39ddb; }
+.pc-link--pdf      .pc-link-ico { color: #ff7043; }
+.pc-link--req      .pc-link-ico { color: #ffca28; }
+.pc-link--rep      .pc-link-ico { color: #80cbc4; }
+.pc-link--actas    .pc-link-ico { color: #a5d6a7; }
+.pc-link--ai       .pc-link-ico { color: var(--cyan); }
+
+.pc-link-label {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Rajdhani', sans-serif;
+  line-height: 1;
+}
+
+.pc-link-sub {
+  font-size: 11px;
+  color: rgba(237,240,247,0.4);
+  margin-top: 2px;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* ── Notas personales ────────────────────────────────────────────────────── */
+.pc-notas-card { padding: 18px; }
+
+.pc-textarea {
+  width: 100%;
+  min-height: 120px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(252, 209, 22, 0.15);
+  border-radius: 3px;
+  color: var(--text-main);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  padding: 10px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.pc-textarea:focus { border-color: rgba(252, 209, 22, 0.4); }
+.pc-textarea::placeholder { color: rgba(237,240,247,0.25); }
+
+.pc-btn-guardar {
+  width: 100%;
+  padding: 8px;
+  background: rgba(252, 209, 22, 0.1);
+  border: 1px solid rgba(252, 209, 22, 0.3);
+  border-radius: 3px;
+  color: var(--cyan);
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pc-btn-guardar:hover { background: rgba(252, 209, 22, 0.18); }
+
+.pc-notas-msg {
+  font-size: 11px;
+  margin-top: 6px;
+  color: #00e676;
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 16px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .pc-layout { grid-template-columns: 1fr; }
+  .pc-kpis   { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 720px) {
+  .main-content { padding: 16px; }
+  .pc-kpis      { grid-template-columns: repeat(2, 1fr); }
+}
